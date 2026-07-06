@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} - Sistema de Eventos{% endblock %}
+
+{% block content %}
+<h2>{{ titulo }}</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3 id="form-titulo">Cadastrar novo</h3>
+    <form id="form-registro"></form>
+    <div class="acoes-form">
+        <button type="submit" form="form-registro" class="btn-primario">Salvar</button>
+        <button type="button" id="btn-cancelar-edicao" class="btn-secundario" style="display:none;">Cancelar edição</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Listagem</h3>
+    <table>
+        <thead>
+            <tr>
+                {% for coluna in colunas %}
+                <th>{{ coluna.label }}</th>
+                {% endfor %}
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/crud.js') }}"></script>
+<script>
+    initCrudPage({
+        listEndpoint: {{ api.list | tojson }},
+        createEndpoint: {{ api.create | tojson }},
+        updateEndpoint: (id) => `{{ api.update_prefix }}${id}`,
+        deleteEndpoint: (id) => `{{ api.delete_prefix }}${id}`,
+        columns: {{ colunas | tojson }},
+        fields: {{ campos | tojson }},
+    });
+</script>
+{% endblock %}

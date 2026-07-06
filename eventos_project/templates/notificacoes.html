@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Notificações{% endblock %}
+
+{% block content %}
+<h2>Notificações</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Enviar notificação avulsa</h3>
+    <form id="form-notificacao">
+        <label>ID do Usuário</label>
+        <input type="number" id="not-usuario-id" required>
+        <label>Mensagem</label>
+        <textarea id="not-mensagem" required></textarea>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Enviar</button>
+        </div>
+    </form>
+    <p style="font-size:13px;color:#555;">
+        Notificações em massa são geradas automaticamente ao publicar um Comunicado (ver página Organizadores).
+    </p>
+</div>
+
+<div class="card">
+    <h3>Notificações de um usuário</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Usuário</label>
+            <input type="number" id="busca-usuario-id">
+        </div>
+        <button class="btn-secundario" onclick="carregarNotificacoes()">Listar</button>
+    </div>
+    <table>
+        <thead><tr><th>ID</th><th>Mensagem</th><th>Data de envio</th></tr></thead>
+        <tbody id="notificacoes-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("form-notificacao").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/notificacoes/", {
+            usuario_id: Number(document.getElementById("not-usuario-id").value),
+            mensagem: document.getElementById("not-mensagem").value,
+        });
+        mostrarMensagem("mensagem", "Notificação enviada com sucesso.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function carregarNotificacoes() {
+    const usuarioId = document.getElementById("busca-usuario-id").value;
+    const tbody = document.getElementById("notificacoes-body");
+    tbody.innerHTML = "";
+    try {
+        const notificacoes = await apiGet(`/notificacoes/usuario/${usuarioId}`);
+        notificacoes.forEach((notificacao) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${notificacao.id}</td><td>${notificacao.mensagem}</td><td>${notificacao.data_envio ?? ""}</td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+</script>
+{% endblock %}

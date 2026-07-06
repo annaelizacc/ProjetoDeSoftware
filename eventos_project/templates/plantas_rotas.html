@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Planta Baixa / Rotas{% endblock %}
+
+{% block content %}
+<h2>Planta Baixa e Rotas</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Planta Baixa de um Evento</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Evento</label>
+            <input type="number" id="evento-id-busca">
+        </div>
+        <button class="btn-secundario" onclick="buscarPlanta()">Buscar</button>
+    </div>
+    <div id="planta-resultado"></div>
+
+    <h4>Cadastrar planta baixa</h4>
+    <form id="form-planta">
+        <label>ID do Evento</label>
+        <input type="number" id="planta-evento-id" required>
+        <label>URL/caminho do mapa</label>
+        <input type="text" id="planta-mapa" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Rotas de uma Planta Baixa</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID da Planta Baixa</label>
+            <input type="number" id="planta-id-busca">
+        </div>
+        <button class="btn-secundario" onclick="listarRotas()">Listar rotas</button>
+    </div>
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Origem</th><th>Destino</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="rotas-body"></tbody>
+    </table>
+
+    <h4>Cadastrar rota</h4>
+    <form id="form-rota">
+        <label>ID da Planta Baixa</label>
+        <input type="number" id="rota-planta-id" required>
+        <label>Origem</label>
+        <input type="text" id="rota-origem" required>
+        <label>Destino</label>
+        <input type="text" id="rota-destino" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function buscarPlanta() {
+    const eventoId = document.getElementById("evento-id-busca").value;
+    const div = document.getElementById("planta-resultado");
+    try {
+        const planta = await apiGet(`/plantas-baixa/evento/${eventoId}`);
+        div.innerHTML = `<p><strong>ID:</strong> ${planta.id} — <strong>Mapa:</strong> ${planta.mapa}</p>`;
+    } catch (erro) {
+        div.innerHTML = "";
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+document.getElementById("form-planta").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/plantas-baixa/", {
+            evento_id: Number(document.getElementById("planta-evento-id").value),
+            mapa: document.getElementById("planta-mapa").value,
+        });
+        mostrarMensagem("mensagem", "Planta baixa cadastrada com sucesso.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function listarRotas() {
+    const plantaId = document.getElementById("planta-id-busca").value;
+    const tbody = document.getElementById("rotas-body");
+    tbody.innerHTML = "";
+    try {
+        const rotas = await apiGet(`/rotas/planta/${plantaId}`);
+        rotas.forEach((rota) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${rota.id}</td><td>${rota.origem}</td><td>${rota.destino}</td>
+                <td><button class="btn-perigo" onclick="excluirRota(${rota.id})">Excluir</button></td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function excluirRota(id) {
+    if (!confirm("Confirma a exclusão desta rota?")) return;
+    try {
+        await apiDelete(`/rotas/${id}`);
+        mostrarMensagem("mensagem", "Rota removida com sucesso.", "sucesso");
+        listarRotas();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+document.getElementById("form-rota").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/rotas/", {
+            planta_baixa_id: Number(document.getElementById("rota-planta-id").value),
+            origem: document.getElementById("rota-origem").value,
+            destino: document.getElementById("rota-destino").value,
+        });
+        mostrarMensagem("mensagem", "Rota cadastrada com sucesso.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<h2>Usuários</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Cadastrar usuário</h3>
+    <form id="form-cadastro">
+        <label>Nome</label>
+        <input type="text" id="cad-nome" required>
+        <label>E-mail</label>
+        <input type="email" id="cad-email" required>
+        <label>Senha</label>
+        <input type="password" id="cad-senha" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Cadastrar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Login</h3>
+    <form id="form-login">
+        <label>E-mail</label>
+        <input type="email" id="login-email" required>
+        <label>Senha</label>
+        <input type="password" id="login-senha" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Entrar</button>
+        </div>
+    </form>
+    <div id="login-resultado"></div>
+</div>
+
+<div class="card">
+    <h3>Alterar tema (modo escuro)</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Usuário</label>
+            <input type="number" id="tema-usuario-id">
+        </div>
+        <div>
+            <label>Modo escuro?</label>
+            <select id="tema-valor">
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+            </select>
+        </div>
+        <button class="btn-secundario" onclick="alterarTema()">Salvar</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Agenda personalizada</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Usuário</label>
+            <input type="number" id="agenda-usuario-id">
+        </div>
+        <button class="btn-secundario" onclick="verAgenda()">Consultar</button>
+    </div>
+    <pre id="agenda-resultado"></pre>
+</div>
+
+<div class="card">
+    <h3>Listagem de usuários</h3>
+    <table>
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Tipo</th></tr></thead>
+        <tbody id="usuarios-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("form-cadastro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/usuarios/cadastro", {
+            nome: document.getElementById("cad-nome").value,
+            email: document.getElementById("cad-email").value,
+            senha: document.getElementById("cad-senha").value,
+        });
+        mostrarMensagem("mensagem", "Usuário cadastrado com sucesso.", "sucesso");
+        e.target.reset();
+        carregarUsuarios();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+document.getElementById("form-login").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const div = document.getElementById("login-resultado");
+    try {
+        const usuario = await apiPost("/usuarios/login", {
+            email: document.getElementById("login-email").value,
+            senha: document.getElementById("login-senha").value,
+        });
+        div.innerHTML = `<p>Bem-vindo(a), <strong>${usuario.nome}</strong> (ID ${usuario.id})</p>`;
+    } catch (erro) {
+        div.innerHTML = "";
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function alterarTema() {
+    const id = document.getElementById("tema-usuario-id").value;
+    const modoEscuro = document.getElementById("tema-valor").value === "true";
+    try {
+        await apiRequest(`/usuarios/${id}/tema`, {
+            method: "PUT",
+            body: JSON.stringify({ modo_escuro: modoEscuro }),
+        });
+        mostrarMensagem("mensagem", "Tema atualizado com sucesso.", "sucesso");
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function verAgenda() {
+    const id = document.getElementById("agenda-usuario-id").value;
+    const pre = document.getElementById("agenda-resultado");
+    try {
+        const agenda = await apiGet(`/usuarios/${id}/agenda`);
+        pre.textContent = JSON.stringify(agenda, null, 2);
+    } catch (erro) {
+        pre.textContent = "";
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function carregarUsuarios() {
+    const tbody = document.getElementById("usuarios-body");
+    tbody.innerHTML = "";
+    try {
+        const usuarios = await apiGet("/usuarios/");
+        usuarios.forEach((usuario) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${usuario.id}</td><td>${usuario.nome}</td><td>${usuario.email}</td><td>${usuario.tipo}</td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+carregarUsuarios();
+</script>
+{% endblock %}

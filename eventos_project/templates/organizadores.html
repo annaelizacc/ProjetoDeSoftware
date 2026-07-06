@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Organizadores{% endblock %}
+
+{% block content %}
+<h2>Organizadores</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Cadastrar organizador</h3>
+    <form id="form-cadastro">
+        <label>Nome</label>
+        <input type="text" id="cad-nome" required>
+        <label>E-mail</label>
+        <input type="email" id="cad-email" required>
+        <label>Senha</label>
+        <input type="password" id="cad-senha" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Cadastrar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Enviar comunicado</h3>
+    <form id="form-comunicado">
+        <label>ID do Organizador</label>
+        <input type="number" id="com-organizador-id" required>
+        <label>Título</label>
+        <input type="text" id="com-titulo" required>
+        <label>Mensagem</label>
+        <textarea id="com-mensagem" required></textarea>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Publicar comunicado</button>
+        </div>
+    </form>
+    <p style="font-size:13px;color:#555;">
+        Ao publicar, uma notificação é gerada automaticamente para todos os usuários cadastrados.
+    </p>
+</div>
+
+<div class="card">
+    <h3>Gerenciar inscrições</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Organizador</label>
+            <input type="number" id="ins-organizador-id">
+        </div>
+        <div>
+            <label>Filtrar por Palestra (opcional)</label>
+            <input type="number" id="ins-palestra-id">
+        </div>
+        <div>
+            <label>Filtrar por Status (opcional)</label>
+            <input type="text" id="ins-status" placeholder="pendente / confirmada">
+        </div>
+        <button class="btn-secundario" onclick="listarInscricoes()">Buscar</button>
+    </div>
+    <table>
+        <thead><tr><th>ID</th><th>Usuário</th><th>Palestra</th><th>Status</th></tr></thead>
+        <tbody id="inscricoes-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("form-cadastro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/organizadores/cadastro", {
+            nome: document.getElementById("cad-nome").value,
+            email: document.getElementById("cad-email").value,
+            senha: document.getElementById("cad-senha").value,
+        });
+        mostrarMensagem("mensagem", "Organizador cadastrado com sucesso.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+document.getElementById("form-comunicado").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("com-organizador-id").value;
+    try {
+        await apiPost(`/organizadores/${id}/comunicado`, {
+            titulo: document.getElementById("com-titulo").value,
+            mensagem: document.getElementById("com-mensagem").value,
+        });
+        mostrarMensagem("mensagem", "Comunicado publicado e notificações enviadas.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function listarInscricoes() {
+    const organizadorId = document.getElementById("ins-organizador-id").value;
+    const palestraId = document.getElementById("ins-palestra-id").value;
+    const status = document.getElementById("ins-status").value;
+    const tbody = document.getElementById("inscricoes-body");
+    tbody.innerHTML = "";
+
+    const params = new URLSearchParams();
+    if (palestraId) params.append("palestra_id", palestraId);
+    if (status) params.append("status", status);
+
+    try {
+        const inscricoes = await apiGet(`/organizadores/${organizadorId}/inscricoes?${params}`);
+        inscricoes.forEach((inscricao) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${inscricao.id}</td><td>${inscricao.usuario_id}</td>
+                <td>${inscricao.palestra_id}</td><td>${inscricao.status}</td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+</script>
+{% endblock %}

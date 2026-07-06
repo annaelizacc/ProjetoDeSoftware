@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Inscrições{% endblock %}
+
+{% block content %}
+<h2>Inscrições</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Nova inscrição</h3>
+    <form id="form-inscricao">
+        <label>ID do Usuário</label>
+        <input type="number" id="ins-usuario-id" required>
+        <label>ID da Palestra</label>
+        <input type="number" id="ins-palestra-id" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Inscrever</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Todas as inscrições</h3>
+    <button class="btn-secundario" onclick="carregarInscricoes()">Atualizar lista</button>
+    <table>
+        <thead><tr><th>ID</th><th>Usuário</th><th>Palestra</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="inscricoes-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("form-inscricao").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/inscricoes/", {
+            usuario_id: Number(document.getElementById("ins-usuario-id").value),
+            palestra_id: Number(document.getElementById("ins-palestra-id").value),
+        });
+        mostrarMensagem("mensagem", "Inscrição realizada com sucesso.", "sucesso");
+        e.target.reset();
+        carregarInscricoes();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function confirmarInscricao(id) {
+    try {
+        await apiPut(`/inscricoes/${id}/confirmar`, {});
+        mostrarMensagem("mensagem", "Inscrição confirmada.", "sucesso");
+        carregarInscricoes();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function cancelarInscricao(id) {
+    if (!confirm("Confirma o cancelamento desta inscrição?")) return;
+    try {
+        await apiDelete(`/inscricoes/${id}`);
+        mostrarMensagem("mensagem", "Inscrição cancelada. A vaga foi devolvida à palestra.", "sucesso");
+        carregarInscricoes();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function carregarInscricoes() {
+    const tbody = document.getElementById("inscricoes-body");
+    tbody.innerHTML = "";
+    try {
+        const inscricoes = await apiGet("/inscricoes/");
+        inscricoes.forEach((inscricao) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${inscricao.id}</td><td>${inscricao.usuario_id}</td>
+                <td>${inscricao.palestra_id}</td><td>${inscricao.status}</td>
+                <td>
+                    <button class="btn-editar" onclick="confirmarInscricao(${inscricao.id})">Confirmar</button>
+                    <button class="btn-perigo" onclick="cancelarInscricao(${inscricao.id})">Cancelar</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+carregarInscricoes();
+</script>
+{% endblock %}

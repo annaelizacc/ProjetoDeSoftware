@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Favoritos{% endblock %}
+
+{% block content %}
+<h2>Favoritos</h2>
+<div id="mensagem" class="alerta"></div>
+
+<div class="card">
+    <h3>Adicionar favorito</h3>
+    <form id="form-favorito">
+        <label>ID do Usuário</label>
+        <input type="number" id="fav-usuario-id" required>
+        <label>ID da Palestra</label>
+        <input type="number" id="fav-palestra-id" required>
+        <div class="acoes-form">
+            <button type="submit" class="btn-primario">Adicionar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Favoritos de um usuário</h3>
+    <div class="filtro-linha">
+        <div>
+            <label>ID do Usuário</label>
+            <input type="number" id="busca-usuario-id">
+        </div>
+        <button class="btn-secundario" onclick="carregarFavoritos()">Listar</button>
+    </div>
+    <table>
+        <thead><tr><th>ID</th><th>Palestra</th><th>Data</th><th>Ações</th></tr></thead>
+        <tbody id="favoritos-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("form-favorito").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await apiPost("/favoritos/", {
+            usuario_id: Number(document.getElementById("fav-usuario-id").value),
+            palestra_id: Number(document.getElementById("fav-palestra-id").value),
+        });
+        mostrarMensagem("mensagem", "Palestra adicionada aos favoritos.", "sucesso");
+        e.target.reset();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+});
+
+async function removerFavorito(usuarioId, palestraId) {
+    if (!confirm("Remover esta palestra dos favoritos?")) return;
+    try {
+        await apiDelete("/favoritos/", { usuario_id: usuarioId, palestra_id: palestraId });
+        mostrarMensagem("mensagem", "Favorito removido.", "sucesso");
+        carregarFavoritos();
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+
+async function carregarFavoritos() {
+    const usuarioId = document.getElementById("busca-usuario-id").value;
+    const tbody = document.getElementById("favoritos-body");
+    tbody.innerHTML = "";
+    try {
+        const favoritos = await apiGet(`/favoritos/usuario/${usuarioId}`);
+        favoritos.forEach((favorito) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${favorito.id}</td><td>${favorito.palestra_id}</td>
+                <td>${favorito.data_favoritacao ?? ""}</td>
+                <td><button class="btn-perigo" onclick="removerFavorito(${usuarioId}, ${favorito.palestra_id})">Remover</button></td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (erro) {
+        mostrarMensagem("mensagem", erro.message, "erro");
+    }
+}
+</script>
+{% endblock %}
