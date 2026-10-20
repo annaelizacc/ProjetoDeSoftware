@@ -3,6 +3,9 @@ Caso de uso: atualizar uma palestra existente.
 
 CAMADA: Services (regra de negócio do caso de uso "Atualizar Palestra").
 
+Quando `id_localizacao` ou `id_palestrante` são enviados, passam pelas
+mesmas conferências da criação (existem? o local é do mesmo evento?).
+
 Método principal:
     execute(id_palestra, dados): retorna a Palestra atualizada.
 """
@@ -10,6 +13,7 @@ Método principal:
 from datetime import datetime
 
 from backend.models.palestra import Palestra
+from backend.services.palestra.criar_palestra_service import validar_local_e_palestrante
 
 
 def _converter_data(valor):
@@ -31,7 +35,9 @@ class AtualizarPalestraService:
         if "horario_fim" in dados:
             dados["horario_fim"] = _converter_data(dados["horario_fim"])
 
-        palestra = Palestra.atualizar(id_palestra, **dados)
-        if not palestra:
+        atual = Palestra.buscar_por_id(id_palestra)
+        if not atual:
             raise ValueError("Palestra não encontrada.")
-        return palestra
+        validar_local_e_palestrante(dados, dados.get("id_evento") or atual.id_evento)
+
+        return Palestra.atualizar(id_palestra, **dados)

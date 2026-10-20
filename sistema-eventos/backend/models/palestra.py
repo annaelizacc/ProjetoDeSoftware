@@ -4,9 +4,15 @@ Model: Palestra.
 CAMADA: Models (entidade de domínio + persistência).
 
 Representa uma palestra pertencente a um Evento. Além dos campos vindos
-do banco oficial (título, resumo, tema, sala, horários), a Palestra
-controla o número de vagas disponíveis para inscrição — regra que existia
-antes desta refatoração e foi preservada.
+do banco oficial (título, resumo, tema, horários), a Palestra controla o
+número de vagas disponíveis para inscrição — regra que existia antes desta
+refatoração e foi preservada.
+
+Local e palestrante (F19/D01): o antigo texto livre `sala` virou
+`id_localizacao` (um registro de `localizacao`, usado na tela de rotas da
+F04), e `id_palestrante` liga a palestra a quem a apresenta (F05). Os dois
+são opcionais. Para o app não precisar mudar, o `to_dict` continua
+devolvendo o campo `sala`, agora com o nome do local.
 
 Herda `db.Model` (tabela `palestra`) e `CRUDMixin` (CRUD padrão). O método
 `criar` é sobrescrito porque a Palestra tem uma regra própria: ao ser
@@ -29,17 +35,24 @@ class Palestra(db.Model, CRUDMixin):
     titulo = db.Column(db.String(200), nullable=False)
     resumo = db.Column(db.Text)
     tema = db.Column(db.String(120))
-    sala = db.Column(db.String(60))
     horario_inicio = db.Column(db.DateTime)
     horario_fim = db.Column(db.DateTime)
     id_evento = db.Column(
         db.Integer, db.ForeignKey("evento.id_evento"), nullable=False
+    )
+    id_localizacao = db.Column(
+        db.Integer, db.ForeignKey("localizacao.id_localizacao")
+    )
+    id_palestrante = db.Column(
+        db.Integer, db.ForeignKey("palestrante.id_palestrante")
     )
     # Extensão necessária para controlar vagas de inscrição.
     vagas_total = db.Column(db.Integer, nullable=False, default=50)
     vagas_disponiveis = db.Column(db.Integer, nullable=False, default=50)
 
     evento = db.relationship("Evento", back_populates="palestras")
+    localizacao = db.relationship("Localizacao")
+    palestrante = db.relationship("Palestrante")
 
     @classmethod
     def criar(cls, **dados):
@@ -59,13 +72,15 @@ class Palestra(db.Model, CRUDMixin):
         return instancia
 
     def to_dict(self):
-        """Serializa a palestra, incluindo o nome do evento e o status das vagas."""
+        """Serializa a palestra, incluindo o nome do evento, o local e o status das vagas."""
         return {
             "id_palestra": self.id_palestra,
             "titulo": self.titulo,
             "resumo": self.resumo,
             "tema": self.tema,
-            "sala": self.sala,
+            "sala": self.localizacao.nome_local if self.localizacao else None,
+            "id_localizacao": self.id_localizacao,
+            "id_palestrante": self.id_palestrante,
             "horario_inicio": (
                 self.horario_inicio.isoformat() if self.horario_inicio else None
             ),
