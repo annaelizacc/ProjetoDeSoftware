@@ -7,11 +7,13 @@
   se formando agora.
 - A ferramenta é usada para desenvolver **e para aprender**. Entender como
   e por que o código é construído é tão importante quanto o código pronto.
-- Código atual: `sistema-eventos-refatorado/sistema-eventos/`
+- Código atual: `sistema-eventos/`
   (backend Flask, frontend Flutter, banco MySQL).
-- Controle de tarefas: `PENDENCIAS.md` (raiz do repositório).
-- Documentos de referência do projeto: pasta `arq_ref/` (raiz do
-  repositório). São os documentos mais importantes do projeto e devem ser
+- Documentação do projeto: pasta `docs/` (raiz do repositório). Só o
+  `CLAUDE.md` fica fora dela, na raiz, porque é lido automaticamente
+  pelo Claude Code apenas nesse lugar.
+- Controle de tarefas: `docs/PENDENCIAS.md`.
+- Documentos de referência do projeto: pasta `docs/arq_ref/`. São os documentos mais importantes do projeto e devem ser
   consultados antes de planejar qualquer tarefa. Se algo pedido contradizer
   esses documentos, avisar antes de seguir.
 - Toda a comunicação deve ser em português.
@@ -75,7 +77,7 @@ projeto, fazer a apresentação abaixo. Para quem está começando, antes de qua
 nesta ordem:
 
 1. **Resumo do projeto:** o problema e a solução (relatório em
-   `arq_ref/`), as tecnologias (Flutter, Flask, MySQL), a arquitetura
+   `docs/arq_ref/`), as tecnologias (Flutter, Flask, MySQL), a arquitetura
    Controller → Service → Model/Repository e onde fica o código.
 2. **O que já foi feito:** os RFs concluídos e as tarefas com status
    Concluído no `PENDENCIAS.md`, além das decisões já tomadas (D01 e os
@@ -83,14 +85,14 @@ nesta ordem:
 3. **O que falta fazer:** as tarefas pendentes, agrupadas por prioridade.
 4. **Arquivos para ler**, nesta ordem, dizendo para que serve cada um:
    - `CLAUDE.md`: as regras do projeto e a identidade visual;
-   - `FLUXO_DE_TRABALHO.md`: o passo a passo de cada tarefa (branch,
+   - `docs/FLUXO_DE_TRABALHO.md`: o passo a passo de cada tarefa (branch,
      testes, commit, Pull Request e merge);
-   - `PENDENCIAS.md`: a seção 0 (plano e cronograma) e as tarefas da
+   - `docs/PENDENCIAS.md`: a seção 0 (plano e cronograma) e as tarefas da
      pessoa;
-   - `README.md` (em `sistema-eventos-refatorado/sistema-eventos/`):
+   - `README.md` (em `sistema-eventos/`):
      como instalar e rodar o sistema;
-   - `DOCUMENTACAO.md`: as decisões registradas e seus motivos;
-   - o relatório em `arq_ref/` e o canvas da identidade visual.
+   - `docs/DOCUMENTACAO.md`: as decisões registradas e seus motivos;
+   - o relatório em `docs/arq_ref/` e o canvas da identidade visual.
 5. **O cronograma da pessoa:** as tarefas dela por dia, tiradas da seção
    "0.1 Cronograma" do `PENDENCIAS.md`, com as dependências e as
    sincronizações que a afetam.
@@ -144,7 +146,7 @@ Regras:
   (`frontend/Flutter/lib/theme/app_theme.dart`). As telas nunca usam
   cores fixas.
 
-## Controle de tarefas: PENDENCIAS.md
+## Controle de tarefas: docs/PENDENCIAS.md
 
 - O `PENDENCIAS.md` é o controle central de **tudo** o que precisa ser
   feito no projeto, e deve ser mantido assim.
@@ -157,5 +159,5 @@ Regras:
 - **Sempre perguntar** se a resolução da tarefa deve ser registrada. Nem
   tudo será gravado: os registros servem para montar a documentação
   final do projeto. Só registrar quando a resposta for sim. O registro
-  fica em `DOCUMENTACAO.md` (raiz do repositório), com uma seção por
+  fica em `docs/DOCUMENTACAO.md`, com uma seção por
   tarefa.

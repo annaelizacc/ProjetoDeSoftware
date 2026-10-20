@@ -1,0 +1,10 @@
+# Arquivos que o Git nunca deve adicionar ao repositório.
+# Versão mínima (P11 parcial): só o que protege senhas e evita o maior volume.
+
+# Configuração local do backend: contém a senha do MySQL de cada pessoa.
+# O modelo sem senha (backend/.env.example) continua no repositório.
+.env
+
+# Ambiente virtual do Python: bibliotecas instaladas no computador de cada
+# pessoa. Quem clona recria com "pip install -r backend/requirements.txt".
+.venv/
