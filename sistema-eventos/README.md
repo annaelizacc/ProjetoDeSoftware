@@ -69,12 +69,19 @@ novos cadastrados devem usar senha protegida por hash.
 
 ## 4. Configurar e executar o backend
 
+Passo a passo detalhado, com a instalação do MySQL e do Flutter, a
+explicação de cada comando e os erros mais comuns:
+`docs/FLUXO_DE_TRABALHO.md`, seções "0. Preparar o computador" e "Rodar o
+sistema no dia a dia".
+
 No terminal, a partir da raiz do repositório (`ProjetoDeSoftware/`):
 
 ```bash
-cd sistema-eventos-refatorado/sistema-eventos
-python -m venv .venv
+cd sistema-eventos
+python3 -m venv .venv
 ```
+
+No Windows, o comando é `python -m venv .venv`.
 
 Linux/macOS:
 
@@ -95,7 +102,9 @@ pip install -r backend/requirements.txt
 ```
 
 Crie `backend/.env` a partir de `backend/.env.example` e ajuste a senha do
-MySQL. Depois execute:
+MySQL. No Ubuntu, o `root` do MySQL não aceita login com senha: crie um
+usuário próprio para o projeto (ver o passo 0.2 do fluxo de trabalho).
+Depois execute:
 
 ```bash
 python -m backend.app
@@ -124,7 +133,7 @@ Resposta esperada:
 Em outro terminal, também a partir da raiz do repositório:
 
 ```bash
-cd sistema-eventos-refatorado/sistema-eventos/frontend/Flutter
+cd sistema-eventos/frontend/Flutter
 flutter pub get
 flutter run
 ```
