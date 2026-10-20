@@ -1,5 +1,8 @@
-# Arquivos que o Git nunca deve adicionar ao repositório.
-# Versão mínima (P11 parcial): só o que protege senhas e evita o maior volume.
+# Arquivos que o Git nunca deve adicionar ao repositório (P11).
+# Regra prática: versiona o que uma pessoa escreveu; ignora o que uma
+# ferramenta gerou ou o que só vale para o computador de quem usa.
+
+# --- Senhas e ambiente local -------------------------------------------
 
 # Configuração local do backend: contém a senha do MySQL de cada pessoa.
 # O modelo sem senha (backend/.env.example) continua no repositório.
@@ -8,3 +11,40 @@
 # Ambiente virtual do Python: bibliotecas instaladas no computador de cada
 # pessoa. Quem clona recria com "pip install -r backend/requirements.txt".
 .venv/
+
+# --- Python (backend) --------------------------------------------------
+
+# Versão pré-compilada dos .py, criada pelo Python a cada execução.
+__pycache__/
+*.pyc
+
+# --- Flutter e Dart (frontend) -----------------------------------------
+
+# Cache e configurações internas das ferramentas do Dart.
+# Recriado com "flutter pub get".
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Resultado da compilação do app. Recriado com "flutter run".
+# Ignora só pastas chamadas "build" (arquivos como build.gradle continuam).
+build/
+
+# --- Android -----------------------------------------------------------
+
+# Cache do Gradle e do Kotlin (ferramentas que compilam a parte Android).
+.gradle/
+.kotlin/
+
+# Caminho do Flutter e do Android SDK no computador de quem compilou.
+local.properties
+
+# Arquivo de projeto do Android Studio/IntelliJ, recriado pela IDE.
+*.iml
+
+# --- iOS ---------------------------------------------------------------
+
+# Arquivos gerados pelo Flutter com caminhos do computador de quem compilou.
+ephemeral/
+Generated.xcconfig
+flutter_export_environment.sh

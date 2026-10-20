@@ -706,6 +706,53 @@ são os conflitos.
 > pessoa. Para trazer a `main` para dentro da sua branch, use
 > `git pull origin main`.
 
+## Atualizar a máquina depois da P11
+
+Vale **uma vez só**, para quem clonou o projeto antes da P11 entrar na
+`main` (20/10/2026). Quem clonar depois não precisa fazer nada.
+
+**O que mudou:** os arquivos gerados pelas ferramentas (`build/`,
+`.gradle/`, `.dart_tool/`, `__pycache__/` e os arquivos locais do
+Flutter) saíram do Git e agora estão no `.gitignore`.
+
+**Por que é preciso um passo a mais:** ao rodar o app, esses arquivos
+mudaram no seu computador. Como até agora o Git cuidava deles, ele
+recusa o `git pull` com a mensagem *"your local changes would be
+overwritten"*. A solução é descartar essas mudanças, que não valem nada
+porque são recriadas pelas ferramentas.
+
+1. Fazer commit do que for **seu** (código da tarefa), se houver, e
+   conferir que o `git status` mostra só arquivos gerados.
+2. Descartar as mudanças **só** nos arquivos gerados (a partir da raiz
+   do repositório):
+
+   ```bash
+   git restore -- 'sistema-eventos/frontend/Flutter/build' 'sistema-eventos/frontend/Flutter/.dart_tool' 'sistema-eventos/frontend/Flutter/android/.gradle' 'sistema-eventos/frontend/Flutter/android/.kotlin' 'sistema-eventos/frontend/Flutter/android/local.properties' 'sistema-eventos/frontend/Flutter/ios/Flutter' '*__pycache__*'
+   ```
+
+   Se o Git disser que algum caminho não existe (`did not match any
+   file`), tirar esse caminho do comando e rodar de novo.
+3. Trazer a `main` atualizada:
+
+   ```bash
+   git checkout main
+   git pull
+   ```
+
+   O Git apaga da pasta os arquivos que deixaram de ser versionados.
+   É esperado.
+4. Recriar os arquivos gerados (agora ignorados pelo Git):
+
+   ```bash
+   cd sistema-eventos/frontend/Flutter
+   flutter pub get
+   ```
+
+   O resto (`build/`, `.gradle/`, `__pycache__/`) volta sozinho na
+   próxima vez que o app e o backend rodarem.
+5. Conferir: rodar o app e depois `git status`. Não deve aparecer nenhum
+   arquivo de `build/`, `.gradle/` ou `__pycache__/`.
+
 ## Regras que valem sempre
 
 - Nada é commitado direto na `main`. A única exceção é o commit inicial
