@@ -65,6 +65,11 @@
    push, Pull Request, merge e testar de novo) está em
    `FLUXO_DE_TRABALHO.md`. Ao final de cada tarefa, indicar à pessoa o
    que fazer seguindo esse arquivo.
+10. **O Claude não faz commit.** O Claude pode alterar os arquivos e
+    criar a branch, mas nunca roda `git commit` (nem `git push`). Ao
+    terminar, mostra o que mudou (`git status`) e sugere a mensagem do
+    commit, e a própria pessoa faz o commit. Assim cada pessoa confere o
+    que vai entrar no histórico e aprende o fluxo do Git na prática.
 
 ## Quando uma pessoa nova começar no projeto
 
