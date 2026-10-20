@@ -70,6 +70,10 @@
     terminar, mostra o que mudou (`git status`) e sugere a mensagem do
     commit, e a própria pessoa faz o commit. Assim cada pessoa confere o
     que vai entrar no histórico e aprende o fluxo do Git na prática.
+11. **Sem coautoria do Claude.** As mensagens de commit e as descrições
+    de Pull Request sugeridas pelo Claude não levam linha
+    `Co-Authored-By` nem qualquer menção ao Claude. O histórico mostra só
+    as pessoas da equipe.
 
 ## Quando uma pessoa nova começar no projeto
 
