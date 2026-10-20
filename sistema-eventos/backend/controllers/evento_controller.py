@@ -1,0 +1,85 @@
+"""
+Controller: Evento.
+
+CAMADA: Controllers (recebe a requisição HTTP e chama o Service certo).
+
+Expõe o CRUD completo de eventos, além dos endpoints derivados de
+programação e agenda que já existiam no projeto original.
+"""
+
+from flask import Blueprint, jsonify, request
+
+from backend.controllers.utils import tratar_erros
+from backend.services.evento.listar_eventos_service import ListarEventosService
+from backend.services.evento.buscar_evento_service import BuscarEventoService
+from backend.services.evento.criar_evento_service import CriarEventoService
+from backend.services.evento.atualizar_evento_service import AtualizarEventoService
+from backend.services.evento.remover_evento_service import RemoverEventoService
+from backend.services.evento.obter_programacao_service import ObterProgramacaoService
+from backend.services.agenda.obter_agenda_usuario_service import ObterAgendaUsuarioService
+
+
+class EventoController:
+    """Controller responsável pelos endpoints de evento."""
+
+    @staticmethod
+    @tratar_erros
+    def listar():
+        return jsonify(ListarEventosService().execute())
+
+    @staticmethod
+    @tratar_erros
+    def buscar(id_evento):
+        evento = BuscarEventoService().execute(id_evento)
+        return jsonify(evento.to_dict())
+
+    @staticmethod
+    @tratar_erros
+    def criar():
+        evento = CriarEventoService().execute(request.get_json() or {})
+        return jsonify(evento.to_dict()), 201
+
+    @staticmethod
+    @tratar_erros
+    def atualizar(id_evento):
+        dados = request.get_json() or {}
+        evento = AtualizarEventoService().execute(id_evento, dados)
+        return jsonify(evento.to_dict())
+
+    @staticmethod
+    @tratar_erros
+    def remover(id_evento):
+        RemoverEventoService().execute(id_evento)
+        return jsonify({"mensagem": "Evento removido."})
+
+    @staticmethod
+    @tratar_erros
+    def programacao(id_evento):
+        return jsonify(ObterProgramacaoService().execute(id_evento))
+
+    @staticmethod
+    @tratar_erros
+    def agenda(id_usuario):
+        return jsonify(ObterAgendaUsuarioService().execute(id_usuario))
+
+
+evento_bp = Blueprint("eventos", __name__, url_prefix="/api/eventos")
+evento_bp.add_url_rule("", view_func=EventoController.listar, methods=["GET"])
+evento_bp.add_url_rule("", view_func=EventoController.criar, methods=["POST"])
+evento_bp.add_url_rule("/<int:id_evento>", view_func=EventoController.buscar, methods=["GET"])
+evento_bp.add_url_rule(
+    "/<int:id_evento>", view_func=EventoController.atualizar, methods=["PUT", "PATCH"]
+)
+evento_bp.add_url_rule(
+    "/<int:id_evento>", view_func=EventoController.remover, methods=["DELETE"]
+)
+evento_bp.add_url_rule(
+    "/<int:id_evento>/programacao",
+    view_func=EventoController.programacao,
+    methods=["GET"],
+)
+evento_bp.add_url_rule(
+    "/<int:id_usuario>/agenda",
+    view_func=EventoController.agenda,
+    methods=["GET"],
+)
