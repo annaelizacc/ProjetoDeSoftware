@@ -47,7 +47,7 @@ branch própria.
 | Dia | Manuela (Pessoa A): base, visual e organizador | Bianca (Pessoa B): telas do participante |
 |---|---|---|
 | Ter 20/10 | **P11 (`.gitignore`)** → P14 (commit inicial) → **F19 (banco)** → **F20 parte 1 (base visual, com F11)** | F02 notificação local |
-| Qua 21/10 | P01, P02, F08 | F01, F06, F07 |
+| Qua 21/10 | P01, P02, F08 | F01, F06 + F07 (uma tela só, "Avaliar") |
 | Qui 22/10 | F14 (com upload de imagem), F09 | F05, F03, F04, F10 (telas de visualização, com dados no SQL) |
 | Sex 23/10 | F20 parte 2 (telas restantes), S05 (dados de demonstração com datas futuras), P09 (README), revisão final | Folga para atrasos e itens da seção 0.2; gravação de tela no fim do dia |
 
@@ -63,6 +63,18 @@ branch própria.
     começa atualizando a branch a partir da `main`;
   - **quarta:** quando a P01 entrar na `main`, a Bianca atualiza a
     branch, e as rotas novas seguem o mesmo padrão de autenticação.
+- **Mudanças da F19 que afetam a Bianca (20/10/2026):**
+  - **recriar o banco local** com o script novo antes de começar a
+    quarta (passo 1.4 do `FLUXO_DE_TRABALHO.md`);
+  - **F06 e F07 viraram uma tela só ("Avaliar"):** a tabela `comentario`
+    deixou de existir, e o comentário é agora um campo opcional da
+    `avaliacao`, junto com as estrelas. A API `/api/comentarios` virou
+    **`/api/avaliacoes`**, já pronta (criar, listar por palestra,
+    atualizar e remover). Falta a tela e a média por palestra;
+  - **palestrante, local, patrocinador:** as tabelas e Models já
+    existem (F05, F04, F10). As tarefas criam as rotas e as telas;
+  - a palestra continua devolvendo `sala` na API (agora vem da tabela
+    `localizacao`), então as telas que já usam `sala` não mudam.
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -140,13 +152,13 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF10 | Planta baixa do local | Parcial: só a tabela e a Model | F03 |
 | RF11 | Rotas até salas e auditórios | Pendente: só a tabela `localizacao` (nome e descrição) | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
-| RF13 | Pesquisar palestrantes pelo nome | Pendente: não existe cadastro de palestrante | F05 |
+| RF13 | Pesquisar palestrantes pelo nome | Pendente: tabela `palestrante` criada na F19; faltam rota e tela | F05 |
 | RF14 | Informações dos palestrantes | Pendente | F05 |
-| RF15 | Comentários e feedbacks sobre palestras | Parcial: a API está pronta, mas não há tela | F06 |
-| RF16 | Avaliar palestras por estrelas | Pendente: existe só o campo `nota` em `comentario` | F07 |
+| RF15 | Comentários e feedbacks sobre palestras | Parcial: a API `/api/avaliacoes` está pronta (F19), mas não há tela | F06 |
+| RF16 | Avaliar palestras por estrelas | Parcial: tabela `avaliacao` e API prontas (F19); falta a tela e a média | F07 |
 | RF17 | Organizador gerencia inscrições | Pendente | F08 |
 | RF18 | Organizador envia comunicados gerais | Pendente | F09 |
-| RF19 | Patrocinadores do evento | Pendente: não existe nem a tabela | F10 |
+| RF19 | Patrocinadores do evento | Pendente: tabela `patrocinador` criada na F19; faltam rota e tela | F10 |
 | RF20 | Modo claro e modo escuro | Pendente: o app só tem o tema claro | F11 |
 
 **Resumo:** 8 concluídos, 4 parciais e 8 pendentes.
@@ -166,7 +178,7 @@ o nome indicado, que aparece acima de cada tela.
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Pendente |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Parcial |
-| F07 | RF16 | 🔴 | Avaliação por estrelas | Pendente |
+| F07 | RF16 | 🔴 | Avaliação por estrelas | Parcial |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Pendente |
 | F09 | RF18 | 🔴 | Comunicados gerais do organizador | Pendente |
 | F10 | RF19 | 🔴 | Patrocinadores do evento | Pendente |
@@ -178,7 +190,7 @@ o nome indicado, que aparece acima de cada tela.
 | F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Pendente |
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Pendente |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
-| F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Pendente |
+| F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
 | F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Pendente |
 
 ### F01 Tela de cadastro de usuário (RF01)
@@ -239,8 +251,9 @@ o nome indicado, que aparece acima de cada tela.
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Detalhes da palestra (RF04–RF07, RF11, RF15)", "Planta do local (RF10)", "Cadastro de local e rota (F04)".
 - **O que já existe:** a tabela `localizacao` (nome do local, descrição e
-  evento). A palestra guarda a sala só como texto (`palestra.sala`), sem
-  ligação com `localizacao`.
+  evento) e, desde a F19, `palestra.id_localizacao`. As antigas salas em
+  texto viraram registros de `localizacao`, e a API continua devolvendo
+  o nome do local no campo `sala`.
 - **O que falta:** definir o que é uma "rota" no app, guardar esses dados,
   criar a API e a tela.
 - **Decidido (D01):** `palestra` passa a apontar para `localizacao`
@@ -259,7 +272,9 @@ o nome indicado, que aparece acima de cada tela.
 ### F05 Palestrantes: busca e informações (RF13, RF14)
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Palestrantes (RF13)", "Perfil do palestrante (RF14)", "Detalhes da palestra (RF04–RF07, RF11, RF15)", "Cadastro de palestrante (F05)".
-- **O que já existe:** apenas `tipo_usuario = 'palestrante'` em `usuario`.
+- **O que já existe (F19):** a tabela `palestrante`, a Model e
+  `palestra.id_palestrante`, com dois palestrantes de exemplo. O tipo
+  `'palestrante'` saiu de `usuario`.
 - **O que falta:** um lugar para guardar os dados do palestrante (bio,
   foto etc.), a ligação entre palestra e palestrante, a busca por nome,
   a tela de perfil e a exibição do palestrante nos detalhes da palestra.
@@ -281,25 +296,27 @@ o nome indicado, que aparece acima de cada tela.
 ### F06 Tela de comentários e feedbacks (RF15)
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Detalhes da palestra (RF04–RF07, RF11, RF15)", "Avaliar palestra (RF16)".
-- **O que já existe:** a API completa de comentários
-  (`/api/comentarios`), com listagem por palestra já trazendo o nome do
-  autor.
-- **O que falta:** mostrar os comentários e um campo para comentar na
-  tela de detalhes da palestra.
-- **Atenção:** relacionado a P01 e P03 (qualquer um pode editar ou apagar
-  comentários de outra pessoa).
+- **Decidido na F19 (20/10/2026):** a tabela `comentario` deixou de
+  existir. O comentário é um campo opcional da `avaliacao`, enviado junto
+  com as estrelas na tela "Avaliar". Por isso, **F06 e F07 são feitas
+  juntas**.
+- **O que já existe:** a API completa de avaliações (`/api/avaliacoes`):
+  `POST /api/avaliacoes`, `GET /api/avaliacoes/palestra/<id>` (já com o
+  nome do autor), `PATCH` e `DELETE /api/avaliacoes/<id>`.
+- **O que falta:** mostrar os comentários na tela de detalhes da palestra
+  e a tela "Avaliar".
+- **Atenção:** relacionado a P01 (qualquer um pode editar ou apagar a
+  avaliação de outra pessoa enquanto não houver autenticação).
 
 ### F07 Avaliação por estrelas (RF16)
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Avaliar palestra (RF16)", "Detalhes da palestra (RF04–RF07, RF11, RF15)".
-- **O que já existe:** o campo `comentario.nota`, que é um decimal (o
-  exemplo do banco usa 9,5, e não estrelas).
-- **O que falta:** avaliação de 1 a 5 estrelas, média por palestra e
-  exibição no app.
-- **Decidido (D01):** criar a tabela `avaliacao` do diagrama
-  (`nota_estrelas`, `comentario`, `id_usuario`, `id_palestra`) e remover
-  o campo `nota` de `comentario`, para a nota ficar guardada em um lugar
-  só.
+- **O que já existe (F19):** a tabela `avaliacao` (`nota_estrelas` de 1
+  a 5, `comentario` opcional) e a API `/api/avaliacoes`. O backend recusa
+  nota fora de 1 a 5 e uma segunda avaliação da mesma pessoa para a
+  mesma palestra (para mudar a nota, usa-se o `PATCH`).
+- **O que falta:** a média por palestra e a exibição no app (feita junto
+  com a F06, na tela "Avaliar").
 
 ### F08 Área do organizador: gerenciar inscrições (RF17)
 
@@ -330,10 +347,10 @@ o nome indicado, que aparece acima de cada tela.
 ### F10 Patrocinadores do evento (RF19)
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Patrocinadores (RF19)", "Cadastro de patrocinador (F10)".
-- **O que já existe:** nada no código. O diagrama do relatório tem a
-  tabela `patrocinador` (nome da empresa, logo, site e descrição, ligada
-  ao evento).
-- **O que falta:** a tabela no banco, a Model, a API e a tela.
+- **O que já existe (F19):** a tabela `patrocinador` (nome da empresa,
+  logo, site e descrição, ligada ao evento), a Model e um patrocinador
+  de exemplo.
+- **O que falta:** a API e a tela.
 - **Decidido (D01):** criar a tabela `patrocinador` seguindo o diagrama.
 - **Decidido:** o logo é enviado pelo organizador e salvo no backend,
   com a mesma solução da F03.
@@ -353,11 +370,11 @@ o nome indicado, que aparece acima de cada tela.
 ### F12 Certificado de participação (diagrama do relatório)
 
 - **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Certificados (F12)".
-- **O que já existe:** nada no código. O diagrama tem a tabela
-  `certificado` (`id_usuario`, `id_evento`, `codigo_validacao`,
-  `data_emissao`).
-- **O que falta:** a tabela no banco (sem o campo sem nome `Atributo_1`),
-  a Model, a API e a tela.
+- **O que já existe (F19):** a tabela `certificado` (`id_usuario`,
+  `id_evento`, `codigo_validacao` único, `data_emissao`, sem o campo sem
+  nome `Atributo_1`) e a Model. Cada usuário tem no máximo um
+  certificado por evento.
+- **O que falta:** a API e a tela.
 - **Decidido (D01):** o certificado é emitido para quem participou do
   evento. Garantir a vaga em uma palestra (inscrição) vale como
   confirmação de presença, então não há lista de presença separada.
@@ -444,6 +461,10 @@ o nome indicado, que aparece acima de cada tela.
   configuração do projeto no Google Cloud (credenciais OAuth) e uma rota
   no backend que confirme a identidade enviada pelo Google e crie ou
   encontre o usuário correspondente.
+- **Banco já preparado (F19, 20/10/2026):** `usuario.senha` aceita vazio
+  (quem entra pelo Google não tem senha) e existe `usuario.google_id`
+  (único). O login por e-mail e senha já recusa usuários sem senha. Se a
+  F18 for feita, não precisa mexer no banco.
 - **Atenção:** é a tarefa nova mais trabalhosa. Envolve configuração
   fora do código (Google Cloud) e um conceito novo, o OAuth, que precisa
   ser bem explicado. Com a entrega em 23/10/2026, a prioridade deve ser
@@ -477,14 +498,19 @@ o nome indicado, que aparece acima de cada tela.
   - deixar `notificacao.id_palestra` opcional (F09);
   - remover o valor `'palestrante'` de `tipo_usuario` e ajustar a
     usuária de exemplo Carla Souza (F05).
-- **Atenção:** se a F18 (Entrar com Google) entrar na entrega, ela pode
-  precisar de mudanças em `usuario`. Nesse caso, essas mudanças também
-  devem entrar aqui.
-- **Decidir nesta tarefa:** a tabela `avaliacao` tem o campo
-  `comentario`, e a tabela `comentario` também existe (F06). Definir se
-  os comentários ficam só em `avaliacao` ou nas duas, para não guardar o
-  mesmo dado em dois lugares. No canvas, avaliação e comentário estão
-  numa tela só ("Avaliar": estrelas + comentário opcional).
+- **Decidido (20/10/2026):**
+  - a tabela `comentario` deixa de existir: o comentário fica só em
+    `avaliacao`, junto com as estrelas. A API de comentários foi adaptada
+    para `/api/avaliacoes`, para a F06/F07 já começar com o backend
+    pronto;
+  - uma avaliação por pessoa e palestra (chave única), como em inscrição
+    e favorito, para a média não ser distorcida;
+  - o exemplo antigo (nota 9,5 de 10) virou 5 estrelas;
+  - preparo para a F18, sem implementá-la: `usuario.senha` aceita vazio e
+    existe `usuario.google_id`. O login por e-mail e senha recusa quem
+    não tem senha.
+- **Concluído (20/10/2026).** Quem já tinha o banco local precisa
+  recriá-lo com o script novo.
 - **Depende de:** P14 (commit da versão atual, para ter um ponto seguro
   antes de mexer no banco).
 
@@ -670,15 +696,15 @@ qualquer alteração.
 
 ### P03 🟡 Atualizações aceitam qualquer campo
 
-- **Onde:** `backend/services/usuario/atualizar_usuario_service.py`,
-  `backend/services/comentario/atualizar_comentario_service.py` (e, em
-  menor grau, os services de atualizar evento e palestra) e o método
-  `atualizar` de `backend/models/crud_mixin.py`.
+- **Onde:** `backend/services/usuario/atualizar_usuario_service.py`
+  (e, em menor grau, os services de atualizar evento e palestra) e o
+  método `atualizar` de `backend/models/crud_mixin.py`.
 - **O que acontece:** o JSON recebido é repassado inteiro para a Model.
-  Isso permite, por exemplo, mudar o `tipo_usuario` de alguém, trocar o
-  autor de um comentário ou alterar `vagas_disponiveis` de uma palestra
-  manualmente. Trocar o email por um que já existe gera erro 500 em vez
-  de uma mensagem clara.
+  Isso permite, por exemplo, mudar o `tipo_usuario` de alguém ou alterar
+  `vagas_disponiveis` de uma palestra manualmente. Trocar o email por um
+  que já existe gera erro 500 em vez de uma mensagem clara.
+- **Já corrigido em um caso:** desde a F19, a atualização de avaliação
+  aceita só `nota_estrelas` e `comentario` (não dá para trocar o autor).
 - **Por que importa:** o backend deve decidir quais campos podem ser
   alterados. Hoje quem decide é quem envia a requisição.
 

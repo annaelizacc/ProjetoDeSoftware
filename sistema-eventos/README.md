@@ -48,11 +48,26 @@ Abra o MySQL Workbench, DBeaver ou o terminal e execute:
 database/sistema_eventos_atualizado.sql
 ```
 
-O script cria o banco `sistema_eventos`, preserva os dados fictícios oficiais e
-faz somente duas extensões:
+O script cria o banco `sistema_eventos` com dados fictícios para
+demonstração. Em relação ao banco oficial, ele:
 
 - adiciona `vagas_total` e `vagas_disponiveis` em `palestra`;
-- cria `favorito` com chave única para impedir duplicidade.
+- cria `favorito` com chave única para impedir duplicidade;
+- segue o diagrama do relatório em `palestrante`, `avaliacao` (estrelas de
+  1 a 5 e comentário opcional, no lugar da antiga `comentario`),
+  `patrocinador` e `certificado`, e liga cada palestra ao seu local
+  (`palestra.id_localizacao`, no lugar do texto `sala`);
+- deixa `usuario` preparado para o login com Google (`senha` opcional e
+  `google_id`), ainda não implementado.
+
+Ao criar ou alterar uma palestra pela API, o local é informado por
+`id_localizacao` (e o palestrante por `id_palestrante`). O campo `sala`
+não é mais aceito na entrada, mas continua nas respostas, com o nome do
+local, para o app não precisar mudar.
+
+**Atenção:** o script começa com `DROP DATABASE`, ou seja, apaga e recria o
+banco inteiro. Quem já tinha o banco criado por uma versão anterior precisa
+rodá-lo de novo, sabendo que os dados locais serão perdidos.
 
 A tabela oficial `notificacao` já tinha `id_palestra` e `tipo_notificacao`.
 Por isso ela também armazena os lembretes, sem criar uma tabela adicional.
@@ -194,7 +209,8 @@ Repositories só foram usados quando a consulta deixa de ser um CRUD simples:
 - busca de palestras com filtros;
 - agenda baseada em `participacao`;
 - favoritos com a palestra relacionada;
-- lembretes filtrados por usuário e palestra.
+- lembretes filtrados por usuário e palestra;
+- avaliações de uma palestra com o nome de quem avaliou.
 
 ### Controle de vagas
 
@@ -241,6 +257,10 @@ dentro do aplicativo.
 | GET | `/api/notificacoes/usuario/<id>` | Avisos |
 | POST | `/api/lembretes` | Ativar lembrete |
 | DELETE | `/api/lembretes` | Desativar lembrete |
+| GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra |
+| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional) |
+| PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário |
+| DELETE | `/api/avaliacoes/<id>` | Remover avaliação |
 
 ## 8. Fluxos para demonstrar ao professor
 

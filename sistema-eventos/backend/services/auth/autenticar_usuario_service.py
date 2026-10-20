@@ -15,6 +15,9 @@ usuários cadastrados pelo `CriarUsuarioService` usam hash do Werkzeug
 comparar um hash Werkzeug com `check_password_hash` de uma senha que não é
 hash nenhum.
 
+Usuários sem senha (preparo para a F18, quem entra só pelo Google) são
+recusados aqui: não existe senha para comparar.
+
 Método principal:
     execute(email, senha): retorna o Usuario autenticado, ou None.
 """
@@ -29,7 +32,7 @@ class AutenticarUsuarioService:
 
     def execute(self, email, senha):
         usuario = Usuario.query.filter_by(email=email.strip().lower()).first()
-        if not usuario:
+        if not usuario or not usuario.senha:
             return None
 
         senha_e_hash = usuario.senha.startswith(("pbkdf2:", "scrypt:"))

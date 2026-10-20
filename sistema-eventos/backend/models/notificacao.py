@@ -3,10 +3,13 @@ Model: Notificacao.
 
 CAMADA: Models (entidade de domínio + persistência).
 
-Representa uma notificação/lembrete enviado a um Usuario sobre uma
-Palestra. A tabela oficial `notificacao` já possuía `tipo_notificacao`,
-por isso os lembretes de palestra são armazenados aqui mesmo (com
-`tipo_notificacao = "lembrete"`), sem precisar de uma tabela adicional.
+Representa uma notificação/lembrete enviado a um Usuario. A tabela
+oficial `notificacao` já possuía `tipo_notificacao`, por isso os lembretes
+de palestra são armazenados aqui mesmo (com `tipo_notificacao =
+"lembrete"`), sem precisar de uma tabela adicional.
+
+`id_palestra` é opcional (F19/D01): lembretes apontam para uma palestra,
+mas os comunicados gerais do organizador (F09) valem para o evento todo.
 
 Herda `db.Model` (tabela `notificacao`) e `CRUDMixin` (CRUD padrão).
 """
@@ -18,7 +21,7 @@ from backend.models.crud_mixin import CRUDMixin
 
 
 class Notificacao(db.Model, CRUDMixin):
-    """Notificação ou lembrete associado a uma palestra."""
+    """Notificação ou lembrete, associado ou não a uma palestra."""
 
     __tablename__ = "notificacao"
 
@@ -30,7 +33,7 @@ class Notificacao(db.Model, CRUDMixin):
         db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False
     )
     id_palestra = db.Column(
-        db.Integer, db.ForeignKey("palestra.id_palestra"), nullable=False
+        db.Integer, db.ForeignKey("palestra.id_palestra")
     )
 
     def to_dict(self):

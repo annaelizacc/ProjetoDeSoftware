@@ -13,15 +13,23 @@ USE sistema_eventos;
 
 -- =====================================================================
 -- 1. TABELA: usuario
--- Entidade base do sistema. Todo participante, palestrante ou
--- organizador é primeiro um usuário cadastrado.
+-- Entidade base do sistema. Todo participante ou organizador é primeiro
+-- um usuário cadastrado. Palestrantes não são usuários: ficam na tabela
+-- `palestrante` (F19/D01).
+--
+-- Preparo para a F18 (Entrar com Google), ainda não implementada:
+-- - `senha` aceita vazio, porque quem entra pelo Google não tem senha
+--   no sistema (o login por e-mail e senha recusa esses usuários);
+-- - `google_id` guarda o identificador da conta Google, para reconhecer
+--   a mesma pessoa nos próximos logins.
 -- =====================================================================
 CREATE TABLE usuario (
     id_usuario      INT AUTO_INCREMENT PRIMARY KEY,
     nome            VARCHAR(150)    NOT NULL,
     email           VARCHAR(150)    NOT NULL UNIQUE,
-    senha           VARCHAR(255)    NOT NULL,
-    tipo_usuario    VARCHAR(50)     NOT NULL
+    senha           VARCHAR(255),
+    tipo_usuario    VARCHAR(50)     NOT NULL,
+    google_id       VARCHAR(255)    UNIQUE
 ) ENGINE=InnoDB;
 
 -- =====================================================================
@@ -51,21 +59,61 @@ CREATE TABLE restaurante (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 4. TABELA: palestra
+-- 4. TABELA: palestrante (F19/D01, usada na F05)
+-- Quem apresenta as palestras. Não é um usuário do app: tem só os dados
+-- mostrados na tela de informações do palestrante.
+-- =====================================================================
+CREATE TABLE palestrante (
+    id_palestrante  INT AUTO_INCREMENT PRIMARY KEY,
+    nome            VARCHAR(150)    NOT NULL,
+    foto            VARCHAR(255),
+    descricao       TEXT,
+    rede_social     VARCHAR(255)
+) ENGINE=InnoDB;
+
+-- =====================================================================
+-- 5. TABELA: localizacao
+-- Locais que pertencem a um evento (auditórios, salas, estandes).
+-- Fica antes de `palestra` porque cada palestra aponta para o local
+-- onde acontece (F19/D01, usada na F04).
+-- =====================================================================
+CREATE TABLE localizacao (
+    id_localizacao  INT AUTO_INCREMENT PRIMARY KEY,
+    nome_local      VARCHAR(150)    NOT NULL,
+    descricao       TEXT,
+    id_evento       INT             NOT NULL,
+    CONSTRAINT fk_localizacao_evento
+        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =====================================================================
+-- 6. TABELA: palestra
 -- Palestras pertencem a um evento (relacionamento "pertence").
+-- O texto livre `sala` foi trocado por `id_localizacao` (F19/D01): o
+-- local passa a ser um registro de `localizacao`, que a tela de rotas
+-- (F04) consegue usar. Palestrante e local são opcionais e, se forem
+-- apagados, a palestra continua existindo (ON DELETE SET NULL).
 -- =====================================================================
 CREATE TABLE palestra (
     id_palestra     INT AUTO_INCREMENT PRIMARY KEY,
     titulo          VARCHAR(200)    NOT NULL,
     resumo          TEXT,
     tema            VARCHAR(120),
-    sala            VARCHAR(60),
     horario_inicio  DATETIME,
     horario_fim     DATETIME,
     id_evento       INT             NOT NULL,
+    id_localizacao  INT,
+    id_palestrante  INT,
     CONSTRAINT fk_palestra_evento
         FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_palestra_localizacao
+        FOREIGN KEY (id_localizacao) REFERENCES localizacao(id_localizacao)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_palestra_palestrante
+        FOREIGN KEY (id_palestrante) REFERENCES palestrante(id_palestrante)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- Extensão mínima para a regra de inscrição com controle automático de vagas.
@@ -76,7 +124,7 @@ ALTER TABLE palestra
     ADD COLUMN vagas_disponiveis INT NOT NULL DEFAULT 50;
 
 -- =====================================================================
--- 5. TABELA: organizador
+-- 7. TABELA: organizador
 -- Especialização de usuario (todo organizador é um usuário).
 -- =====================================================================
 CREATE TABLE organizador (
@@ -89,7 +137,7 @@ CREATE TABLE organizador (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 6. TABELA: participacao
+-- 8. TABELA: participacao
 -- Entidade associativa (relacionamento "participa") entre
 -- usuario e palestra, com cardinalidade N:N.
 -- =====================================================================
@@ -107,28 +155,37 @@ CREATE TABLE participacao (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 7. TABELA: comentario
--- Comentários que um usuário faz sobre uma palestra.
+-- 9. TABELA: avaliacao (F19/D01, usada na F06 e na F07)
+-- Avaliação que um usuário faz sobre uma palestra: estrelas de 1 a 5 e
+-- um comentário opcional. Substitui a antiga tabela `comentario`, para
+-- não guardar o mesmo dado em dois lugares (na tela "Avaliar", estrelas
+-- e comentário são enviados juntos).
+-- A chave única impede que a mesma pessoa avalie a mesma palestra mais
+-- de uma vez e distorça a média.
 -- =====================================================================
-CREATE TABLE comentario (
-    id_comentario   INT AUTO_INCREMENT PRIMARY KEY,
-    texto           TEXT            NOT NULL,
-    nota            DECIMAL(3,1),
+CREATE TABLE avaliacao (
+    id_avaliacao    INT AUTO_INCREMENT PRIMARY KEY,
+    nota_estrelas   TINYINT         NOT NULL,
+    comentario      TEXT,
     data            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     id_usuario      INT             NOT NULL,
     id_palestra     INT             NOT NULL,
-    CONSTRAINT fk_comentario_usuario
+    CONSTRAINT ck_avaliacao_estrelas
+        CHECK (nota_estrelas BETWEEN 1 AND 5),
+    CONSTRAINT fk_avaliacao_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
-    CONSTRAINT fk_comentario_palestra
+    CONSTRAINT fk_avaliacao_palestra
         FOREIGN KEY (id_palestra) REFERENCES palestra(id_palestra)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    UNIQUE KEY uk_avaliacao_usuario_palestra (id_usuario, id_palestra)
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 8. TABELA: notificacao
--- Notificações recebidas ("recebe") por um usuário, referentes
--- a uma palestra específica.
+-- 10. TABELA: notificacao
+-- Notificações recebidas ("recebe") por um usuário. `id_palestra` é
+-- opcional (F19/D01): lembretes apontam para uma palestra, mas os
+-- comunicados gerais do organizador (F09) valem para o evento todo.
 -- =====================================================================
 CREATE TABLE notificacao (
     id_notificacao  INT AUTO_INCREMENT PRIMARY KEY,
@@ -136,7 +193,7 @@ CREATE TABLE notificacao (
     data_envio      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     tipo_notificacao VARCHAR(50),
     id_usuario      INT             NOT NULL,
-    id_palestra     INT             NOT NULL,
+    id_palestra     INT,
     CONSTRAINT fk_notificacao_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
@@ -146,7 +203,7 @@ CREATE TABLE notificacao (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 9. TABELA: planta_baixa
+-- 11. TABELA: planta_baixa
 -- Mapa/planta baixa que pertence a um evento.
 -- =====================================================================
 CREATE TABLE planta_baixa (
@@ -160,21 +217,7 @@ CREATE TABLE planta_baixa (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
--- 10. TABELA: localizacao
--- Locais que pertencem a um evento.
--- =====================================================================
-CREATE TABLE localizacao (
-    id_localizacao  INT AUTO_INCREMENT PRIMARY KEY,
-    nome_local      VARCHAR(150)    NOT NULL,
-    descricao       TEXT,
-    id_evento       INT             NOT NULL,
-    CONSTRAINT fk_localizacao_evento
-        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- =====================================================================
--- 11. TABELA: restaurante_evento
+-- 12. TABELA: restaurante_evento
 -- Tabela de junção para o relacionamento N:N "associado"
 -- entre restaurante e evento (cardinalidade (0,n)-(0,n) no diagrama).
 -- =====================================================================
@@ -190,8 +233,11 @@ CREATE TABLE restaurante_evento (
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- =====================================================================
+-- 13. TABELA: favorito
 -- A tabela oficial não possuía favoritos. A restrição UNIQUE impede que o
 -- mesmo usuário favorite a mesma palestra duas vezes.
+-- =====================================================================
 CREATE TABLE favorito (
     id_favorito      INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario       INT NOT NULL,
@@ -207,13 +253,53 @@ CREATE TABLE favorito (
 ) ENGINE=InnoDB;
 
 -- =====================================================================
+-- 14. TABELA: patrocinador (F19/D01, usada na F10)
+-- Empresas que patrocinam um evento. Se o evento for apagado, os
+-- patrocinadores dele também são.
+-- =====================================================================
+CREATE TABLE patrocinador (
+    id_patrocinador INT AUTO_INCREMENT PRIMARY KEY,
+    nome_empresa    VARCHAR(150)    NOT NULL,
+    logo            VARCHAR(255),
+    site            VARCHAR(255),
+    descricao       TEXT,
+    id_evento       INT             NOT NULL,
+    CONSTRAINT fk_patrocinador_evento
+        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =====================================================================
+-- 15. TABELA: certificado (F19/D01, usada na F12)
+-- Certificado de participação de um usuário em um evento, como no
+-- diagrama (sem o campo genérico `Atributo_1`). Só a tabela por enquanto:
+-- a emissão é a F12. O código de validação é único para que qualquer
+-- pessoa confira se um certificado é verdadeiro, e cada usuário recebe
+-- no máximo um certificado por evento.
+-- =====================================================================
+CREATE TABLE certificado (
+    id_certificado   INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_validacao VARCHAR(64)    NOT NULL UNIQUE,
+    data_emissao     DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_usuario       INT            NOT NULL,
+    id_evento        INT            NOT NULL,
+    CONSTRAINT fk_certificado_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_certificado_evento
+        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
+        ON DELETE CASCADE,
+    UNIQUE KEY uk_certificado_usuario_evento (id_usuario, id_evento)
+) ENGINE=InnoDB;
+
+-- =====================================================================
 -- DADOS FICTÍCIOS PARA DEMONSTRAÇÃO
 -- =====================================================================
 
 INSERT INTO usuario (nome, email, senha, tipo_usuario) VALUES
 ('Ana Silva',    'ana.silva@email.com',    'hash123', 'participante'),
 ('Bruno Costa',  'bruno.costa@email.com',  'hash456', 'organizador'),
-('Carla Souza',  'carla.souza@email.com',  'hash789', 'palestrante');
+('Carla Souza',  'carla.souza@email.com',  'hash789', 'participante');
 
 INSERT INTO evento (nome, descricao, data_inicio, data_fim, local) VALUES
 ('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI', '2026-09-10', '2026-09-12', 'Centro de Convenções UFMG'),
@@ -227,9 +313,21 @@ INSERT INTO restaurante_evento (id_restaurante, id_evento) VALUES
 (1, 1),
 (2, 1);
 
-INSERT INTO palestra (titulo, resumo, tema, sala, horario_inicio, horario_fim, id_evento) VALUES
-('Introdução à Inteligência Artificial', 'Panorama geral sobre IA', 'Tecnologia', 'Sala A1', '2026-09-10 09:00:00', '2026-09-10 10:30:00', 1),
-('Banco de Dados na Prática',            'Modelagem e consultas SQL', 'Tecnologia', 'Sala A2', '2026-09-10 11:00:00', '2026-09-10 12:30:00', 1);
+-- Os palestrantes de exemplo (F05). Carla Souza era uma usuária do tipo
+-- 'palestrante'; agora é palestrante aqui e participante em `usuario`.
+INSERT INTO palestrante (nome, foto, descricao, rede_social) VALUES
+('Carla Souza',   NULL, 'Pesquisadora em Inteligência Artificial.', 'https://www.linkedin.com/in/carla-souza'),
+('Diego Martins', NULL, 'Administrador de banco de dados.',         'https://www.linkedin.com/in/diego-martins');
+
+-- Os textos que antes ficavam em `palestra.sala` viraram locais (F04).
+INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
+('Auditório Principal', 'Local das palestras principais', 1),
+('Sala A1',             'Sala do bloco A, primeiro andar', 1),
+('Sala A2',             'Sala do bloco A, primeiro andar', 1);
+
+INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_evento, id_localizacao, id_palestrante) VALUES
+('Introdução à Inteligência Artificial', 'Panorama geral sobre IA', 'Tecnologia', '2026-09-10 09:00:00', '2026-09-10 10:30:00', 1, 2, 1),
+('Banco de Dados na Prática',            'Modelagem e consultas SQL', 'Tecnologia', '2026-09-10 11:00:00', '2026-09-10 12:30:00', 1, 3, 2);
 
 INSERT INTO organizador (id_usuario, nivel_acesso) VALUES
 (2, 'administrador');
@@ -249,8 +347,8 @@ SET p.vagas_disponiveis = GREATEST(
     p.vagas_total - COALESCE(i.total_inscritos, 0), 0
 );
 
-INSERT INTO comentario (texto, nota, id_usuario, id_palestra) VALUES
-('Palestra muito esclarecedora!', 9.5, 1, 1);
+INSERT INTO avaliacao (nota_estrelas, comentario, id_usuario, id_palestra) VALUES
+(5, 'Palestra muito esclarecedora!', 1, 1);
 
 INSERT INTO notificacao (mensagem, tipo_notificacao, id_usuario, id_palestra) VALUES
 ('A palestra "Introdução à Inteligência Artificial" começa em 30 minutos.', 'lembrete', 1, 1);
@@ -258,5 +356,6 @@ INSERT INTO notificacao (mensagem, tipo_notificacao, id_usuario, id_palestra) VA
 INSERT INTO planta_baixa (imagem_mapa, descricao, id_evento) VALUES
 ('/mapas/semana_tecnologia.png', 'Mapa do centro de convenções', 1);
 
-INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
-('Auditório Principal', 'Local das palestras principais', 1);
+INSERT INTO patrocinador (nome_empresa, logo, site, descricao, id_evento) VALUES
+('TechNova', NULL, 'https://www.technova.com.br', 'Empresa de software e serviços em nuvem.', 1);
+
