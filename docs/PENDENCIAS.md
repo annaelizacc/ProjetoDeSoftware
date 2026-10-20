@@ -635,10 +635,10 @@ qualquer alteração.
 | P08 | 🟢 | Tipo de notificação "atencao" nunca é criado | Pendente |
 | P09 | 🔴 | README desatualizado | Pendente |
 | P10 | 🟢 | Comentário desatualizado na tela de favoritos | Pendente |
-| P11 | 🔴 **antes da P14** | Arquivos locais versionados e falta de `.gitignore` | Parcial |
+| P11 | 🔴 **antes da P14** | Arquivos locais versionados e falta de `.gitignore` | Concluído |
 | P12 | 🟢 | Projeto sem testes automatizados | Pendente |
 | P13 | 🟢 | Tabelas sem uso no app | Decidido: todas terão uso (F03, F04, F08, F13) |
-| P14 | 🔴 | Versão antiga e nova sem commit | Pendente |
+| P14 | 🔴 | Versão antiga e nova sem commit | Concluído |
 
 ---
 
@@ -770,10 +770,16 @@ qualquer alteração.
   e `.env`, `.venv`, `build/` etc. podem acabar no repositório por engano.
 - **Feito (20/10/2026):** `.gitignore` mínimo na raiz, com `.env` (senha
   do MySQL) e `.venv/`.
-- **Falta:** ignorar e tirar do Git os arquivos locais do Flutter
-  (`local.properties`, `ephemeral/`, `Generated.xcconfig`,
-  `flutter_export_environment.sh`), que entraram no commit `fc44e13`.
-  Não têm senhas, só caminhos do computador de quem compilou.
+- **Concluído (20/10/2026):** o commit `fc44e13` tinha levado 657
+  arquivos gerados (`build/`, `.gradle/`, `.kotlin/`, `.dart_tool/`,
+  `__pycache__/` e os arquivos locais do Flutter: `local.properties`,
+  `ephemeral/`, `Generated.xcconfig`, `flutter_export_environment.sh`,
+  `*.iml`). O `.gitignore` foi completado e eles saíram do Git com
+  `git rm --cached` (continuam no computador de cada pessoa). Eles ainda
+  existem no histórico, dentro do `fc44e13`; reescrever o histórico foi
+  descartado por ser arriscado e sem ganho prático. Quem já tinha o
+  projeto baixado segue "Atualizar a máquina depois da P11" no
+  `FLUXO_DE_TRABALHO.md`.
 
 ### P12 🟢 Projeto sem testes automatizados
 
@@ -802,3 +808,6 @@ qualquer alteração.
 - **Por que importa:** se algo der errado, não há como voltar a um ponto
   seguro da versão nova. É bom fazer esse commit antes de começar as
   correções.
+- **Concluído (20/10/2026):** a versão nova entrou no commit `fc44e13`
+  (branch `regras-claude`) e chegou à `main` pelo Pull Request da P11,
+  já com o `.gitignore` completo.
