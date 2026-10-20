@@ -13,6 +13,11 @@ Reúne duas consultas que não são um CRUD simples:
 
 Ambas usam `sqlalchemy.text` com parâmetros nomeados, evitando SQL
 Injection e seguindo a regra de SQL explícito nos Repositories.
+
+Desde a F19, o local da palestra fica em `localizacao`. As duas consultas
+fazem um LEFT JOIN com essa tabela e devolvem o nome do local com o
+apelido `sala`, como antes, para o Flutter não precisar mudar. O LEFT
+JOIN (e não JOIN) mantém na lista as palestras que ainda não têm local.
 """
 
 from sqlalchemy import text
@@ -46,10 +51,12 @@ class PalestraRepository:
 
         sql = text(
             f"""
-            SELECT p.id_palestra, p.titulo, p.resumo, p.tema, p.sala,
+            SELECT p.id_palestra, p.titulo, p.resumo, p.tema,
+                   l.nome_local AS sala, p.id_localizacao, p.id_palestrante,
                    p.horario_inicio, p.horario_fim, p.id_evento,
                    p.vagas_total, p.vagas_disponiveis
             FROM palestra p
+            LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
             {filtro_sql}
             ORDER BY p.horario_inicio ASC
             """
@@ -70,13 +77,15 @@ class AgendaRepository:
         """
         sql = text(
             """
-            SELECT p.id_palestra, p.titulo, p.resumo, p.tema, p.sala,
+            SELECT p.id_palestra, p.titulo, p.resumo, p.tema,
+                   l.nome_local AS sala, p.id_localizacao, p.id_palestrante,
                    p.horario_inicio, p.horario_fim, p.id_evento,
                    p.vagas_total, p.vagas_disponiveis,
                    e.nome AS nome_evento
             FROM participacao pa
             JOIN palestra p ON p.id_palestra = pa.id_palestra
             JOIN evento e ON e.id_evento = p.id_evento
+            LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
             WHERE pa.id_usuario = :id_usuario
             ORDER BY p.horario_inicio ASC
             """

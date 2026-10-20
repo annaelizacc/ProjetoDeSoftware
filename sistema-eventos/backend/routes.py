@@ -8,7 +8,7 @@ de relance, todos os recursos que a API expõe.
 """
 
 from backend.controllers.auth_controller import auth_bp
-from backend.controllers.comentario_controller import comentario_bp
+from backend.controllers.avaliacao_controller import avaliacao_bp
 from backend.controllers.evento_controller import evento_bp
 from backend.controllers.favorito_controller import favorito_bp
 from backend.controllers.notificacao_controller import notificacao_bp
@@ -28,6 +28,6 @@ def registrar_rotas(app):
         participacao_bp,
         favorito_bp,
         notificacao_bp,
-        comentario_bp,
+        avaliacao_bp,
     ):
         app.register_blueprint(blueprint)

@@ -4,9 +4,11 @@ Model: Localizacao.
 CAMADA: Models (entidade de domínio + persistência).
 
 Representa um local de interesse dentro de um Evento (ex.: auditório,
-estande). Herda `db.Model` (tabela `localizacao`) e `CRUDMixin`.
+sala, estande). Herda `db.Model` (tabela `localizacao`) e `CRUDMixin`.
 
-Ainda sem endpoints próprios na API — ver observação em `Organizador`.
+Desde a F19, cada Palestra aponta para o local onde acontece
+(`palestra.id_localizacao`). Ainda sem endpoints próprios na API: a tela
+de rotas até as salas vem na F04.
 """
 
 from backend.extensions import db
