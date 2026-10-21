@@ -79,6 +79,25 @@ class ApiService {
     return Map<String, dynamic>.from(data['usuario']);
   }
 
+  /// Cadastra uma nova conta (`POST /api/usuarios`, rota pública) e
+  /// devolve os dados do usuário criado (F01, RF01).
+  ///
+  /// Não envia `tipo_usuario`: o backend cria sempre um participante
+  /// (P01). Não faz login: depois do cadastro, a tela chama `login` com o
+  /// mesmo e-mail e senha para receber o token.
+  static Future<Map<String, dynamic>> cadastrar(
+    String nome,
+    String email,
+    String senha,
+  ) async {
+    final data = await request(
+      '/api/usuarios',
+      method: 'POST',
+      body: {'nome': nome, 'email': email, 'senha': senha},
+    );
+    return Map<String, dynamic>.from(data);
+  }
+
   /// Lista todos os eventos disponíveis (`GET /api/eventos`).
   static Future<List<dynamic>> eventos() async =>
       List<dynamic>.from(await request('/api/eventos'));

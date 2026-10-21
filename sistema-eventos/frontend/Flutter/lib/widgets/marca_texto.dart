@@ -17,7 +17,12 @@ class MarcaTexto extends StatelessWidget {
   /// selecionadas da barra), sem mudar o tamanho do componente.
   final bool ativo;
 
-  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true});
+  /// Cor do grifo, quando não puder ser o Céu. Ex.: no login e no
+  /// cadastro o fundo já é Céu, então o slogan é grifado com a cor dos
+  /// cards (`colorScheme.surface`), como no canvas.
+  final Color? cor;
+
+  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true, this.cor});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +35,7 @@ class MarcaTexto extends StatelessWidget {
             heightFactor: 0.42,
             child: ColoredBox(
               color: ativo
-                  ? Theme.of(context).colorScheme.tertiary
+                  ? cor ?? Theme.of(context).colorScheme.tertiary
                   : Colors.transparent,
             ),
           ),

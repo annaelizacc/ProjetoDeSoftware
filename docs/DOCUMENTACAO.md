@@ -210,3 +210,53 @@ participante e organizador.
   `usuario.tipo_usuario`, que a API confere, e na tabela `organizador`.
   Ao criar um organizador pelo banco, os dois precisam ser atualizados
   (README, seção 7).
+
+---
+
+## 5. F01: tela de cadastro de usuário (RF01)
+
+Concluída em 21/10/2026. A rota `POST /api/usuarios` já existia, mas não
+havia tela: só era possível criar uma conta pelo banco ou pela API.
+
+### 5.1 O que foi feito
+
+- **Tela "Criar conta"** (`frontend/Flutter/lib/pages/cadastro_page.dart`),
+  aberta pelo link no login: nome, e-mail, senha e confirmação da senha,
+  com o botão de mostrar/ocultar em cada campo de senha. Depois do
+  cadastro, o app já faz o login com os mesmos dados e abre o Início.
+- **Fundo comum do login e do cadastro** (`lib/widgets/tela_acesso.dart`):
+  fundo Céu com a curva do rio e um cartão de vidro fosco, como no canvas.
+  O "grão" do vidro é sorteado uma vez só e reaproveitado, para não pesar
+  enquanto o teclado abre.
+- **Regras do usuário no backend, num lugar só**
+  (`backend/services/usuario/validacoes_usuario.py`): `validar_nome`,
+  `validar_email` e `validar_senha`, usadas pelo cadastro e pela
+  atualização. Nome preenchido (sem contar espaços), e-mail em formato
+  válido e senha de 8 a 16 caracteres (`TAMANHO_MINIMO_SENHA` e
+  `TAMANHO_MAXIMO_SENHA`, na Model `Usuario`). Um valor que não é texto
+  (ex.: número) gera erro 400 com mensagem clara, e não erro 500.
+- **App:** `ApiService.cadastrar` envia só nome, e-mail e senha, sem
+  `tipo_usuario` (P01).
+
+### 5.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Regras conferidas no backend, e a tela confere de novo | A rota de cadastro é pública: quem chamasse a API direto escaparia de uma regra feita só no app. A tela confere antes só para avisar mais rápido |
+| Funções de validação num arquivo próprio dos Services | Antes, a regra da senha estava copiada no cadastro e na atualização. Num lugar só, não há risco de as duas versões ficarem diferentes. Ficam nos Services, e não na Model, porque a Model cuida só de gravar e ler do banco |
+| E-mail conferido por expressão regular (formato `algo@algo.algo`) | Simples e sem biblioteca nova. Confirmar que o e-mail existe exigiria enviar um e-mail de confirmação, o que fica fora do prazo |
+| Senha de 8 a 16 caracteres | O mínimo de 8 é o recomendado para senhas simples. O máximo de 16 foi decidido pela equipe e também protege o servidor: a rota de cadastro é pública, e gerar o hash de um texto enorme gastaria muito processamento. Uma regra maior (exigir número, símbolo) atrapalharia o cadastro no evento |
+| Erro do banco por e-mail repetido vira mensagem clara | Dois cadastros iguais ao mesmo tempo (toque duplo) passam pela conferência, e o banco recusa o segundo. Tratado como no `CriarAvaliacaoService` |
+| Links "Criar conta" e "Entrar" desativados durante o envio | Trocar de tela no meio do login ou do cadastro deixava o app logado, mas na tela errada |
+| Login automático depois do cadastro | A pessoa não precisa digitar tudo de novo. Se o login falhar, ela volta para a tela de login com o aviso de que a conta foi criada |
+| Números 8 e 16 repetidos no Dart (`tamanhoMinimoSenha` e `tamanhoMaximoSenha`) | O app (Dart) não consegue ler uma constante do backend (Python). Um comentário em cada lado aponta para o outro |
+
+### 5.3 Limitações conhecidas
+
+- **E-mail não confirmado:** o formato é conferido, mas não se o e-mail
+  existe ou pertence à pessoa.
+- **Trocar o e-mail para um que já existe** (pelo `PUT /api/usuarios/<id>`)
+  ainda dá erro 500, em vez de uma mensagem clara (P03).
+- **Usuários de exemplo com senhas curtas** (`hash123`), abaixo do mínimo
+  de 8 caracteres: são da base de demonstração e serão tratados na P02.
+  O login não confere o tamanho, então essas contas continuam entrando.
