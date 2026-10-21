@@ -407,6 +407,60 @@ flutter run -d chrome
   fecha.
 - Login de teste: `ana.silva@email.com`, senha `hash123`.
 
+**No emulador Android:** o **emulador** é um celular Android "de mentira"
+que roda numa janela do computador. Cada celular virtual criado no
+Android Studio se chama **AVD** (*Android Virtual Device*). Quem ainda
+não tem um, cria no Android Studio em *Device Manager* → *Create device*.
+
+1. Ver o nome dos AVDs criados:
+
+   ```bash
+   ~/Android/Sdk/emulator/emulator -list-avds
+   ```
+
+2. Ligar o emulador (no exemplo, o AVD `Pixel_Fluxo`), num terminal
+   próprio:
+
+   ```bash
+   ~/Android/Sdk/emulator/emulator -avd Pixel_Fluxo -gpu swiftshader_indirect
+   ```
+
+   - **`-gpu swiftshader_indirect`:** faz o emulador desenhar a tela com
+     o processador, em vez da placa de vídeo. Em alguns computadores a
+     placa de vídeo não é aceita pelo emulador, e ele fecha sozinho no
+     meio do `flutter run` (erro `device 'emulator-5554' not found`).
+     Com essa opção ele fica um pouco mais lento, mas não cai.
+   - Por isso o emulador é ligado por esse comando, e não pelo
+     `flutter emulators --launch`, que não aceita essa opção.
+   - O terminal fica "preso" enquanto o emulador estiver ligado.
+     Esperar a tela inicial do Android aparecer (cerca de 1 minuto).
+
+3. No terminal 2, conferir se o emulador aparece (algo como
+   `sdk gphone64 x86 64 • emulator-5554`):
+
+   ```bash
+   flutter devices
+   ```
+
+4. Rodar o app no emulador:
+
+   ```bash
+   cd sistema-eventos/frontend/Flutter
+   flutter run -d emulator-5554 --dart-define=API_URL=http://10.0.2.2:5000
+   ```
+
+   - **`10.0.2.2`:** dentro do emulador, `127.0.0.1` é o próprio
+     emulador, e não o computador. O endereço `10.0.2.2` é o "atalho"
+     do emulador para chegar no computador, onde a API está rodando.
+   - **`--dart-define=API_URL=...`:** passa o endereço da API para o app
+     na hora de rodar, sem mudar o código (ver
+     `lib/services/api_service.dart`).
+   - A primeira vez demora alguns minutos (o app é compilado para
+     Android). As teclas `r`, `R` e `q` funcionam como no Chrome.
+
+**Windows:** o emulador fica em
+`%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe` (mesmas opções).
+
 **No celular Android (para a gravação e para a F02):** ativar as
 "Opções do desenvolvedor" e a "Depuração USB" no celular, conectar no
 computador pelo cabo e rodar `flutter devices` para ver se ele aparece.
@@ -431,6 +485,8 @@ O celular e o computador precisam estar no mesmo Wi-Fi.
 | `Can't connect to MySQL server` | MySQL desligado | **Linux:** `sudo systemctl start mysql` · **Windows:** abrir "Serviços" e iniciar o serviço `MySQL` |
 | `Address already in use` (porta 5000) | Já existe uma API rodando em outro terminal | Fechar a outra com `Ctrl+C`, ou procurar o terminal esquecido |
 | App mostra "servidor indisponível" | A API não está rodando ou o endereço está errado | Conferir o terminal 1 e o `curl` do health |
+| `adb: device 'emulator-5554' not found` | O emulador fechou durante o `flutter run` (a placa de vídeo não foi aceita) | Ligar de novo com `-gpu swiftshader_indirect` (ver "No emulador Android") |
+| App no emulador mostra "servidor indisponível" | Rodado sem o `--dart-define`, então o app procura a API em `127.0.0.1`, que é o próprio emulador | Rodar com `--dart-define=API_URL=http://10.0.2.2:5000` |
 | `flutter: command not found` logo depois de instalar | O terminal foi aberto antes da instalação | Fechar e abrir o terminal |
 
 ---

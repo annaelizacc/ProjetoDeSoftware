@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/palestra.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 
 /// Tela de detalhes da palestra.
 ///
@@ -56,6 +55,8 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detalhes da palestra')),
       body: FutureBuilder<Palestra>(
@@ -66,40 +67,38 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
           }
           if (snapshot.hasError) return Center(child: Text(snapshot.error.toString()));
           final p = snapshot.data!;
-          final corCategoria = AppColors.corDaCategoria(p.tema ?? p.titulo);
-          final corTexto = AppColors.corDeDestaqueDaCategoria(p.tema ?? p.titulo);
+          final temVagas = p.vagas > 0;
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
               Text(
                 p.titulo,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cores.primary),
               ),
               const SizedBox(height: 12),
               Wrap(spacing: 8, runSpacing: 8, children: [
-                Chip(
-                  label: Text(p.tema ?? 'Sem tema'),
-                  backgroundColor: corCategoria,
-                  labelStyle: TextStyle(color: corTexto),
-                  side: BorderSide.none,
-                ),
+                Chip(label: Text(p.tema ?? 'Sem tema')),
                 Chip(label: Text(p.sala ?? 'Sala a definir')),
                 Chip(label: Text(p.horario)),
               ]),
               const SizedBox(height: 20),
               Text(
                 p.resumo ?? 'Resumo não informado.',
-                style: const TextStyle(fontSize: 15, height: 1.5, color: AppColors.textoSecundario),
+                style: TextStyle(fontSize: 15, height: 1.5, color: cores.onSurfaceVariant),
               ),
               const SizedBox(height: 22),
+              // Palestra lotada: ícone e texto na cor `error` (Brasa), a cor
+              // de "esgotada e atenção" da identidade visual.
               Card(
-                color: p.vagas > 0 ? AppColors.categorias[2] : const Color(0xffffe9e9),
                 child: ListTile(
                   leading: Icon(
-                    p.vagas > 0 ? Icons.people_alt_outlined : Icons.block,
-                    color: p.vagas > 0 ? AppColors.primary : AppColors.erro,
+                    temVagas ? Icons.people_alt_outlined : Icons.block,
+                    color: temVagas ? cores.primary : cores.error,
                   ),
-                  title: Text(p.vagas > 0 ? '${p.vagas} vagas disponíveis' : 'Palestra lotada'),
+                  title: Text(
+                    temVagas ? '${p.vagas} vagas disponíveis' : 'Palestra lotada',
+                    style: temVagas ? null : TextStyle(color: cores.error),
+                  ),
                   subtitle: Text('Capacidade total: ${p.total}'),
                 ),
               ),
@@ -107,7 +106,7 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
               FilledButton.icon(
                 onPressed: p.inscrito
                     ? () => executar(() => ApiService.cancelarInscricao(widget.usuarioId, p.id))
-                    : p.vagas > 0
+                    : temVagas
                         ? () => executar(() => ApiService.inscrever(widget.usuarioId, p.id))
                         : null,
                 icon: Icon(p.inscrito ? Icons.event_busy : Icons.event_available),

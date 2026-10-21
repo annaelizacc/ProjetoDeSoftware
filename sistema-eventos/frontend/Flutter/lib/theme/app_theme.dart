@@ -3,208 +3,351 @@ import 'package:flutter/material.dart';
 /// Tema visual centralizado do app Fluxo Eventos.
 ///
 /// FINALIDADE DESTE ARQUIVO:
-/// Antes desta refatoração, cada tela definia suas próprias cores em
-/// hexadecimal espalhadas pelo código (`Color(0xff063b6d)` repetido em
-/// vários arquivos, por exemplo). Isso dificulta manter uma identidade
-/// visual consistente: mudar o azul principal do app exigiria editar
-/// dezenas de arquivos.
+/// Concentrar em um só lugar as cores, as fontes e o estilo dos
+/// componentes do app, seguindo a identidade visual aprovada no canvas
+/// ("Telas do projeto · opção 1 refinada", F20). As telas nunca declaram
+/// cores fixas: elas pedem a cor pela FUNÇÃO, por exemplo
+/// `Theme.of(context).colorScheme.primary`. Assim, quando o modo escuro é
+/// ligado (F11, RF20), todas as cores mudam juntas.
 ///
-/// Esta classe concentra:
-/// - a paleta de cores (`AppColors`);
-/// - as cores "pastel" usadas como identificação visual das palestras por
-///   tema (`AppColors.corDaCategoria`), inspiradas nos cartões coloridos
-///   da tela de Programação/Agenda do design de referência;
-/// - o `ThemeData` completo (`AppTheme.claro`), aplicado uma única vez em
-///   `main.dart`.
+/// Este arquivo tem:
+/// - a paleta de cores da marca (`AppColors`);
+/// - os nomes das três fontes (`AppFontes`);
+/// - os dois temas completos (`AppTheme.claro` e `AppTheme.escuro`),
+///   aplicados uma única vez em `main.dart`.
 ///
-/// As telas devem sempre ler cores e estilos a partir daqui (ou do
-/// `Theme.of(context)`), em vez de declarar novos hexadecimais soltos.
+/// QUAL COR FICA EM QUAL FUNÇÃO DO `ColorScheme`:
+///
+/// | Função              | Uso nas telas                     | Claro      | Escuro     |
+/// |---------------------|-----------------------------------|------------|------------|
+/// | primary             | botões, títulos, links            | Marinho    | Céu        |
+/// | onPrimary           | texto sobre o primary             | Papel      | #071827    |
+/// | secondary           | ícones e logo                     | Rio        | Rio        |
+/// | tertiary            | marca-texto (grifo)               | Céu        | #1F5C86    |
+/// | error               | esgotada, atenção, contador       | Brasa      | #F08A5D    |
+/// | surface             | cards, campos, barra de navegação | Branco     | #0E2539    |
+/// | onSurface           | texto principal                   | Tinta      | #F3EDE4    |
+/// | onSurfaceVariant    | texto secundário e rótulos        | #6B5E50    | #B3C0CC    |
+/// | outline             | borda de campos e selos           | #CDBBA3    | #2A4A66    |
+/// | outlineVariant      | linhas finas de 1px               | #E4D8C8    | #1F3A54    |
+/// | surfaceContainer    | blocos de apoio (atalhos, abas)   | #EFE2D0    | #12304A    |
+/// | secondaryContainer  | superfícies quentes (avatar)      | Areia      | #12304A    |
+///
+/// O fundo das telas não está no `ColorScheme`: é o
+/// `scaffoldBackgroundColor` (Papel no claro, #071827 no escuro).
+///
+/// A Brasa original (#B4471A) fica com pouco contraste sobre o fundo
+/// escuro, por isso o modo escuro usa um tom mais claro dela.
 class AppColors {
   AppColors._();
 
-  /// Azul principal da marca — usado em títulos, ícones de destaque e no
-  /// botão principal de ação (ex.: "Entrar", "Inscrever-se").
-  static const primary = Color(0xFF0B4B83);
+  // ---- Paleta da marca (modo claro) ----
 
-  /// Tom mais escuro do azul principal, usado em textos de destaque sobre
-  /// fundo claro (títulos grandes) e no botão de login.
-  static const primaryDark = Color(0xFF063B6D);
+  /// Fundo das telas.
+  static const papel = Color(0xFFF6EEE3);
 
-  /// Azul secundário/claro, usado em elementos de apoio (banner da Home,
-  /// indicador de navegação selecionado).
-  static const secondary = Color(0xFF55B6F5);
+  /// Cards e campos de texto.
+  static const branco = Color(0xFFFFFDF9);
 
-  /// Fundo padrão das telas: um branco levemente azulado, para não cansar
-  /// a vista em telas grandes de lista, mas ainda transmitir a sensação de
-  /// "app claro" pedida no novo design.
-  static const fundo = Color(0xFFF5F9FC);
+  /// O rio da logo e superfícies quentes.
+  static const areia = Color(0xFFE9D2B4);
 
-  /// Branco puro, usado em cards e campos de texto sobre o fundo `fundo`.
-  static const superficie = Colors.white;
+  /// Marca-texto e destaques.
+  static const ceu = Color(0xFF99D8FF);
 
-  /// Cinza usado em textos secundários (subtítulos, legendas).
-  static const textoSecundario = Color(0xFF6B7A8D);
+  /// Ícones e logo.
+  static const rio = Color(0xFF6AB9E9);
 
-  /// Cor de borda sutil usada em campos de texto e divisores.
-  static const borda = Color(0xFFE1E8F0);
+  /// Botões e títulos.
+  static const marinho = Color(0xFF003465);
 
-  /// Vermelho suave usado para estados de erro/lotação (ex.: "sem vagas").
-  static const erro = Color(0xFFE0554F);
+  /// Texto principal.
+  static const tinta = Color(0xFF0B2440);
 
-  /// Paleta pastel usada para colorir cards de palestra por categoria,
-  /// reproduzindo o efeito "cada palestra tem uma cor" visto nas telas de
-  /// Agenda e Programação do design de referência. A cor é escolhida de
-  /// forma determinística a partir do texto do tema/título, então a mesma
-  /// palestra sempre aparece com a mesma cor.
-  static const List<Color> categorias = [
-    Color(0xFFDFF4E6), // verde suave
-    Color(0xFFFDEBD9), // laranja suave
-    Color(0xFFE1F1FC), // azul suave
-    Color(0xFFEDE3FB), // roxo suave
-  ];
+  /// Palestra esgotada e avisos de atenção.
+  static const brasa = Color(0xFFB4471A);
 
-  /// Cor de destaque (texto/ícone) que combina com cada cor pastel acima,
-  /// na mesma ordem — usada para o texto dentro do card colorido.
-  static const List<Color> categoriasDestaque = [
-    Color(0xFF2F8F5B),
-    Color(0xFFD98A32),
-    Color(0xFF1E7FC2),
-    Color(0xFF7E57C2),
-  ];
+  // ---- Modo escuro ----
 
-  /// Escolhe uma cor pastel de forma estável a partir de um texto
-  /// (normalmente o tema ou o título da palestra), para que cada palestra
-  /// tenha sempre a mesma cor de identificação visual entre as telas.
-  static int _indiceDaCategoria(String? chave) {
-    if (chave == null || chave.trim().isEmpty) return 0;
-    return chave.codeUnits.fold<int>(0, (soma, c) => soma + c) %
-        categorias.length;
-  }
+  /// Fundo das telas no modo escuro.
+  static const fundoEscuro = Color(0xFF071827);
 
-  static Color corDaCategoria(String? chave) =>
-      categorias[_indiceDaCategoria(chave)];
+  /// Cards e campos no modo escuro.
+  static const superficieEscura = Color(0xFF0E2539);
 
-  static Color corDeDestaqueDaCategoria(String? chave) =>
-      categoriasDestaque[_indiceDaCategoria(chave)];
+  /// Texto principal no modo escuro.
+  static const textoEscuro = Color(0xFFF3EDE4);
 }
 
-/// Monta o `ThemeData` usado pelo `MaterialApp` inteiro.
+/// Nomes das fontes declaradas no `pubspec.yaml` (pasta `assets/fonts/`).
+///
+/// - `titulo`: Bricolage Grotesque, peso 600, só nos títulos;
+/// - `texto`: Figtree, nos textos e botões (fonte padrão do app);
+/// - `mono`: JetBrains Mono, em horários, salas, datas e rótulos.
+class AppFontes {
+  AppFontes._();
+
+  static const titulo = 'Bricolage Grotesque';
+  static const texto = 'Figtree';
+  static const mono = 'JetBrains Mono';
+}
+
+/// Monta os `ThemeData` usados pelo `MaterialApp` inteiro.
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get claro {
-    final esquemaDeCores = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      brightness: Brightness.light,
-      primary: AppColors.primary,
-      secondary: AppColors.secondary,
-      surface: AppColors.superficie,
-    );
+  // `static final`: cada tema é montado uma única vez, na primeira vez que
+  // é usado, e reaproveitado em toda troca de tema.
+  static final ThemeData claro = _montarTema(
+        brilho: Brightness.light,
+        fundo: AppColors.papel,
+        corTitulo: AppColors.marinho,
+        cores: const ColorScheme(
+          brightness: Brightness.light,
+          primary: AppColors.marinho,
+          onPrimary: AppColors.papel,
+          secondary: AppColors.rio,
+          onSecondary: AppColors.tinta,
+          tertiary: AppColors.ceu,
+          onTertiary: AppColors.tinta,
+          error: AppColors.brasa,
+          onError: AppColors.branco,
+          surface: AppColors.branco,
+          onSurface: AppColors.tinta,
+          onSurfaceVariant: Color(0xFF6B5E50),
+          outline: Color(0xFFCDBBA3),
+          outlineVariant: Color(0xFFE4D8C8),
+          surfaceContainer: Color(0xFFEFE2D0),
+          secondaryContainer: AppColors.areia,
+          onSecondaryContainer: AppColors.marinho,
+        ),
+      );
+
+  static final ThemeData escuro = _montarTema(
+        brilho: Brightness.dark,
+        fundo: AppColors.fundoEscuro,
+        corTitulo: AppColors.textoEscuro,
+        cores: const ColorScheme(
+          brightness: Brightness.dark,
+          primary: AppColors.ceu,
+          onPrimary: AppColors.fundoEscuro,
+          secondary: AppColors.rio,
+          onSecondary: AppColors.fundoEscuro,
+          tertiary: Color(0xFF1F5C86),
+          onTertiary: AppColors.textoEscuro,
+          error: Color(0xFFF08A5D),
+          onError: AppColors.fundoEscuro,
+          surface: AppColors.superficieEscura,
+          onSurface: AppColors.textoEscuro,
+          onSurfaceVariant: Color(0xFFB3C0CC),
+          outline: Color(0xFF2A4A66),
+          outlineVariant: Color(0xFF1F3A54),
+          surfaceContainer: Color(0xFF12304A),
+          secondaryContainer: Color(0xFF12304A),
+          onSecondaryContainer: AppColors.textoEscuro,
+        ),
+      );
+
+  /// Monta um tema a partir de um jogo de cores. Os dois modos (claro e
+  /// escuro) usam esta mesma função, então os tamanhos, cantos e fontes
+  /// são sempre iguais: só as cores mudam.
+  static ThemeData _montarTema({
+    required Brightness brilho,
+    required ColorScheme cores,
+    required Color fundo,
+    required Color corTitulo,
+  }) {
+    final cantos = BorderRadius.circular(10);
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: esquemaDeCores,
-      scaffoldBackgroundColor: AppColors.fundo,
-      fontFamily: 'Arial',
+      brightness: brilho,
+      colorScheme: cores,
+      scaffoldBackgroundColor: fundo,
+      fontFamily: AppFontes.texto,
+      textTheme: _textos(cores, corTitulo),
 
-      // AppBar clara, sem sombra pesada, com título alinhado ao padrão do
-      // design (texto escuro sobre fundo claro, em vez de branco sobre azul).
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.fundo,
-        foregroundColor: AppColors.primaryDark,
+      // Cabeçalho sem sombra, na cor do fundo, com o título em Bricolage.
+      appBarTheme: AppBarTheme(
+        backgroundColor: fundo,
+        foregroundColor: cores.onSurface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          color: AppColors.primaryDark,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
+          fontFamily: AppFontes.titulo,
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: corTitulo,
         ),
       ),
 
-      // Cards brancos com cantos arredondados e sombra bem sutil — usados
-      // em quase todas as listas do app (eventos, palestras, favoritos...).
+      // Cards planos: sem sombra, só uma linha de 1px e cantos de 12px.
       cardTheme: CardThemeData(
-        color: AppColors.superficie,
-        elevation: 1.5,
-        shadowColor: Colors.black12,
+        color: cores.surface,
+        elevation: 0,
         surfaceTintColor: Colors.transparent,
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: cores.outlineVariant),
         ),
       ),
 
-      // Campos de texto claros, com preenchimento branco e borda suave —
-      // usados no login e nos campos de busca.
+      // Campos de texto com fundo branco (ou superfície escura) e borda de
+      // 1px; ao receber o foco, a borda fica na cor principal.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.superficie,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor: cores.surface,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.borda),
+          borderRadius: cantos,
+          borderSide: BorderSide(color: cores.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.borda),
+          borderRadius: cantos,
+          borderSide: BorderSide(color: cores.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
+          borderRadius: cantos,
+          borderSide: BorderSide(color: cores.primary, width: 1.5),
         ),
-        labelStyle: const TextStyle(color: AppColors.textoSecundario),
+        labelStyle: TextStyle(color: cores.onSurfaceVariant),
+        hintStyle: TextStyle(color: cores.onSurfaceVariant),
       ),
 
-      // Botão principal: pílula azul-marinho preenchida, usado em "Entrar",
-      // "Inscrever-se", etc.
+      // Botão principal: preenchido, cor principal, 50px de altura
+      // (ex.: "Entrar", "Garantir vaga").
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+          backgroundColor: cores.primary,
+          foregroundColor: cores.onPrimary,
+          minimumSize: const Size(64, 50),
+          shape: RoundedRectangleBorder(borderRadius: cantos),
+          textStyle: const TextStyle(
+            fontFamily: AppFontes.texto,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
-      // Botão secundário: contorno azul, usado para ações como "Favoritar"
-      // e "Ativar lembrete".
+      // Botão secundário: só o contorno de 1px (ex.: "Cancelar").
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+          foregroundColor: cores.onSurface,
+          side: BorderSide(color: cores.outline),
+          minimumSize: const Size(64, 50),
+          shape: RoundedRectangleBorder(borderRadius: cantos),
+          textStyle: const TextStyle(
+            fontFamily: AppFontes.texto,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
 
-      // Barra de navegação inferior branca, com indicador azul-claro atrás
-      // do ícone selecionado — reproduz o rodapé do design de referência.
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.superficie,
-        indicatorColor: AppColors.secondary.withValues(alpha: 0.25),
-        elevation: 4,
-        height: 66,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final selecionado = states.contains(WidgetState.selected);
-          return TextStyle(
-            fontSize: 12,
-            fontWeight: selecionado ? FontWeight.w700 : FontWeight.w500,
-            color: selecionado ? AppColors.primaryDark : AppColors.textoSecundario,
-          );
-        }),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: cores.primary,
+          textStyle: const TextStyle(
+            fontFamily: AppFontes.texto,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
 
+      // Filtros (ex.: temas na Programação): cantos de 8px e borda de 1px.
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.fundo,
-        side: const BorderSide(color: AppColors.borda),
-        labelStyle: const TextStyle(color: AppColors.primaryDark, fontSize: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: Colors.transparent,
+        selectedColor: cores.onSurface,
+        side: BorderSide(color: cores.outline),
+        labelStyle: TextStyle(
+          fontFamily: AppFontes.texto,
+          fontSize: 13,
+          color: cores.onSurface,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+
+      // Interruptor (ex.: "Modo escuro" no Perfil): trilho na cor
+      // principal quando ligado, bolinha sempre clara.
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.all(cores.surface),
+        trackColor: WidgetStateProperty.resolveWith(
+          (estados) => estados.contains(WidgetState.selected)
+              ? cores.primary
+              : cores.outline,
+        ),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+
+      dividerTheme: DividerThemeData(
+        color: cores.outlineVariant,
+        thickness: 1,
+        space: 1,
+      ),
+
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: cores.primary),
+    );
+  }
+
+  /// Estilos de texto do app. Cada nome do `TextTheme` tem um uso fixo:
+  ///
+  /// - `headlineMedium`, `headlineSmall`, `titleLarge`: títulos, em
+  ///   Bricolage Grotesque 600 (30, 26 e 20px);
+  /// - `titleMedium`, `titleSmall`: título de card ou de item de lista,
+  ///   em Figtree 600 (16 e 15px);
+  /// - `bodyLarge`, `bodyMedium`, `bodySmall`: textos corridos, em Figtree
+  ///   (o `bodySmall` é o texto secundário, mais apagado);
+  /// - `labelLarge`: botões, em Figtree 600;
+  /// - `labelMedium`: horários, salas e datas, em JetBrains Mono
+  ///   (ex.: `QUA 10 · 09:00—10:30`);
+  /// - `labelSmall`: rótulos de seção, em JetBrains Mono maiúsculo
+  ///   (ex.: `PRÓXIMA NA AGENDA`; ver `widgets/rotulo_secao.dart`).
+  static TextTheme _textos(ColorScheme cores, Color corTitulo) {
+    TextStyle titulo(double tamanho) => TextStyle(
+          fontFamily: AppFontes.titulo,
+          fontSize: tamanho,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
+          color: corTitulo,
+        );
+
+    return TextTheme(
+      headlineMedium: titulo(30),
+      headlineSmall: titulo(26),
+      titleLarge: titulo(20),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        color: cores.onSurface,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        color: cores.onSurface,
+      ),
+      bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: cores.onSurface),
+      bodyMedium: TextStyle(fontSize: 14, height: 1.5, color: cores.onSurface),
+      bodySmall: TextStyle(fontSize: 13, color: cores.onSurfaceVariant),
+      labelLarge: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      labelMedium: TextStyle(
+        fontFamily: AppFontes.mono,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: cores.onSurfaceVariant,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: AppFontes.mono,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1,
+        color: cores.onSurfaceVariant,
       ),
     );
   }

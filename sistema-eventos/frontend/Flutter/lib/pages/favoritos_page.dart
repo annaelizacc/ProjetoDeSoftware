@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/palestra.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import 'palestra_details_page.dart';
 
 /// Tela de favoritos.
@@ -48,7 +47,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
               final p = Palestra.fromJson(Map<String, dynamic>.from(item));
               return Card(
                 child: ListTile(
-                  leading: const Icon(Icons.star, color: Colors.amber),
+                  leading: Icon(Icons.star, color: Theme.of(context).colorScheme.primary),
                   title: Text(p.titulo),
                   subtitle: Text(p.tema ?? ''),
                   trailing: const Icon(Icons.chevron_right),

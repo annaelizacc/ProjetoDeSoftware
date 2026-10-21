@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   http: ^1.2.2
+  # Guarda pequenos valores no próprio celular (ex.: modo escuro ligado).
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -21,3 +23,32 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+
+  # Fontes da identidade visual (F20), guardadas dentro do app para
+  # funcionarem sem internet. Arquivos estáticos (um por peso), gerados a
+  # partir das fontes do Google Fonts, licença OFL (ver OFL-*.txt).
+  fonts:
+    - family: Bricolage Grotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-SemiBold.ttf
+          weight: 600
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Figtree-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Figtree-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Figtree-Bold.ttf
+          weight: 700
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/palestra.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import 'palestra_details_page.dart';
 
 /// Tela de agenda pessoal.
@@ -18,6 +17,8 @@ class AgendaPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Minha agenda')),
       body: FutureBuilder<List<dynamic>>(
@@ -33,13 +34,11 @@ class AgendaPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: lista.map((json) {
               final p = Palestra.fromJson(Map<String, dynamic>.from(json));
-              final cor = AppColors.corDaCategoria(p.tema ?? p.titulo);
-              final corTexto = AppColors.corDeDestaqueDaCategoria(p.tema ?? p.titulo);
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: cor,
-                    child: Icon(Icons.event_note, color: corTexto),
+                    backgroundColor: cores.secondaryContainer,
+                    child: Icon(Icons.event_note, color: cores.onSecondaryContainer),
                   ),
                   title: Text(p.titulo),
                   subtitle: Text('${p.horario} • ${p.sala ?? ''}'),

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 
 /// Tela de avisos e notificações.
 ///
 /// Lista as notificações/lembretes do usuário
 /// (`GET /api/notificacoes/usuario/<id>`, via `ApiService.notificacoes`).
-/// O ícone e a cor de cada item mudam conforme `tipo_notificacao`,
-/// reaproveitando os assets `imgAtencao.png`/`imgInfo.png`/`imgLembrete.png`
+/// O ícone de cada item muda conforme `tipo_notificacao`, reaproveitando os assets `imgAtencao.png`/`imgInfo.png`/`imgLembrete.png`
 /// que já existiam no projeto para diferenciar visualmente os tipos de
 /// aviso, como na tela "Avisos" do design de referência.
 class NotificacoesPage extends StatelessWidget {
@@ -16,15 +14,15 @@ class NotificacoesPage extends StatelessWidget {
 
   const NotificacoesPage({super.key, required this.usuarioId});
 
-  /// Escolhe o asset e a cor de fundo do card conforme o tipo de notificação.
-  ({String asset, Color cor}) _estiloPorTipo(String? tipo) {
+  /// Escolhe o ícone (asset) conforme o tipo de notificação.
+  String _iconePorTipo(String? tipo) {
     switch (tipo) {
       case 'atencao':
-        return (asset: 'assets/images/imgAtencao.png', cor: AppColors.categorias[1]);
+        return 'assets/images/imgAtencao.png';
       case 'lembrete':
-        return (asset: 'assets/images/imgLembrete.png', cor: AppColors.categorias[2]);
+        return 'assets/images/imgLembrete.png';
       default:
-        return (asset: 'assets/images/imgInfo.png', cor: AppColors.categorias[0]);
+        return 'assets/images/imgInfo.png';
     }
   }
 
@@ -44,15 +42,14 @@ class NotificacoesPage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: lista.map((item) {
-              final estilo = _estiloPorTipo(item['tipo_notificacao']);
-              return Container(
+              return Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: estilo.cor,
-                  borderRadius: BorderRadius.circular(18),
-                ),
                 child: ListTile(
-                  leading: Image.asset(estilo.asset, width: 32, height: 32),
+                  leading: Image.asset(
+                    _iconePorTipo(item['tipo_notificacao']),
+                    width: 32,
+                    height: 32,
+                  ),
                   title: Text(item['mensagem'] ?? ''),
                   subtitle: Text(item['tipo_notificacao'] ?? 'aviso'),
                 ),

@@ -119,11 +119,12 @@ mais rápidas, por último as maiores.
 | 7 | P07 Método obsoleto do SQLAlchemy | 🟢 | Poucos minutos |
 | 8 | P05 Abas do app recarregam a cada troca | 🟢 | Pequena, no Flutter |
 | 9 | P08 Tipo de notificação "atencao" | 🟢 | Pequena |
-| 10 | F13 Restaurantes próximos | 🟢 | Tabela já existe |
-| 11 | F12 Certificado de participação | 🟢 | Tabela criada na F19 |
-| 12 | F15 Aviso de alteração de palestra | 🟢 | Depende da F14 |
-| 13 | P12 Testes automatizados | 🟢 | Maior, mas protege as regras principais |
-| 14 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
+| 10 | F21 Marcar avisos como lidos (contador da barra) | 🟢 | Pequena; faz o contador de Avisos funcionar |
+| 11 | F13 Restaurantes próximos | 🟢 | Tabela já existe |
+| 12 | F12 Certificado de participação | 🟢 | Tabela criada na F19 |
+| 13 | F15 Aviso de alteração de palestra | 🟢 | Depende da F14 |
+| 14 | P12 Testes automatizados | 🟢 | Maior, mas protege as regras principais |
+| 15 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
 
 A P13 não entra na lista: ela se resolve quando F03, F04, F08 e F13
 forem feitas.
@@ -191,7 +192,8 @@ o nome indicado, que aparece acima de cada tela.
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Pendente |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
-| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Pendente |
+| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Em andamento |
+| F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -534,12 +536,25 @@ o nome indicado, que aparece acima de cada tela.
   terça, porque as telas novas da Bianca já são feitas sobre ela.
 - **Parte 2 (sexta, telas restantes):** aplicar o visual nas telas que
   nenhuma outra tarefa alterou (por exemplo, splash, home, programação,
-  agenda e favoritos).
+  agenda e favoritos). As cores dessas telas já foram trocadas pelas do
+  tema na parte 1 (o modo escuro funciona nelas); falta o layout.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
 - **Diferença em relação ao relatório:** o visual muda em relação ao
   protótipo do Figma entregue. Registrar o motivo em `DOCUMENTACAO.md`.
+
+### F21 Marcar avisos como lidos (contador da barra)
+
+- **Telas no [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt):** "Componente: barra de navegação", "Avisos (RF09, RF18, F15)".
+- **Origem:** sugestão S08, aprovada em 20/10/2026 durante a F20.
+- **O que já existe:** a `BarraNavegacao` (F20 parte 1) já mostra um
+  contador na aba Avisos quando recebe um número maior que zero.
+- **O que falta:** a tabela `notificacao` não tem um campo que diga se o
+  aviso já foi lido, então hoje não há como contar os avisos novos.
+  Falta o campo no banco (com script de migração, sem recriar o banco),
+  uma rota para marcar como lido (por exemplo, ao abrir a aba Avisos) e
+  passar a contagem para a barra no `app_shell.dart`.
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 
@@ -639,6 +654,7 @@ Uma sugestão aprovada vira uma tarefa F; uma recusada é marcada como tal.
 | S05 | Mais dados de demonstração no banco | Com só 2 palestras, a apresentação não mostra bem o controle de vagas, a busca e a agenda | Adiada: a equipe ajusta os dados depois (antes da apresentação, os eventos de exemplo precisam ter datas futuras) |
 | S06 | Nova proposta visual para o app ([canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | Corrige problemas do protótipo do Figma: contraste, fontes misturadas, menu duplicado, telas sem informações essenciais (vagas, botão de inscrição) e textos em inglês. Já inclui o modo escuro (RF20) | Aprovada: definida pela Manuela em outra conversa, aplicada na F20 |
 | S07 | Outros tipos de atividade além de palestra (workshop, mesa-redonda), com mais de um palestrante por atividade | Amplia o uso do app para eventos variados. Fica fora desta entrega porque nenhum RF pede e o diagrama não prevê | Melhoria futura: só registrar na documentação final |
+| S08 | Marcar avisos como lidos | Sem isso, o contador de avisos novos da barra de navegação (canvas) não tem o que contar | Aprovada: virou F21 |
 
 ---
 

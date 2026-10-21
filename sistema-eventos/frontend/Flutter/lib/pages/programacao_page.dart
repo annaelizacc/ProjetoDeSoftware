@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/palestra.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import 'palestra_details_page.dart';
 
 /// Tela de programação de um evento.
@@ -11,8 +10,7 @@ import 'palestra_details_page.dart';
 /// com um campo de busca que filtra por tema/título
 /// (`ApiService.programacao(eventoId, tema: ...)`, que repassa o parâmetro
 /// `tema` para o `PalestraRepository` no backend). Cada palestra é exibida
-/// em um card colorido conforme seu tema, para reproduzir o efeito visual
-/// do design de referência.
+/// em um card do tema (fundo e linha fina), igual para todas as palestras.
 class ProgramacaoPage extends StatefulWidget {
   final int eventoId;
   final int usuarioId;
@@ -68,29 +66,22 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
                     itemCount: lista.length,
                     itemBuilder: (_, index) {
                       final palestra = Palestra.fromJson(Map<String, dynamic>.from(lista[index]));
-                      final corFundo = AppColors.corDaCategoria(palestra.tema ?? palestra.titulo);
-                      final corTexto = AppColors.corDeDestaqueDaCategoria(palestra.tema ?? palestra.titulo);
-                      return Container(
+                      return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: corFundo,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(14),
                           title: Text(
                             palestra.titulo,
-                            style: TextStyle(fontWeight: FontWeight.bold, color: corTexto),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               '${palestra.tema ?? 'Sem tema'} • ${palestra.sala ?? 'Sala a definir'}\n'
                               '${palestra.horario} • ${palestra.vagas} vagas',
-                              style: TextStyle(color: corTexto.withValues(alpha: 0.85)),
                             ),
                           ),
-                          trailing: Icon(Icons.chevron_right, color: corTexto),
+                          trailing: const Icon(Icons.chevron_right),
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(

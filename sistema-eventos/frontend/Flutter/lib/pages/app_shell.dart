@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/barra_navegacao.dart';
 import 'agenda_page.dart';
-import 'favoritos_page.dart';
 import 'home_page.dart';
 import 'notificacoes_page.dart';
+import 'perfil_page.dart';
+import 'programacao_aba_page.dart';
 
 /// Casca (shell) do app após o login: contém a barra de navegação inferior
-/// e alterna entre as quatro telas principais — Início, Agenda, Favoritos
-/// e Avisos — sem perder o estado de cada uma (elas ficam todas
-/// construídas, apenas escondidas via índice, o que é suficiente para o
-/// tamanho deste app).
+/// e alterna entre as cinco telas principais — Início, Programação,
+/// Agenda, Avisos e Perfil — sem perder o estado de cada uma (elas ficam
+/// todas construídas, apenas escondidas via índice, o que é suficiente para
+/// o tamanho deste app). Os Favoritos saíram da barra na F20 e agora são
+/// abertos pelo Perfil, como no canvas.
 ///
 /// Recebe `usuarioId`/`nomeUsuario` uma única vez (vindos do login) e os
 /// repassa para cada tela filha, evitando que cada tela precise refazer a
@@ -35,39 +38,18 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final telas = [
       HomePage(usuarioId: widget.usuarioId, nomeUsuario: widget.nomeUsuario),
+      ProgramacaoAbaPage(usuarioId: widget.usuarioId),
       AgendaPage(usuarioId: widget.usuarioId),
-      FavoritosPage(usuarioId: widget.usuarioId),
       NotificacoesPage(usuarioId: widget.usuarioId),
+      PerfilPage(usuarioId: widget.usuarioId, nomeUsuario: widget.nomeUsuario),
     ];
     return Scaffold(
       body: telas[aba],
-      // As cores/tipografia da barra vêm do NavigationBarTheme centralizado
-      // em `theme/app_theme.dart` — nada de estilo é definido aqui.
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: aba,
-        onDestinationSelected: (index) => setState(() => aba = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Agenda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.star_border),
-            selectedIcon: Icon(Icons.star),
-            label: 'Favoritos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_none),
-            selectedIcon: Icon(Icons.notifications),
-            label: 'Avisos',
-          ),
-        ],
+      // O visual da barra fica no componente compartilhado
+      // `widgets/barra_navegacao.dart`; aqui só se decide a tela.
+      bottomNavigationBar: BarraNavegacao(
+        abaAtual: aba,
+        aoTrocarAba: (indice) => setState(() => aba = indice),
       ),
     );
   }
