@@ -14,6 +14,12 @@ class ApiService {
     defaultValue: 'http://127.0.0.1:5000',
   );
 
+  /// Token de login devolvido pela API (P01). Fica só na memória: ao
+  /// fechar o app, ele some e é preciso fazer login de novo. Enquanto
+  /// existir, vai em toda requisição no cabeçalho `Authorization`, e é
+  /// por ele que a API sabe quem está fazendo o pedido.
+  static String? token;
+
   /// Executa uma requisição HTTP genérica e já trata os casos de erro.
   ///
   /// - Se o servidor estiver fora do ar, lança uma exceção amigável em vez
@@ -29,6 +35,7 @@ class ApiService {
   }) async {
     final uri = Uri.parse('$baseUrl$path');
     final headers = {'Content-Type': 'application/json'};
+    if (token != null) headers['Authorization'] = 'Bearer $token';
     late http.Response response;
 
     try {
@@ -61,12 +68,14 @@ class ApiService {
 
   /// Autentica o usuário (`POST /api/auth/login`) e devolve os dados do
   /// usuário autenticado, usados para iniciar a sessão local do app.
+  /// Também guarda o token, que passa a ir nas próximas requisições.
   static Future<Map<String, dynamic>> login(String email, String senha) async {
     final data = await request(
       '/api/auth/login',
       method: 'POST',
       body: {'email': email, 'senha': senha},
     );
+    token = data['token'];
     return Map<String, dynamic>.from(data['usuario']);
   }
 
@@ -86,7 +95,8 @@ class ApiService {
   }
 
   /// Busca os detalhes de uma palestra, já com as flags do usuário logado
-  /// (`GET /api/palestras/<id>?id_usuario=...`).
+  /// (`GET /api/palestras/<id>`). Desde a P01, a API descobre o usuário
+  /// pelo token; o `?id_usuario=` ainda enviado é ignorado por ela.
   static Future<Map<String, dynamic>> palestra(int id, int usuarioId) async =>
       Map<String, dynamic>.from(
         await request('/api/palestras/$id?id_usuario=$usuarioId'),

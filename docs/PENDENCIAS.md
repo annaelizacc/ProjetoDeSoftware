@@ -202,8 +202,9 @@ o nome indicado, que aparece acima de cada tela.
   senha protegida por hash.
 - **O que falta:** a tela de cadastro no Flutter e um link para ela na
   tela de login.
-- **Atenção:** hoje quem se cadastra pode escolher o próprio
-  `tipo_usuario` (inclusive "organizador"). Ver P03.
+- **Resolvido na P01 (21/10/2026):** o cadastro cria sempre um
+  participante e ignora o `tipo_usuario` enviado. A tela não precisa
+  (nem deve) mandar esse campo. A rota continua pública.
 
 ### F02 Aviso real de início das palestras (RF09)
 
@@ -450,8 +451,12 @@ o nome indicado, que aparece acima de cada tela.
   toda vez que é aberto.
 - **O que falta:** um botão "Sair" e manter a pessoa conectada ao
   reabrir o app, até ela sair.
-- **Relacionado:** P01 (autenticação), porque a forma de manter o login
-  depende de como a autenticação for feita.
+- **Relacionado:** P01 (autenticação). Desde a P01, o login devolve um
+  token que vale 8 horas e fica só na memória (`ApiService.token`).
+  Manter o login é guardar esse token no aparelho e, no "Sair", apagá-lo.
+- **Decidido (21/10/2026):** quando a API responder 401 (token vencido
+  ou inválido), o app deve voltar sozinho para a tela de login. Hoje a
+  tela só mostra a mensagem "Sessão expirada ou inválida".
 
 ### F18 Entrar com Google
 
@@ -667,7 +672,7 @@ qualquer alteração.
 
 | ID | Prioridade | Tema | Status |
 |---|---|---|---|
-| P01 | 🔴 | Rotas da API sem autenticação | Pendente |
+| P01 | 🔴 | Rotas da API sem autenticação | Concluído |
 | P02 | 🔴 | Login aceita senha em texto puro | Pendente |
 | P03 | 🟡 | Atualizações aceitam qualquer campo | Pendente |
 | P04 | 🟡 | Configuração de desenvolvimento exposta | Pendente |
@@ -681,6 +686,7 @@ qualquer alteração.
 | P12 | 🟢 | Projeto sem testes automatizados | Pendente |
 | P13 | 🟢 | Tabelas sem uso no app | Decidido: todas terão uso (F03, F04, F08, F13) |
 | P14 | 🔴 | Versão antiga e nova sem commit | Concluído |
+| P15 | 🟡 | Botão de inscrição não mostra o estado da inscrição | Pendente |
 
 ---
 
@@ -697,6 +703,31 @@ qualquer alteração.
 - **Por que importa:** qualquer pessoa com acesso à API pode se passar por
   outro usuário, inscrever ou desinscrever outras pessoas, e até criar,
   editar ou apagar eventos, palestras e usuários.
+- **Concluído (21/10/2026):** autenticação por **token** assinado com o
+  `itsdangerous`, que já vem com o Flask (`services/auth/token_service.py`).
+  O login devolve o token, que vale 8 horas, e o app o envia no
+  cabeçalho `Authorization: Bearer <token>` (`ApiService.token`). Os
+  decorators `@login_obrigatorio` e `@somente_organizador`
+  (`controllers/autenticacao.py`) protegem as rotas. Só login, cadastro e
+  logout são públicos. O usuário vem sempre do token, e um `id_usuario`
+  no corpo é ignorado. Nas rotas com `<id_usuario>` na URL, só a própria
+  pessoa tem acesso. Avaliação: editar, só o autor; remover, o autor ou
+  um organizador. Ninguém escolhe o próprio perfil: o cadastro cria
+  sempre participante, o `PUT` ignora `tipo_usuario`, e organizadores
+  são criados direto no banco. A tabela de acesso está no README
+  (seção 7).
+- **Para a Bianca (e para toda rota nova):** colocar `@tratar_erros` e,
+  logo abaixo, `@login_obrigatorio` (ou `@somente_organizador`). Usar
+  `g.usuario.id_usuario`, nunca `dados.get("id_usuario")`. A tela de
+  cadastro (F01) não manda `tipo_usuario`.
+- **Limitação:** o logout só apaga o token no app. Um token copiado
+  antes continua valendo até vencer (mesmo se a pessoa trocar a senha),
+  porque a API não guarda uma lista de tokens. Fica como próximo passo.
+- **Ajustes da revisão (`/code-review`):** a atualização de usuário
+  aceita só `nome`, `email` e `senha` (lista de campos permitidos) e
+  recusa senha vazia; só a própria pessoa altera a conta (um organizador
+  não troca a senha de outra pessoa); `TIPO_ORGANIZADOR` e
+  `TIPO_PARTICIPANTE` ficam na Model `Usuario`.
 
 ### P02 🔴 Login aceita senha em texto puro
 
@@ -721,6 +752,13 @@ qualquer alteração.
   que já existe gera erro 500 em vez de uma mensagem clara.
 - **Já corrigido em um caso:** desde a F19, a atualização de avaliação
   aceita só `nota_estrelas` e `comentario` (não dá para trocar o autor).
+- **`tipo_usuario` corrigido na P01 (21/10/2026):** o cadastro e a
+  atualização de usuário ignoram esse campo. O restante (como
+  `vagas_disponiveis` da palestra e o erro 500 com email repetido)
+  continua pendente.
+- **Também encontrado na revisão da P01:** um corpo JSON que não é um
+  objeto (ex.: `[1, 2]`) faz as rotas de inscrição, favorito, lembrete e
+  avaliação responderem 500 em vez de 400.
 - **Por que importa:** o backend deve decidir quais campos podem ser
   alterados. Hoje quem decide é quem envia a requisição.
 
@@ -732,6 +770,15 @@ qualquer alteração.
   `SECRET_KEY` tem um valor padrão fixo no código.
 - **Por que importa:** o modo debug mostra detalhes internos do servidor
   quando ocorre um erro, e a chave fixa permite falsificar a sessão.
+- **Ficou mais grave com a P01 (21/10/2026):** a `SECRET_KEY` assina os
+  tokens de login. Com o valor padrão do `config.py`, que está no
+  repositório, qualquer pessoa consegue fabricar um token válido de
+  qualquer usuário, inclusive de um organizador. Cada instalação precisa
+  de uma `SECRET_KEY` própria no `.env`, e a API não deveria subir sem
+  ela. O `backend/.env.example` também traz um valor de exemplo
+  (`troque-esta-chave`) que não pode ser usado como chave real.
+- **CORS (21/10/2026):** desde a P01 a API não usa mais cookie, então o
+  `supports_credentials=True` do `app.py` ficou sem uso e pode sair.
 
 ## Bugs e inconsistências
 
@@ -853,3 +900,20 @@ qualquer alteração.
 - **Concluído (20/10/2026):** a versão nova entrou no commit `fc44e13`
   (branch `regras-claude`) e chegou à `main` pelo Pull Request da P11,
   já com o `.gitignore` completo.
+
+### P15 🟡 Botão de inscrição não mostra o estado da inscrição
+
+- **Onde:** `frontend/Flutter/lib/pages/palestra_details_page.dart` e
+  `frontend/Flutter/lib/models/palestra.dart`.
+- **O que acontece:** na tela de detalhes, o botão mostra
+  "Inscrever-se" mesmo quando a pessoa já está inscrita, e ao tocar nele
+  o texto não muda para "Cancelar inscrição". A API responde certo: o
+  `GET /api/palestras/<id>` devolve `inscrito: true` para a Ana nas
+  palestras 1 e 2 (testado com `curl` em 21/10/2026). A suspeita é que a
+  API recuse a nova inscrição ("Usuário já está inscrito nesta
+  palestra") e a tela não reflita o estado devolvido. O problema já
+  existia antes da P01.
+- **Por que importa:** a inscrição é uma das funções principais do app
+  (RF05 e RF06) e aparece na gravação de tela.
+- **Decidido (21/10/2026):** resolver junto com as tarefas de interface
+  (F20 parte 2), e não na P01.

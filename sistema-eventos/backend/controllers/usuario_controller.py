@@ -7,10 +7,20 @@ Este Controller é NOVO nesta refatoração: o projeto já tinha a Model e o
 login, mas não expunha CRUD de usuário via API. Ele foi adicionado sem
 alterar nenhum endpoint existente, então não há risco de quebrar o que o
 Flutter já consome — é uma extensão pura.
+
+Acesso (P01): o cadastro (`POST`) é público, porque é feito antes do
+login. Listar todos é só para organizadores. Ver e remover uma conta: a
+própria pessoa ou um organizador. Atualizar: só a própria pessoa (se um
+organizador pudesse trocar a senha de outra conta, poderia entrar nela).
 """
 
 from flask import Blueprint, jsonify, request
 
+from backend.controllers.autenticacao import (
+    login_obrigatorio,
+    somente_organizador,
+    verificar_acesso_ao_usuario,
+)
 from backend.controllers.utils import tratar_erros
 from backend.services.usuario.listar_usuarios_service import ListarUsuariosService
 from backend.services.usuario.buscar_usuario_service import BuscarUsuarioService
@@ -24,13 +34,16 @@ class UsuarioController:
 
     @staticmethod
     @tratar_erros
+    @somente_organizador
     def listar():
         usuarios = ListarUsuariosService().execute()
         return jsonify([usuario.to_dict() for usuario in usuarios])
 
     @staticmethod
     @tratar_erros
+    @login_obrigatorio
     def buscar(id_usuario):
+        verificar_acesso_ao_usuario(id_usuario, organizador_pode=True)
         usuario = BuscarUsuarioService().execute(id_usuario)
         return jsonify(usuario.to_dict())
 
@@ -42,13 +55,17 @@ class UsuarioController:
 
     @staticmethod
     @tratar_erros
+    @login_obrigatorio
     def atualizar(id_usuario):
+        verificar_acesso_ao_usuario(id_usuario)
         usuario = AtualizarUsuarioService().execute(id_usuario, request.get_json() or {})
         return jsonify(usuario.to_dict())
 
     @staticmethod
     @tratar_erros
+    @login_obrigatorio
     def remover(id_usuario):
+        verificar_acesso_ao_usuario(id_usuario, organizador_pode=True)
         RemoverUsuarioService().execute(id_usuario)
         return jsonify({"mensagem": "Usuário removido."})
 

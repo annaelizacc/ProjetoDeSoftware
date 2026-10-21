@@ -10,22 +10,27 @@ e gera o hash da senha antes de delegar a persistência para a Model
 de decisões de segurança e deixa essa responsabilidade no caso de uso que
 realmente sabe de onde a senha em texto puro está vindo.
 
+Todo cadastro cria um participante (P01): o cadastro é público, então,
+se aceitasse o `tipo_usuario` enviado, qualquer pessoa poderia se
+cadastrar como organizador. Um `tipo_usuario` recebido é ignorado.
+Organizadores são criados direto no banco (ver README).
+
 Método principal:
     execute(dados): cria e retorna o novo Usuario.
 """
 
 from werkzeug.security import generate_password_hash
 
-from backend.models.usuario import Usuario
+from backend.models.usuario import TIPO_PARTICIPANTE, Usuario
 
 
 class CriarUsuarioService:
     """Caso de uso responsável pelo cadastro de um novo usuário."""
 
     def execute(self, dados):
-        obrigatorios = ("nome", "email", "senha", "tipo_usuario")
+        obrigatorios = ("nome", "email", "senha")
         if not all(dados.get(campo) for campo in obrigatorios):
-            raise ValueError("nome, email, senha e tipo_usuario são obrigatórios.")
+            raise ValueError("nome, email e senha são obrigatórios.")
 
         email = dados["email"].strip().lower()
         if Usuario.query.filter_by(email=email).first():
@@ -35,5 +40,5 @@ class CriarUsuarioService:
             nome=dados["nome"],
             email=email,
             senha=generate_password_hash(dados["senha"]),
-            tipo_usuario=dados["tipo_usuario"],
+            tipo_usuario=TIPO_PARTICIPANTE,
         )
