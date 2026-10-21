@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import 'programacao_page.dart';
 
 /// Tela inicial (Home).
@@ -31,6 +30,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () async => setState(() => futuroEventos = ApiService.eventos()),
@@ -39,36 +40,36 @@ class _HomePageState extends State<HomePage> {
           children: [
             Text(
               'Olá, ${widget.nomeUsuario}',
-              style: const TextStyle(fontSize: 15, color: AppColors.textoSecundario),
+              style: TextStyle(fontSize: 15, color: cores.onSurfaceVariant),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Encontre seu próximo evento',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primaryDark,
+                color: cores.primary,
               ),
             ),
             const SizedBox(height: 20),
-            // Banner de destaque: usa o azul secundário do tema, e não um
-            // hexadecimal solto, para acompanhar qualquer ajuste futuro de
-            // paleta feito em `theme/app_theme.dart`.
+            // Banner de destaque: usa o azul secundário do tema (Rio), e o
+            // texto usa `onSecondary`, a cor feita para ficar legível sobre
+            // ele nos dois modos.
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: AppColors.secondary,
+                color: cores.secondary,
                 borderRadius: BorderRadius.circular(22),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.event_available, color: Colors.white, size: 42),
-                  SizedBox(width: 14),
+                  Icon(Icons.event_available, color: cores.onSecondary, size: 42),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       'A programação oficial está pronta para você.',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: cores.onSecondary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -103,11 +104,8 @@ class _HomePageState extends State<HomePage> {
                     return Card(
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.corDaCategoria(evento['nome']),
-                          child: Icon(
-                            Icons.event,
-                            color: AppColors.corDeDestaqueDaCategoria(evento['nome']),
-                          ),
+                          backgroundColor: cores.secondaryContainer,
+                          child: Icon(Icons.event, color: cores.onSecondaryContainer),
                         ),
                         title: Text(evento['nome'] ?? ''),
                         subtitle: Text(evento['local'] ?? 'Local não informado'),

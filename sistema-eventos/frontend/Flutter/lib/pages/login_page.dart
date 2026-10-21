@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import 'app_shell.dart';
 
 /// Tela de login.
@@ -56,8 +55,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.fundo,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -65,23 +65,23 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.event_available, size: 56, color: AppColors.primary),
+                Icon(Icons.event_available, size: 56, color: cores.primary),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'FLUXO',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.primaryDark,
+                    color: cores.primary,
                     fontSize: 30,
                     letterSpacing: 4,
                     fontWeight: FontWeight.w300,
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Login',
                   style: TextStyle(
-                    color: AppColors.primaryDark,
+                    color: cores.primary,
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
@@ -112,38 +112,38 @@ class _LoginPageState extends State<LoginPage> {
                 FilledButton(
                   onPressed: carregando ? null : entrar,
                   child: carregando
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: cores.onPrimary,
                             strokeWidth: 2,
                           ),
                         )
                       : const Text('Sign In'),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'ou entre com',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textoSecundario, fontSize: 12),
+                  style: TextStyle(color: cores.onSurfaceVariant, fontSize: 12),
                 ),
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _iconeSocial('assets/images/faceIcon.png'),
+                    _iconeSocial(cores, 'assets/images/faceIcon.png'),
                     const SizedBox(width: 18),
-                    _iconeSocial('assets/images/googleIcon.png'),
+                    _iconeSocial(cores, 'assets/images/googleIcon.png'),
                     const SizedBox(width: 18),
-                    _iconeSocial('assets/images/gitIcon.png'),
+                    _iconeSocial(cores, 'assets/images/gitIcon.png'),
                   ],
                 ),
                 const SizedBox(height: 22),
-                const Text(
+                Text(
                   'Use os dados de Ana Silva do banco oficial.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textoSecundario, fontSize: 12),
+                  style: TextStyle(color: cores.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
@@ -156,13 +156,13 @@ class _LoginPageState extends State<LoginPage> {
   /// Ícone social meramente decorativo (reaproveita os assets já existentes
   /// no projeto), reproduzindo a fileira de ícones da tela de login do
   /// design de referência.
-  Widget _iconeSocial(String asset) {
+  Widget _iconeSocial(ColorScheme cores, String asset) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.superficie,
+        color: cores.surface,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.borda),
+        border: Border.all(color: cores.outlineVariant),
       ),
       child: Image.asset(asset, width: 22, height: 22),
     );

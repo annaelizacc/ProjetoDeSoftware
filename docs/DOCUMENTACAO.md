@@ -86,3 +86,56 @@ o que causaria conflitos no Git.
   alterar ou apagar a avaliação de outra.
 - O script do banco apaga e recria tudo (`DROP DATABASE`). Quem já tinha
   o banco local precisou recriá-lo, perdendo os dados locais.
+
+---
+
+## 3. F20 parte 1: nova identidade visual e modo escuro (F11)
+
+Concluída em 21/10/2026. A parte 1 cria a base visual do app (cores,
+fontes, temas claro e escuro e componentes compartilhados), para que as
+telas novas das outras tarefas já nasçam no visual novo. A parte 2 (F20
+parte 2) refaz o layout das telas antigas.
+
+### 3.1 O que foi feito
+
+- **Tema:** todas as cores e fontes ficam em `lib/theme/app_theme.dart`,
+  com um tema claro e um escuro. As telas pedem a cor pela função (por
+  exemplo, `colorScheme.primary` para botões e títulos), e não pelo
+  código da cor. Assim, ao ligar o modo escuro, o app inteiro muda junto.
+- **Modo escuro (F11, RF20):** interruptor na tela Perfil. A escolha
+  fica salva no celular (`lib/theme/controle_tema.dart`).
+- **Fontes:** Bricolage Grotesque nos títulos, Figtree nos textos e
+  JetBrains Mono em horários e rótulos, como arquivos dentro do projeto
+  (`assets/fonts/`, com as licenças).
+- **Componentes compartilhados** (`lib/widgets/`): barra de navegação,
+  marca-texto, rótulo de seção, selo e cabeçalho de tela.
+- **Navegação:** barra com cinco abas (Início, Programação, Agenda,
+  Avisos e Perfil). Os Favoritos passaram para dentro do Perfil.
+- **Telas novas:** Perfil (nome, Favoritos e Modo escuro) e a aba
+  Programação.
+- **Telas antigas:** as cores fixas foram trocadas pelas cores do tema,
+  para todas acompanharem o modo escuro. Os cards de palestra deixaram
+  de ter uma cor diferente para cada tema de palestra e passaram a ter
+  um card único.
+
+### 3.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Visual diferente do protótipo do Figma entregue no relatório | O protótipo tinha pouco contraste, fontes misturadas, menu duplicado (barra e sino no topo), telas sem informações essenciais (vagas, botão de inscrição) e textos em inglês. A nova proposta (S06) corrige esses pontos e já inclui o modo escuro, que é um requisito (RF20) |
+| Cores e fontes só no tema, nunca nas telas | Com cores fixas, cada tela precisaria de duas versões (claro e escuro). Pelo tema, a troca de modo é feita em um lugar só |
+| Escolha do tema salva no celular (`shared_preferences`), e não no banco | Decidido na D01: é uma preferência do aparelho e não precisa de API nem de tabela nova |
+| Fontes como arquivos do projeto, e não pelo pacote `google_fonts` | O app funciona sem internet e não depende de um serviço externo na apresentação |
+| Fontes em arquivos separados por peso (Regular, Medium, SemiBold, Bold) | O Flutter não aplica sozinho o peso de uma fonte "variável" (um arquivo com todos os pesos). Com um arquivo por peso, o negrito aparece certo |
+| Cinco abas, com Favoritos dentro do Perfil | Segue o canvas da identidade visual. Avisos ganhou aba própria no lugar do sino no topo |
+| Card único para todas as palestras, sem cor por tema | As cores por tema não tinham significado (eram sorteadas pelo nome) e ficavam claras demais no modo escuro. A identidade pede "sem cores saturadas espalhadas" |
+| Aba Programação mostra o primeiro evento cadastrado | Hoje o sistema tem um evento principal. A escolha de outro evento continua pelo Início |
+
+### 3.3 Limitações conhecidas
+
+- O contador de avisos novos da barra de navegação já existe, mas fica
+  zerado até a F21 (marcar avisos como lidos).
+- As telas antigas (Login, Início, Programação, Detalhes, Agenda, Avisos
+  e Favoritos) já usam as cores do tema, mas o layout delas só fica
+  igual ao canvas na F20 parte 2.
+- O botão "Sair" do Perfil entra na F17.

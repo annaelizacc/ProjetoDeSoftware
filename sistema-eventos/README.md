@@ -20,6 +20,8 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 8. Pesquisar palestras por tema pela API.
 9. Visualizar e gerenciar os favoritos.
 10. Ativar e desativar lembretes de palestras.
+11. Alternar entre modo claro e modo escuro (Perfil → Modo escuro); a
+    escolha fica salva no celular.
 
 Todas as funcionalidades principais percorrem:
 
@@ -172,6 +174,26 @@ flutter run --dart-define=API_URL=http://192.168.0.10:5000
 O endereço fica em `lib/services/api_service.dart` e pode ser configurado
 sem alterar as telas.
 
+### Navegação e visual
+
+Depois do login, a barra de baixo tem cinco abas: **Início**,
+**Programação** (do primeiro evento cadastrado), **Agenda**, **Avisos** e
+**Perfil**. Os **Favoritos** ficam dentro do Perfil, junto com o
+interruptor de **Modo escuro**. A escolha do tema é salva no próprio
+aparelho com o pacote `shared_preferences` (não vai para o banco).
+
+O visual segue a identidade do projeto (ver `CLAUDE.md`, na raiz do
+repositório):
+
+- cores, fontes e tema claro/escuro: `lib/theme/app_theme.dart`. As
+  telas pegam as cores só pelo `Theme.of(context)`, nunca cores fixas,
+  então todas acompanham o modo escuro;
+- controle do tema (ler e salvar a escolha): `lib/theme/controle_tema.dart`;
+- componentes usados em mais de uma tela: `lib/widgets/` (barra de
+  navegação, marca-texto, rótulo de seção, selo e cabeçalho);
+- fontes (Bricolage Grotesque, Figtree e JetBrains Mono): arquivos em
+  `assets/fonts/`, já incluídos no app, então não precisam de internet.
+
 ## 6. Explicação da arquitetura
 
 ### Controllers
@@ -285,7 +307,7 @@ Detalhes -> Cancelar inscrição -> remove participacao -> devolve vaga
 ### Fluxo 4 — favorito
 
 ```text
-Detalhes -> Favoritar -> tabela favorito -> aba Meus favoritos
+Detalhes -> Favoritar -> tabela favorito -> Perfil -> Favoritos
 ```
 
 ### Fluxo 5 — agenda
