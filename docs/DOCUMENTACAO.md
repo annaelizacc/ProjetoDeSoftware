@@ -83,7 +83,7 @@ o que causaria conflitos no Git.
 ### 2.3 Limitações conhecidas
 
 - Enquanto não houver autenticação nas rotas (P01), qualquer pessoa pode
-  alterar ou apagar a avaliação de outra.
+  alterar ou apagar a avaliação de outra. Resolvido na P01 (seção 4).
 - O script do banco apaga e recria tudo (`DROP DATABASE`). Quem já tinha
   o banco local precisou recriá-lo, perdendo os dados locais.
 
@@ -139,3 +139,74 @@ parte 2) refaz o layout das telas antigas.
   e Favoritos) já usam as cores do tema, mas o layout delas só fica
   igual ao canvas na F20 parte 2.
 - O botão "Sair" do Perfil entra na F17.
+
+---
+
+## 4. P01: autenticação por token nas rotas da API
+
+Concluída em 21/10/2026. Antes, o login guardava o usuário na sessão do
+Flask, mas nenhuma rota conferia essa sessão: as rotas usavam o
+`id_usuario` enviado no corpo ou na URL. Bastava trocar esse número para
+agir em nome de outra pessoa. Também não havia diferença entre
+participante e organizador.
+
+### 4.1 O que foi feito
+
+- **Token de login** (`backend/services/auth/token_service.py`): no
+  login, a API devolve um texto assinado com a `SECRET_KEY` que leva o
+  `id_usuario` e a hora de criação. O token vale 8 horas. Pode ser lido
+  por qualquer pessoa, mas não pode ser alterado nem fabricado sem a
+  chave.
+- **Decorators** (`backend/controllers/autenticacao.py`):
+  `@login_obrigatorio` confere o token e guarda o usuário em `g.usuario`
+  (401 se faltar ou for inválido); `@somente_organizador` também confere
+  o perfil, lido do banco (403 se não for organizador). Nas rotas com
+  `<id_usuario>` na URL, `verificar_acesso_ao_usuario` só deixa passar a
+  própria pessoa.
+- **Rotas:** só login, logout e cadastro são públicos. Criar, alterar e
+  remover eventos e palestras e listar usuários é só para organizadores.
+  Inscrição, favorito, lembrete e avaliação usam sempre o usuário do
+  token, e um `id_usuario` no corpo é ignorado.
+- **Avaliações:** editar, só o autor; remover, o autor ou um organizador
+  (para moderar comentários ofensivos).
+- **Perfis:** o cadastro cria sempre um participante, e a atualização de
+  usuário aceita só `nome`, `email` e `senha`. Organizadores são criados
+  direto no banco.
+- **App:** o `ApiService` guarda o token na memória depois do login e o
+  envia em toda requisição, no cabeçalho `Authorization: Bearer <token>`.
+  As telas não mudaram.
+- **Erros:** o `tratar_erros` passou a transformar `PermissionError` em
+  resposta 403.
+
+### 4.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Token no cabeçalho, e não a sessão com cookie que já existia | O pacote `http` do Flutter não guarda cookies. No celular, o app teria que guardá-los à mão, e no navegador quem cuida deles é o próprio navegador. O token funciona igual em qualquer dispositivo |
+| `itsdangerous` para criar o token, e não JWT | Já vem instalado com o Flask (é o que assina a sessão), então não foi preciso biblioteca nova |
+| Verificação em decorators | A mesma conferência vale para cerca de 30 rotas. Escrita uma vez só, não há risco de esquecer em alguma rota, e cada rota ganha apenas uma linha. Segue o padrão do `@tratar_erros` |
+| Perfil lido do banco, nunca da requisição ou do token | Ninguém consegue se declarar organizador. Se o perfil mudar no banco, a mudança vale na próxima requisição |
+| Login exigido em todas as rotas, menos login, logout e cadastro | O app só é usado depois do login, então não há motivo para a API mostrar dados sem ele |
+| Validade de 8 horas, sem renovação automática | Cobre um dia de evento. A renovação seria mais complexa e não faz falta neste projeto |
+| URLs com `<id_usuario>` mantidas, comparadas com o usuário do token | Trocar por rotas como `/api/eu/agenda` mudaria o app e as telas em desenvolvimento. Comparar o `id` protege do mesmo jeito |
+| Cadastro sempre como participante, e organizador criado pelo banco | O cadastro é público. Se aceitasse o tipo enviado, qualquer pessoa viraria organizadora. O evento tem uma equipe organizadora pequena e conhecida de antemão |
+| Atualização de usuário com lista de campos permitidos (`nome`, `email`, `senha`) | Uma lista do que é proibido deixava passar campos como o próprio `id_usuario`. Com a lista de permitidos, uma coluna nova já nasce protegida |
+| Só a própria pessoa altera a conta, nem o organizador | Se um organizador pudesse trocar a senha de outra pessoa, poderia entrar na conta dela |
+| Remover avaliação permitido também ao organizador; editar, só ao autor | O organizador precisa moderar comentários, mas não deve mudar a nota de outra pessoa |
+
+### 4.3 Limitações conhecidas
+
+- **`SECRET_KEY` padrão:** quem conhece a chave consegue fabricar tokens.
+  O `config.py` tem um valor padrão fixo, que está no repositório. Cada
+  instalação precisa de uma chave própria no `.env` (P04).
+- **O logout não invalida o token:** o app só apaga o token da memória.
+  Um token copiado antes continua valendo até vencer, mesmo se a pessoa
+  trocar a senha, porque a API não guarda uma lista de tokens.
+- **Token vencido:** o app mostra a mensagem "Sessão expirada ou
+  inválida", mas não volta sozinho para a tela de login (F17).
+- **Login a cada abertura:** o token fica só na memória, então é preciso
+  fazer login toda vez que o app é aberto (F17, login lembrado).
+- **Dois registros de organizador:** quem é organizador fica em
+  `usuario.tipo_usuario`, que a API confere, e na tabela `organizador`.
+  Ao criar um organizador pelo banco, os dois precisam ser atualizados
+  (README, seção 7).
