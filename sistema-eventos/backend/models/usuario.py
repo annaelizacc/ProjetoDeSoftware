@@ -26,6 +26,14 @@ from backend.models.crud_mixin import CRUDMixin
 TIPO_PARTICIPANTE = "participante"
 TIPO_ORGANIZADOR = "organizador"
 
+# Tamanho mínimo e máximo da senha (F01). É o único lugar do backend com
+# esses números: a regra que os usa fica em
+# `services/usuario/validacoes_usuario.py`, chamada no cadastro e na troca
+# de senha. A tela de cadastro do app (`cadastro_page.dart`) repete os
+# números, porque Dart não lê Python.
+TAMANHO_MINIMO_SENHA = 8
+TAMANHO_MAXIMO_SENHA = 16
+
 
 class Usuario(db.Model, CRUDMixin):
     """Usuário que pode participar das palestras."""

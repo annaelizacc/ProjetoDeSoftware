@@ -20,7 +20,11 @@ proibido, faz com que uma coluna nova na tabela já nasça protegida.
 
 Se uma nova senha for enviada, ela é convertida em hash antes de chegar
 à Model — a Model nunca deve receber senha em texto puro para gravação.
-Senha vazia é recusada: gravá-la deixaria a conta sem conseguir entrar.
+Cada campo enviado passa pelas mesmas validações do cadastro
+(`validacoes_usuario.py`, F01), para as regras valerem em todo o sistema.
+Assim, senha vazia ou curta é recusada (gravá-la deixaria a conta fraca
+ou sem conseguir entrar), e o mesmo vale para email vazio ou fora do
+formato.
 
 Método principal:
     execute(id_usuario, dados): retorna o Usuario atualizado.
@@ -29,6 +33,11 @@ Método principal:
 from werkzeug.security import generate_password_hash
 
 from backend.models.usuario import Usuario
+from backend.services.usuario.validacoes_usuario import (
+    validar_email,
+    validar_nome,
+    validar_senha,
+)
 
 CAMPOS_EDITAVEIS = ("nome", "email", "senha")
 
@@ -38,12 +47,12 @@ class AtualizarUsuarioService:
 
     def execute(self, id_usuario, dados):
         alteracoes = {campo: dados[campo] for campo in CAMPOS_EDITAVEIS if campo in dados}
+        if "nome" in alteracoes:
+            alteracoes["nome"] = validar_nome(alteracoes["nome"])
+        if "email" in alteracoes:
+            alteracoes["email"] = validar_email(alteracoes["email"])
         if "senha" in alteracoes:
-            if not alteracoes["senha"]:
-                raise ValueError("A senha não pode ficar vazia.")
-            alteracoes["senha"] = generate_password_hash(alteracoes["senha"])
-        if alteracoes.get("email"):
-            alteracoes["email"] = alteracoes["email"].strip().lower()
+            alteracoes["senha"] = generate_password_hash(validar_senha(alteracoes["senha"]))
 
         usuario = Usuario.atualizar(id_usuario, **alteracoes)
         if not usuario:

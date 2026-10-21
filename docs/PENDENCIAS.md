@@ -173,7 +173,7 @@ o nome indicado, que aparece acima de cada tela.
 
 | ID | RF | Prioridade | Funcionalidade | Status |
 |---|---|---|---|---|
-| F01 | RF01 | 🔴 | Tela de cadastro de usuário | Parcial |
+| F01 | RF01 | 🔴 | Tela de cadastro de usuário | Concluído |
 | F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
 | F03 | RF10 | 🔴 | Planta baixa do evento | Parcial |
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
@@ -205,6 +205,13 @@ o nome indicado, que aparece acima de cada tela.
 - **Resolvido na P01 (21/10/2026):** o cadastro cria sempre um
   participante e ignora o `tipo_usuario` enviado. A tela não precisa
   (nem deve) mandar esse campo. A rota continua pública.
+- **Concluído (21/10/2026):** tela "Criar conta" (link no login), com
+  mostrar/ocultar nos dois campos de senha. Depois do cadastro, a pessoa
+  já entra no app. O backend confere nome preenchido, e-mail em formato
+  válido e senha de 8 a 16 caracteres, no cadastro e na
+  atualização, com as regras num lugar só
+  (`services/usuario/validacoes_usuario.py`). Registro em
+  `DOCUMENTACAO.md`, seção 5.
 
 ### F02 Aviso real de início das palestras (RF09)
 
@@ -472,6 +479,11 @@ o nome indicado, que aparece acima de cada tela.
   (quem entra pelo Google não tem senha) e existe `usuario.google_id`
   (único). O login por e-mail e senha já recusa usuários sem senha. Se a
   F18 for feita, não precisa mexer no banco.
+- **Ícones já no app (F01, 21/10/2026):** a fileira de ícones sociais
+  saiu do login na F01, mas as imagens `faceIcon.png`, `googleIcon.png`
+  e `gitIcon.png` continuam em `assets/images/`. Na F18, usar o
+  `googleIcon.png` no botão "Continuar com Google" e apagar os outros
+  dois, que não serão usados.
 - **Atenção:** é a tarefa nova mais trabalhosa. Envolve configuração
   fora do código (Google Cloud) e um conceito novo, o OAuth, que precisa
   ser bem explicado. Com a entrega em 23/10/2026, a prioridade deve ser

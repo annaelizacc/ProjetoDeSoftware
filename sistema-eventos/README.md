@@ -22,6 +22,9 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 10. Ativar e desativar lembretes de palestras.
 11. Alternar entre modo claro e modo escuro (Perfil → Modo escuro); a
     escolha fica salva no celular.
+12. Criar uma conta pelo app (Login → "Criar conta"): nome, e-mail e
+    senha de 8 a 16 caracteres. Depois do cadastro, a pessoa já
+    entra no app.
 
 Todas as funcionalidades principais percorrem:
 
@@ -176,6 +179,9 @@ sem alterar as telas.
 
 ### Navegação e visual
 
+A primeira tela é o login. Quem ainda não tem conta toca em **Criar
+conta**, preenche o cadastro e entra direto no app.
+
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do primeiro evento cadastrado), **Agenda**, **Avisos** e
 **Perfil**. Os **Favoritos** ficam dentro do Perfil, junto com o
@@ -190,7 +196,8 @@ repositório):
   então todas acompanham o modo escuro;
 - controle do tema (ler e salvar a escolha): `lib/theme/controle_tema.dart`;
 - componentes usados em mais de uma tela: `lib/widgets/` (barra de
-  navegação, marca-texto, rótulo de seção, selo e cabeçalho);
+  navegação, marca-texto, rótulo de seção, selo, cabeçalho e o fundo das
+  telas de login e cadastro);
 - fontes (Bricolage Grotesque, Figtree e JetBrains Mono): arquivos em
   `assets/fonts/`, já incluídos no app, então não precisam de internet.
 
@@ -309,10 +316,10 @@ Acesso: **pública** (sem token), **login** (qualquer usuário logado),
 | POST | `/api/auth/login` | Login (devolve o token) | pública |
 | GET | `/api/auth/me` | Dados do usuário do token | login |
 | POST | `/api/auth/logout` | Logout (o app apaga o token) | pública |
-| POST | `/api/usuarios` | Cadastro (sempre como participante) | pública |
+| POST | `/api/usuarios` | Cadastro (sempre como participante; nome preenchido, e-mail em formato válido e senha de 8 a 16 caracteres) | pública |
 | GET | `/api/usuarios` | Lista usuários | organizador |
 | GET, DELETE | `/api/usuarios/<id>` | Ver ou remover conta | própria ou organizador |
-| PUT/PATCH | `/api/usuarios/<id>` | Alterar `nome`, `email` ou `senha` (outros campos são ignorados) | própria |
+| PUT/PATCH | `/api/usuarios/<id>` | Alterar `nome`, `email` ou `senha` (outros campos são ignorados; mesmas regras do cadastro) | própria |
 | GET | `/api/eventos` | Lista eventos | login |
 | GET | `/api/eventos/<id>` | Detalhes do evento | login |
 | POST | `/api/eventos` | Cria evento | organizador |
@@ -381,6 +388,12 @@ Detalhes -> Ativar lembrete -> notificacao -> aba Avisos
 
 ```text
 Pesquisa de tema -> GET /api/palestras?tema=Tecnologia -> MySQL -> resultados
+```
+
+### Fluxo 8 — cadastro
+
+```text
+Login -> Criar conta -> POST /api/usuarios -> POST /api/auth/login -> Início
 ```
 
 ## 9. Tratamento de erros
