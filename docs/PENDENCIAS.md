@@ -47,9 +47,9 @@ branch própria.
 | Dia | Manuela (Pessoa A): base, visual e organizador | Bianca (Pessoa B): telas do participante |
 |---|---|---|
 | Ter 20/10 | **P11 (`.gitignore`)** → P14 (commit inicial) → **F19 (banco)** → **F20 parte 1 (base visual, com F11)** | F02 notificação local |
-| Qua 21/10 | P01, P02, F08 | F01, F06 + F07 (uma tela só, "Avaliar") |
+| Qua 21/10 | P01, F08 | F01, F06 + F07 (uma tela só, "Avaliar") |
 | Qui 22/10 | F14 (com upload de imagem), F09 | F05, F03, F04, F10 (telas de visualização, com dados no SQL) |
-| Sex 23/10 | F20 parte 2 (telas restantes), S05 (dados de demonstração com datas futuras), P09 (README), revisão final | Folga para atrasos e itens da seção 0.2; gravação de tela no fim do dia |
+| Sex 23/10 | P02 (senhas com hash), F20 parte 2 (telas restantes), S05 (dados de demonstração com datas futuras), P09 (README), revisão final | Folga para atrasos e itens da seção 0.2; gravação de tela no fim do dia |
 
 - **Por que a P11 vem antes da P14:** a pasta nova ainda não tem
   nenhum commit, então os arquivos locais (`local.properties`,
@@ -93,6 +93,11 @@ branch própria.
 - **Atenção à carga:** a trilha da Pessoa A está mais cheia. Se atrasar,
   F09 e F10 são as primeiras a cair, e a Bianca pode assumir a F10 na
   sexta.
+- **Por que a P02 foi para sexta (21/10/2026):** o cadastro e a troca
+  de senha já gravam a senha com hash. Falta só tirar o caminho de texto
+  puro do login, trocar as senhas de exemplo do SQL por hashes e tirar o
+  login preenchido da tela. É uma tarefa curta, então sai da quarta para
+  dar lugar à F08, mas continua 🔴 e entra **antes da gravação**.
 - **Antes da gravação:** a S05 precisa estar pronta. Sem eventos com
   datas futuras, nenhuma palestra aceita inscrição.
 - 📌 **Lembrete para o fim (P09, README):** incluir no README o aviso de
@@ -740,6 +745,13 @@ qualquer alteração.
 - **Por que importa:** senha nunca deve ser guardada em texto puro. Se o
   banco vazar, todas as senhas ficam expostas. Credenciais preenchidas no
   app também não são aceitáveis numa versão final.
+- **Planejado (21/10/2026):** fica para sexta, antes da gravação (ver
+  seção 0.1). O cadastro e a troca de senha já geram o hash, e a tarefa
+  tem três passos: trocar as senhas de exemplo do SQL por hashes, tirar a
+  comparação em texto puro do login e tirar o email e a senha
+  preenchidos da tela de login. Ela precisa ser feita antes da entrega
+  porque, sem ela, um organizador criado direto no banco com a senha em
+  texto puro consegue entrar, e o erro passa despercebido.
 
 ### P03 🟡 Atualizações aceitam qualquer campo
 
