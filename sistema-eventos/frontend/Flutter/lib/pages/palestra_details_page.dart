@@ -7,7 +7,7 @@ import '../services/api_service.dart';
 ///
 /// Busca os dados completos de uma palestra, já com as flags do usuário
 /// logado (`inscrito`, `favorita`, `lembreteAtivo`), em
-/// `GET /api/palestras/<id>?id_usuario=...` (`ApiService.palestra`). A
+/// `GET /api/palestras/<id>` (`ApiService.palestra`, usuário vindo do token). A
 /// partir daqui o usuário pode:
 /// - se inscrever ou cancelar a inscrição (`/api/inscricoes`);
 /// - favoritar ou remover dos favoritos (`/api/favoritos`);

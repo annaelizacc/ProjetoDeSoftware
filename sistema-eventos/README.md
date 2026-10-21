@@ -263,26 +263,81 @@ dentro do aplicativo.
 
 ## 7. Rotas principais
 
-| Método | Rota | Uso |
-|---|---|---|
-| POST | `/api/auth/login` | Login |
-| GET | `/api/eventos` | Lista eventos |
-| GET | `/api/eventos/<id>/programacao` | Programação do evento |
-| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa |
-| GET | `/api/palestras/<id>?id_usuario=` | Detalhes e status |
-| POST | `/api/inscricoes` | Inscrever |
-| DELETE | `/api/inscricoes` | Cancelar inscrição |
-| GET | `/api/eventos/<usuario_id>/agenda` | Agenda personalizada |
-| GET | `/api/favoritos/usuario/<id>` | Meus favoritos |
-| POST | `/api/favoritos` | Adicionar favorito |
-| DELETE | `/api/favoritos` | Remover favorito |
-| GET | `/api/notificacoes/usuario/<id>` | Avisos |
-| POST | `/api/lembretes` | Ativar lembrete |
-| DELETE | `/api/lembretes` | Desativar lembrete |
-| GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra |
-| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional) |
-| PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário |
-| DELETE | `/api/avaliacoes/<id>` | Remover avaliação |
+### Autenticação (token)
+
+Quase todas as rotas exigem login. No login, a API devolve um **token**:
+um texto assinado com a `SECRET_KEY` que identifica o usuário. O app
+guarda o token na memória e o envia em toda requisição, no cabeçalho
+`Authorization: Bearer <token>`. É por ele, e nunca por um `id_usuario`
+enviado no corpo ou na URL, que a API sabe quem fez o pedido.
+
+- O token vale **8 horas**. Depois disso, ou ao fechar o app, é preciso
+  fazer login de novo.
+- Sem token, ou com token inválido ou vencido, a API responde **401**.
+- Logado, mas sem permissão (ex.: participante tentando criar palestra,
+  ou ver a agenda de outra pessoa), a API responde **403**.
+- Todo cadastro cria um **participante**. Organizadores são criados
+  direto no banco. A API confere a coluna `usuario.tipo_usuario`, e a
+  tabela `organizador` guarda o nível de acesso. Os dois precisam ficar
+  iguais:
+
+  ```sql
+  UPDATE usuario SET tipo_usuario = 'organizador' WHERE email = 'email@da.pessoa';
+  INSERT INTO organizador (id_usuario, nivel_acesso)
+  SELECT id_usuario, 'administrador' FROM usuario WHERE email = 'email@da.pessoa';
+  ```
+
+Testando com `curl`:
+
+```bash
+# 1. Login: copie o valor de "token" da resposta
+curl -X POST http://127.0.0.1:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ana.silva@email.com","senha":"hash123"}'
+
+# 2. Use o token nas outras rotas
+curl http://127.0.0.1:5000/api/palestras -H "Authorization: Bearer <TOKEN>"
+```
+
+### Rotas
+
+Acesso: **pública** (sem token), **login** (qualquer usuário logado),
+**própria** (só a pessoa dona do `id` da URL), **organizador**.
+
+| Método | Rota | Uso | Acesso |
+|---|---|---|---|
+| POST | `/api/auth/login` | Login (devolve o token) | pública |
+| GET | `/api/auth/me` | Dados do usuário do token | login |
+| POST | `/api/auth/logout` | Logout (o app apaga o token) | pública |
+| POST | `/api/usuarios` | Cadastro (sempre como participante) | pública |
+| GET | `/api/usuarios` | Lista usuários | organizador |
+| GET, DELETE | `/api/usuarios/<id>` | Ver ou remover conta | própria ou organizador |
+| PUT/PATCH | `/api/usuarios/<id>` | Alterar `nome`, `email` ou `senha` (outros campos são ignorados) | própria |
+| GET | `/api/eventos` | Lista eventos | login |
+| GET | `/api/eventos/<id>` | Detalhes do evento | login |
+| POST | `/api/eventos` | Cria evento | organizador |
+| PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento | organizador |
+| GET | `/api/eventos/<id>/programacao` | Programação do evento | login |
+| GET | `/api/eventos/<id_usuario>/agenda` | Agenda personalizada | própria |
+| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa | login |
+| GET | `/api/palestras/<id>` | Detalhes e status (inscrito, favorita, lembrete) do usuário do token | login |
+| POST | `/api/palestras` | Cria palestra | organizador |
+| PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | organizador |
+| POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
+| DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`) | login |
+| GET | `/api/favoritos/usuario/<id_usuario>` | Meus favoritos | própria |
+| POST | `/api/favoritos` | Adicionar favorito (corpo: `id_palestra`) | login |
+| DELETE | `/api/favoritos` | Remover favorito (corpo: `id_palestra`) | login |
+| GET | `/api/notificacoes/usuario/<id_usuario>` | Avisos | própria |
+| POST | `/api/lembretes` | Ativar lembrete (corpo: `id_palestra`) | login |
+| DELETE | `/api/lembretes` | Desativar lembrete (corpo: `id_palestra`) | login |
+| GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra | login |
+| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional) | login |
+| PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário | só o autor |
+| DELETE | `/api/avaliacoes/<id>` | Remover avaliação | autor ou organizador |
+
+Nas rotas de inscrição, favorito, lembrete e avaliação, o usuário é
+sempre o do token: um `id_usuario` enviado no corpo é ignorado.
 
 ## 8. Fluxos para demonstrar ao professor
 
@@ -338,7 +393,9 @@ O backend retorna mensagens simples para:
 - inscrição inexistente;
 - favorito duplicado ou inexistente;
 - lembrete duplicado ou inexistente;
-- servidor indisponível.
+- servidor indisponível;
+- requisição sem login ou com login vencido (401);
+- usuário sem permissão para a ação (403).
 
 O Flutter apresenta essas mensagens com `SnackBar` ou texto de estado da tela.
 

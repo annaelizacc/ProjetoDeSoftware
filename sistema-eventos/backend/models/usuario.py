@@ -21,6 +21,11 @@ simples e focada em persistência.
 from backend.extensions import db
 from backend.models.crud_mixin import CRUDMixin
 
+# Valores possíveis de `tipo_usuario`. Ficam aqui, junto da coluna, para
+# que decorators e Services comparem com a mesma constante (P01).
+TIPO_PARTICIPANTE = "participante"
+TIPO_ORGANIZADOR = "organizador"
+
 
 class Usuario(db.Model, CRUDMixin):
     """Usuário que pode participar das palestras."""

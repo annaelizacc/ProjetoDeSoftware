@@ -4,14 +4,20 @@ Controller: Autenticação (login/logout).
 CAMADA: Controllers (recebe a requisição HTTP e chama o Service certo).
 
 Responsabilidade: ler o corpo da requisição, chamar o
-`AutenticarUsuarioService`, guardar o usuário logado na sessão Flask e
-devolver a resposta HTTP. Nenhuma regra de negócio vive aqui.
+`AutenticarUsuarioService` e, se o login der certo, devolver o token
+criado pelo `TokenService` (P01). O app guarda esse token e o envia nas
+próximas requisições. Nenhuma regra de negócio vive aqui.
+
+O logout não precisa fazer nada no servidor: o token não fica guardado
+na API, então quem "sai" é o app, apagando o token da memória.
 """
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, g, jsonify, request
 
+from backend.controllers.autenticacao import login_obrigatorio
 from backend.controllers.utils import tratar_erros
 from backend.services.auth.autenticar_usuario_service import AutenticarUsuarioService
+from backend.services.auth.token_service import TokenService
 
 
 class AuthController:
@@ -29,19 +35,23 @@ class AuthController:
         if not usuario:
             return jsonify({"erro": "Email ou senha inválidos."}), 401
 
-        session["id_usuario"] = usuario.id_usuario
-        return jsonify({"mensagem": "Login realizado.", "usuario": usuario.to_dict()})
+        return jsonify(
+            {
+                "mensagem": "Login realizado.",
+                "usuario": usuario.to_dict(),
+                "token": TokenService().gerar(usuario),
+            }
+        )
 
     @staticmethod
+    @tratar_erros
+    @login_obrigatorio
     def me():
-        if "id_usuario" not in session:
-            return jsonify({"erro": "Nenhum usuário logado."}), 401
-        return jsonify({"id_usuario": session["id_usuario"]})
+        return jsonify(g.usuario.to_dict())
 
     @staticmethod
     def logout():
-        session.clear()
-        return jsonify({"mensagem": "Logout realizado."})
+        return jsonify({"mensagem": "Logout realizado. Apague o token no app."})
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")

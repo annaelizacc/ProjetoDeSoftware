@@ -9,6 +9,8 @@ mesmo bloco try/except em cada método. Ele traduz:
 - `ValueError` levantado por um Service (uma regra de negócio violada,
   como "Palestra não encontrada" ou "Não há vagas disponíveis") em uma
   resposta HTTP 400, com a mensagem exata do erro;
+- `PermissionError` (a pessoa está logada, mas não pode fazer aquilo,
+  como editar a avaliação de outra pessoa) em uma resposta HTTP 403;
 - qualquer outra exceção não prevista em uma resposta HTTP 500 genérica,
   sem vazar detalhes internos (stack trace, erro de SQL, etc.) para quem
   chamou a API.
@@ -28,6 +30,8 @@ def tratar_erros(func):
             return func(*args, **kwargs)
         except ValueError as erro:
             return jsonify({"erro": str(erro)}), 400
+        except PermissionError as erro:
+            return jsonify({"erro": str(erro)}), 403
         except Exception:
             # Não expõe detalhes internos da conexão ou do banco ao usuário.
             return jsonify({"erro": "Erro interno no servidor."}), 500

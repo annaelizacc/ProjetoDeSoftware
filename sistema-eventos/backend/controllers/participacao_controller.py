@@ -2,10 +2,14 @@
 Controller: Participação (inscrições).
 
 CAMADA: Controllers (recebe a requisição HTTP e chama o Service certo).
+
+Acesso (P01): exige login. A inscrição é sempre da pessoa logada (o
+`id_usuario` vem do token); um `id_usuario` enviado no corpo é ignorado.
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
+from backend.controllers.autenticacao import login_obrigatorio
 from backend.controllers.utils import tratar_erros
 from backend.services.participacao.criar_inscricao_service import CriarInscricaoService
 from backend.services.participacao.cancelar_inscricao_service import CancelarInscricaoService
@@ -16,18 +20,20 @@ class ParticipacaoController:
 
     @staticmethod
     @tratar_erros
+    @login_obrigatorio
     def criar():
         dados = request.get_json() or {}
         inscricao = CriarInscricaoService().execute(
-            dados.get("id_usuario"), dados.get("id_palestra")
+            g.usuario.id_usuario, dados.get("id_palestra")
         )
         return jsonify(inscricao.to_dict()), 201
 
     @staticmethod
     @tratar_erros
+    @login_obrigatorio
     def cancelar():
         dados = request.get_json() or {}
-        CancelarInscricaoService().execute(dados.get("id_usuario"), dados.get("id_palestra"))
+        CancelarInscricaoService().execute(g.usuario.id_usuario, dados.get("id_palestra"))
         return jsonify({"mensagem": "Inscrição cancelada e vaga devolvida."})
 
 

@@ -2,8 +2,8 @@
 ///
 /// Representa os dados de uma palestra recebidos da API Flask
 /// (`GET /api/palestras`, `GET /api/palestras/<id>`, agenda e favoritos).
-/// Também carrega três informações que só existem quando a palestra é
-/// consultada com `id_usuario` na URL: `inscrito`, `favorita` e
+/// Também carrega três informações que só a rota de detalhes devolve,
+/// calculadas para o usuário do token de login: `inscrito`, `favorita` e
 /// `lembreteAtivo` — usadas pela tela de detalhes para decidir o estado
 /// inicial dos botões de ação.
 class Palestra {
