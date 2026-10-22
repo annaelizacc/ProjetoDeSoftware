@@ -77,15 +77,16 @@ rodá-lo de novo, sabendo que os dados locais serão perdidos.
 A tabela oficial `notificacao` já tinha `id_palestra` e `tipo_notificacao`.
 Por isso ela também armazena os lembretes, sem criar uma tabela adicional.
 
-Os dados de teste do banco são:
+Os dados de teste do banco são (a senha é a mesma para os três):
 
 ```text
-Email: ana.silva@email.com
-Senha: hash123
+Participante: ana.silva@email.com   / Senha@123
+Participante: carla.souza@email.com / Senha@123
+Organizador:  bruno.costa@email.com / Senha@123
 ```
 
-O backend aceita esse formato legado para facilitar a demonstração. Usuários
-novos cadastrados devem usar senha protegida por hash.
+O banco guarda só o hash das senhas, nunca o texto puro. O login recusa
+qualquer senha que não esteja guardada como hash.
 
 ## 4. Configurar e executar o backend
 
@@ -300,7 +301,7 @@ Testando com `curl`:
 # 1. Login: copie o valor de "token" da resposta
 curl -X POST http://127.0.0.1:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"ana.silva@email.com","senha":"hash123"}'
+  -d '{"email":"ana.silva@email.com","senha":"Senha@123"}'
 
 # 2. Use o token nas outras rotas
 curl http://127.0.0.1:5000/api/palestras -H "Authorization: Bearer <TOKEN>"

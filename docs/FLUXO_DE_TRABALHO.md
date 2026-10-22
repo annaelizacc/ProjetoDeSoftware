@@ -405,7 +405,7 @@ flutter run -d chrome
 - Com o app rodando, no terminal: `r` aplica as mudanças salvas sem
   perder a tela atual (*hot reload*), `R` reinicia o app do zero e `q`
   fecha.
-- Login de teste: `ana.silva@email.com`, senha `hash123`.
+- Login de teste: `ana.silva@email.com`, senha `Senha@123`.
 
 **No emulador Android:** o **emulador** é um celular Android "de mentira"
 que roda numa janela do computador. Cada celular virtual criado no

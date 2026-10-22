@@ -75,6 +75,11 @@ branch própria.
     existem (F05, F04, F10). As tarefas criam as rotas e as telas;
   - a palestra continua devolvendo `sala` na API (agora vem da tabela
     `localizacao`), então as telas que já usam `sala` não mudam.
+- **Mudança da P02 que afeta a Bianca (22/10/2026):** o login passou a
+  recusar senhas sem hash, e os usuários de exemplo agora têm a senha
+  `Senha@123`. Antes da próxima tarefa, **recriar o banco local** com o
+  script novo (passo 1.4 do `FLUXO_DE_TRABALHO.md`); sem isso, o login
+  com `hash123` deixa de funcionar.
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -685,7 +690,7 @@ qualquer alteração.
 | ID | Prioridade | Tema | Status |
 |---|---|---|---|
 | P01 | 🔴 | Rotas da API sem autenticação | Concluído |
-| P02 | 🔴 | Login aceita senha em texto puro | Pendente |
+| P02 | 🔴 | Login aceita senha em texto puro | Concluído |
 | P03 | 🟡 | Atualizações aceitam qualquer campo | Pendente |
 | P04 | 🟡 | Configuração de desenvolvimento exposta | Pendente |
 | P05 | 🟢 | Abas do app recarregam a cada troca | Pendente |

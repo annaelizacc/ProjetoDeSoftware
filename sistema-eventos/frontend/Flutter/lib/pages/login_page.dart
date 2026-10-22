@@ -30,8 +30,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final email = TextEditingController(text: 'ana.silva@email.com');
-  final senha = TextEditingController(text: 'hash123');
+  final email = TextEditingController();
+  final senha = TextEditingController();
   bool carregando = false;
   bool senhaVisivel = false;
 

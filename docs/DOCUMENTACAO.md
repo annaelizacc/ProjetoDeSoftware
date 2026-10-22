@@ -258,5 +258,61 @@ havia tela: só era possível criar uma conta pelo banco ou pela API.
 - **Trocar o e-mail para um que já existe** (pelo `PUT /api/usuarios/<id>`)
   ainda dá erro 500, em vez de uma mensagem clara (P03).
 - **Usuários de exemplo com senhas curtas** (`hash123`), abaixo do mínimo
-  de 8 caracteres: são da base de demonstração e serão tratados na P02.
-  O login não confere o tamanho, então essas contas continuam entrando.
+  de 8 caracteres: eram da base de demonstração. Resolvido na P02: agora
+  usam a senha `Senha@123`, guardada como hash.
+
+---
+
+## 6. P02: login só com senha guardada como hash
+
+Concluída em 22/10/2026. O cadastro já guardava a senha como hash, mas o
+login aceitava também senhas em texto puro, porque os usuários de
+exemplo do banco tinham senhas como `hash123` gravadas assim. Quem
+tivesse acesso ao banco via as senhas, e a tela de login vinha com o
+e-mail e a senha de um usuário de exemplo já preenchidos.
+
+### 6.1 O que foi feito
+
+- **Login** (`backend/services/auth/autenticar_usuario_service.py`): só
+  aceita senha guardada como hash do Werkzeug (prefixo `scrypt:` ou
+  `pbkdf2:`). Uma senha em texto puro no banco é recusada sem
+  comparação. `check_password_hash` calcula o hash do que foi digitado e
+  compara com o guardado: o hash não pode ser revertido para a senha
+  original.
+- **Entrada conferida antes do hash:** e-mail e senha precisam ser texto,
+  e a senha deve ter no máximo `TAMANHO_MAXIMO_SENHA` (16) caracteres.
+  Fora disso, o login responde 401 ("Email ou senha inválidos."), e não
+  erro 500.
+- **Usuários de exemplo**
+  (`database/sistema_eventos_atualizado.sql`): Ana, Bruno e Carla agora
+  usam a senha `Senha@123`, gravada como hash scrypt, cada um com um
+  salt próprio.
+- **App:** a tela de login (`lib/pages/login_page.dart`) abre com os
+  campos vazios.
+- **Documentos:** README e `FLUXO_DE_TRABALHO.md` passaram a usar
+  `Senha@123` nos exemplos de login.
+
+### 6.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Hash do Werkzeug (scrypt), e não uma biblioteca nova | Já vem instalado com o Flask e é o mesmo que o cadastro usava. O scrypt é lento de propósito, o que dificulta testar muitas senhas por tentativa e erro |
+| Salt aleatório em cada hash | O salt é um texto sorteado que entra no cálculo do hash. Com ele, duas pessoas com a mesma senha ficam com hashes diferentes, e uma tabela pronta de hashes de senhas comuns não serve para descobrir a senha |
+| Recusar senha em texto puro, em vez de converter no primeiro login | Converter exigiria manter o código que compara texto puro. Os únicos usuários nessa situação eram os de exemplo, resolvidos no script do banco |
+| Mesma senha `Senha@123` para os três usuários de exemplo | Atende a regra de 8 a 16 caracteres da F01 e é fácil de lembrar nos testes e na apresentação |
+| Limite de tamanho também no login | A rota é pública: calcular o hash de um texto enorme gastaria processamento do servidor. Uma senha maior que 16 nunca seria aceita pelo cadastro |
+| Token continua com `itsdangerous`, sem JWT | O token da P01 já funciona e é seguro para o projeto. Trocar por JWT exigiria biblioteca nova sem ganho real agora |
+
+### 6.3 Limitações conhecidas
+
+- **Banco precisa ser recriado:** quem tem o banco antigo continua com as
+  senhas de exemplo em texto puro e não consegue entrar com elas. É
+  preciso rodar de novo o script de `database/` (passo 1.4 do
+  `FLUXO_DE_TRABALHO.md`), o que apaga os dados de teste.
+- **É possível descobrir se um e-mail tem conta:** o cadastro responde
+  "Já existe um usuário cadastrado com este email.", e o login demora um
+  pouco mais quando o e-mail existe (só nesse caso o hash é calculado).
+  A equipe decidiu manter a mensagem do cadastro, porque ela ajuda quem
+  já tem conta.
+- **Sem limite de tentativas de login:** não há bloqueio depois de várias
+  senhas erradas.

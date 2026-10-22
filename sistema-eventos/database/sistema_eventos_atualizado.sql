@@ -296,10 +296,14 @@ CREATE TABLE certificado (
 -- DADOS FICTÍCIOS PARA DEMONSTRAÇÃO
 -- =====================================================================
 
+-- Senha dos três usuários: Senha@123 (P02). O banco guarda só o hash
+-- gerado pelo Werkzeug (`generate_password_hash`), nunca a senha em
+-- texto puro. Cada hash é diferente, mesmo com a senha igual, porque
+-- leva um "salt" aleatório (o trecho entre o primeiro e o segundo `$`).
 INSERT INTO usuario (nome, email, senha, tipo_usuario) VALUES
-('Ana Silva',    'ana.silva@email.com',    'hash123', 'participante'),
-('Bruno Costa',  'bruno.costa@email.com',  'hash456', 'organizador'),
-('Carla Souza',  'carla.souza@email.com',  'hash789', 'participante');
+('Ana Silva',    'ana.silva@email.com',    'scrypt:32768:8:1$uNDOTi1cboQkE7BG$400cf8c8dc332a823eb34a82938da6d3875f3bfc25490fac4c5c9e967d354bee4e0685c1010b79006ac034aa6b0d0441fa334bf9a94004b6d46404c6268d42bc', 'participante'),
+('Bruno Costa',  'bruno.costa@email.com',  'scrypt:32768:8:1$Cvx9QzxMyqEDlutd$056cfbd646f51cf5de5360c2b6c600b95be9b880c99c2e169744bdf0cf88cfca1328116f96851e088264b9bf9a85a0a1d3cf20b866ced3519bd2e77558c8ee2f', 'organizador'),
+('Carla Souza',  'carla.souza@email.com',  'scrypt:32768:8:1$gBNu7G9tWcg7wpCU$ca8422cd44a939077db0882d78b0205a00ff0c3d665cce3617bb40664e7b2e2aa79d4a32182ef88005109ac63cbce4e93a9a79d1dff2a918a933437d2fe1492a', 'participante');
 
 INSERT INTO evento (nome, descricao, data_inicio, data_fim, local) VALUES
 ('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI', '2026-09-10', '2026-09-12', 'Centro de Convenções UFMG'),
