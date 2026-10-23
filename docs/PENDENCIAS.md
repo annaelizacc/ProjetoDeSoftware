@@ -147,7 +147,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 
 | RF | Requisito (resumo) | Situação | Tarefa |
 |---|---|---|---|
-| RF01 | Cadastro com e-mail e senha | Parcial: existe a rota `POST /api/usuarios`, mas não há tela | F01 |
+| RF01 | Cadastro com e-mail e senha | Concluído | F01 |
 | RF02 | Login | Concluído (com ressalvas de segurança: P01, P02) | — |
 | RF03 | Programação geral do evento | Concluído | — |
 | RF04 | Detalhes das palestras | Concluído | — |
@@ -168,7 +168,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Pendente: tabela `patrocinador` criada na F19; faltam rota e tela | F10 |
 | RF20 | Modo claro e modo escuro | Pendente: o app só tem o tema claro | F11 |
 
-**Resumo:** 11 concluídos, 3 parciais e 6 pendentes.
+**Resumo:** 12 concluídos, 2 parciais e 6 pendentes.
 
 ## 1.2 Tarefas
 
