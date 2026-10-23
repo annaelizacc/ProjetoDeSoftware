@@ -25,14 +25,19 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 12. Criar uma conta pelo app (Login → "Criar conta"): nome, e-mail e
     senha de 8 a 16 caracteres. Depois do cadastro, a pessoa já
     entra no app.
-13. Área do organizador (Perfil → Área do organizador, só para
+13. Avaliar uma palestra com 1 a 5 estrelas e um comentário opcional
+    (Detalhes → "Avaliar"), além de editar ou excluir a própria
+    avaliação. Só quem está inscrito pode avaliar, e só depois que a
+    palestra começa. A média aparece nos cards da Programação e nos
+    Detalhes, com a lista de comentários.
+14. Área do organizador (Perfil → Área do organizador, só para
     organizadores): painel do evento (palestras, inscrições, esgotadas,
     ocupação das vagas e média das avaliações), ranking das palestras e
     gerenciamento das inscrições (ver os inscritos e remover uma
     inscrição, que devolve a vaga e avisa a pessoa). Cada evento tem um
     só organizador responsável, que vê só os próprios eventos; o
     administrador vê todos.
-14. Sair da conta (Perfil → Sair).
+15. Sair da conta (Perfil → Sair).
 
 Todas as funcionalidades principais percorrem:
 
@@ -353,8 +358,8 @@ administrador; os outros recebem 403).
 | PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento (o responsável não muda) | dono do evento |
 | GET | `/api/eventos/<id>/programacao` | Programação do evento | login |
 | GET | `/api/eventos/<id_usuario>/agenda` | Agenda personalizada | própria |
-| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa | login |
-| GET | `/api/palestras/<id>` | Detalhes e status (inscrito, favorita, lembrete) do usuário do token | login |
+| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa, com `media_estrelas` e `total_avaliacoes` | login |
+| GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
 | POST | `/api/palestras` | Cria palestra | dono do evento |
 | PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | dono do evento |
 | POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
@@ -366,7 +371,7 @@ administrador; os outros recebem 403).
 | POST | `/api/lembretes` | Ativar lembrete (corpo: `id_palestra`) | login |
 | DELETE | `/api/lembretes` | Desativar lembrete (corpo: `id_palestra`) | login |
 | GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra | login |
-| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional) | login |
+| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional; só inscritos, depois do início da palestra) | login |
 | PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário | só o autor |
 | DELETE | `/api/avaliacoes/<id>` | Remover avaliação | autor ou dono do evento |
 | GET | `/api/organizador/eventos` | Eventos que a pessoa gerencia (todos, para o administrador) | organizador |
@@ -429,7 +434,17 @@ Pesquisa de tema -> GET /api/palestras?tema=Tecnologia -> MySQL -> resultados
 Login -> Criar conta -> POST /api/usuarios -> POST /api/auth/login -> Início
 ```
 
-### Fluxo 9 — área do organizador
+### Fluxo 9 — avaliação
+
+```text
+Detalhes (inscrito, palestra já começou) -> Avaliar -> POST /api/avaliacoes
+  -> média nos Detalhes e na Programação
+```
+
+Para testar com os dados de exemplo, a palestra precisa já ter começado
+(`horario_inicio` no passado) e a pessoa precisa estar inscrita nela.
+
+### Fluxo 10 — área do organizador
 
 ```text
 Login (organizador) -> Perfil -> Área do organizador -> palestra
