@@ -474,3 +474,61 @@ planta, as fotos e os logos.
   `palestrante.id_evento` (passo 1.4 do `FLUXO_DE_TRABALHO.md`).
 - Os dois itens da seção 7.3 sobre a palestra (capacidade e palestra
   movida de evento) foram resolvidos nesta tarefa.
+
+## 9. F24: dados de demonstração com eventos encerrado, acontecendo e futuro (S05)
+
+Concluída em 23/10/2026. Os dois eventos de exemplo tinham datas fixas
+que já tinham passado: o Início mostrava um evento antigo, a "próxima
+palestra" ficava vazia e havia só 2 palestras, o que não mostrava bem o
+controle de vagas, a busca e a agenda. Agora o banco sempre tem um
+evento em cada situação e um exemplo de cada estado que o app mostra.
+
+### 9.1 O que foi feito
+
+- **Datas relativas** (`database/sistema_eventos_atualizado.sql`): as
+  datas são calculadas a partir do dia em que o script roda. `@hoje`
+  guarda `CURDATE()`, e cada data é escrita como `@hoje - INTERVAL 1 DAY`
+  (ontem) ou `TIMESTAMP(@hoje + INTERVAL 1 DAY, '09:00')` (amanhã às
+  09:00). A palestra "acontecendo agora" usa `@hora_cheia` (a hora cheia
+  atual): começa uma hora antes e termina três horas depois.
+- **Três eventos:** Semana de Tecnologia (de ontem até amanhã,
+  acontecendo), Feira de Ciências (daqui a 14 dias, futuro) e Mostra de
+  Projetos (há 30 dias, encerrado). A Mostra entrou por último para os
+  ids 1 e 2 continuarem os mesmos dos exemplos do README.
+- **10 palestras**, cada uma com uma situação: já aconteceu, acontecendo
+  agora, esgotada (1 vaga), última vaga (2 vagas, 1 ocupada), com vagas
+  e sem avaliações, e uma sem palestrante. Os temas são variados para a
+  busca.
+- **Avaliações:** uma palestra com média de duas notas, e uma em que a
+  Ana está inscrita e ainda não avaliou, para mostrar a tela Avaliar e a
+  média mudando.
+- **Avisos:** um de cada tipo (comunicado do evento, comunicado de uma
+  palestra, inscrição removida pela organização e lembrete), com as
+  mesmas mensagens que a API grava.
+- **README:** a seção "Dados de demonstração (S05)" explica os três
+  eventos e o que testar com cada usuário.
+
+### 9.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Datas relativas, e não fixas | Com datas fixas, os dados envelhecem: o problema que motivou a tarefa voltaria na apresentação final. A alternativa de gerar os dados com um script em Python foi descartada, porque o próprio SQL resolve |
+| Um evento em cada situação | Cada tela que depende da data (Início, Avaliar, aviso de início da F02 e, depois, a F16) tem o que mostrar |
+| A palestrante Carla não se inscreve nem avalia a própria palestra | A usuária Carla Souza é a mesma pessoa da palestrante (decisão da F05). Avaliar a própria palestra iria contra a regra de negócio |
+| Avisos de exemplo gravados com `UTC_TIMESTAMP()` | A aba Avisos lê `data_envio` em UTC, como os avisos criados pela API (contorno da P06). Na hora local, eles apareceriam 3 horas atrasados |
+| Fotos, logos e planta fora do script | São arquivos enviados pelo app (F14), guardados em `backend/uploads/`, que fica fora do Git |
+
+### 9.3 Limitações conhecidas
+
+- **Janela da palestra "acontecendo agora":** ela só está acontecendo
+  por 2 a 3 horas depois de o script rodar (e cai em outro dia perto da
+  meia-noite). No dia da apresentação, o banco deve ser recriado pouco
+  antes.
+- **Fuso do MySQL:** `CURDATE()` e `NOW()` usam o fuso do MySQL, que
+  precisa ser o mesmo do computador do backend (o padrão de uma
+  instalação local).
+- **Datas de avaliações e favoritos de exemplo** ficam na hora local, e
+  as criadas pela API ficam em UTC. Nenhuma tela mostra essas datas
+  hoje; a correção é a P06.
+- **Banco precisa ser recriado:** quem tem o banco antigo continua com
+  os dados velhos (passo 1.4 do `FLUXO_DE_TRABALHO.md`).

@@ -106,12 +106,60 @@ Os dados de teste do banco são (a senha é a mesma para os quatro):
 ```text
 Participante:   ana.silva@email.com   / Senha@123
 Participante:   carla.souza@email.com / Senha@123
-Administrador:  bruno.costa@email.com / Senha@123  (responsável pela Semana de Tecnologia; vê todos os eventos)
+Administrador:  bruno.costa@email.com / Senha@123  (responsável pela Semana de Tecnologia e pela Mostra de Projetos; vê todos os eventos)
 Organizadora:   elisa.prado@email.com / Senha@123  (responsável pela Feira de Ciências; vê só esse evento)
 ```
 
 Cada evento tem um só organizador responsável (`evento.id_organizador`,
 desde a F08).
+
+### Dados de demonstração (S05)
+
+As datas dos eventos e das palestras são calculadas a partir do dia em
+que o script roda (`CURDATE()`), então o banco sempre tem um evento em
+cada situação:
+
+| Evento | Datas | Situação |
+|---|---|---|
+| 1. Semana de Tecnologia | de ontem até amanhã | acontecendo |
+| 2. Feira de Ciências | daqui a 14 e 15 dias | futuro |
+| 3. Mostra de Projetos | há 30 e 29 dias | encerrado |
+
+**Importante:** a palestra "Segurança da Informação" fica "acontecendo
+agora" por 2 a 3 horas depois de o script rodar. No dia de uma
+apresentação, recrie o banco pouco antes de usar o app (lembrando que o
+script apaga todos os dados). As datas usam o fuso do MySQL, que precisa
+ser o mesmo do computador (o padrão de uma instalação local).
+
+O que dá para testar com cada usuário:
+
+- **Ana (participante):**
+  - Início: a Semana de Tecnologia, com "Segurança da Informação" como
+    próxima palestra; "Trocar evento" lista os três eventos;
+  - "Banco de Dados na Prática" (ontem): inscrita e ainda sem avaliação,
+    para testar a tela **Avaliar** (a média, hoje 4 com a nota da Carla,
+    muda depois da avaliação);
+  - "Introdução à Inteligência Artificial": já avaliada pela Ana (5);
+  - "Robótica Educacional" (Mostra de Projetos): média 4,5 (duas
+    avaliações);
+  - "Apps com Flutter" (amanhã): **esgotada** (1 vaga, ocupada pela Carla);
+  - "APIs REST com Flask" (amanhã): **última vaga**; ao se inscrever, a
+    palestra esgota;
+  - "Design de Interfaces" (amanhã): com vagas, sem avaliações,
+    favoritada e com lembrete ativo;
+  - Agenda com palestras passadas, de agora e futuras; Favoritos com duas
+    palestras;
+  - Avisos: um de cada tipo (comunicado do evento, comunicado de uma
+    palestra, inscrição removida pela organização e lembrete).
+- **Bruno (administrador):** painel da Semana com uma palestra esgotada,
+  avaliações e inscrições para remover; a Mostra de Projetos não tem
+  patrocinadores e tem uma palestra sem palestrante.
+- **Elisa (organizadora):** vê só a Feira de Ciências.
+- **Agenda e Favoritos vazios:** crie uma conta nova pela tela de
+  cadastro.
+
+Fotos, logos e a planta baixa não vêm no script: são enviadas pelo app,
+na área do organizador (F14).
 
 O banco guarda só o hash das senhas, nunca o texto puro. O login recusa
 qualquer senha que não esteja guardada como hash.
@@ -511,8 +559,9 @@ Detalhes (inscrito, palestra já começou) -> Avaliar -> POST /api/avaliacoes
   -> média nos Detalhes e na Programação
 ```
 
-Para testar com os dados de exemplo, a palestra precisa já ter começado
-(`horario_inicio` no passado) e a pessoa precisa estar inscrita nela.
+A palestra precisa já ter começado (`horario_inicio` no passado) e a
+pessoa precisa estar inscrita nela. Nos dados de exemplo, entre como Ana
+e abra "Banco de Dados na Prática".
 
 ### Fluxo 10 — área do organizador
 
