@@ -216,4 +216,9 @@ class ApiService {
   static Future<void> excluirAvaliacao(int avaliacaoId) async {
     await request('/api/avaliacoes/$avaliacaoId', method: 'DELETE');
   }
+
+  /// Lista os patrocinadores de um evento, em ordem alfabética
+  /// (`GET /api/patrocinadores?id_evento=<id>`, F10).
+  static Future<List<dynamic>> patrocinadores(int eventoId) async =>
+      List<dynamic>.from(await request('/api/patrocinadores?id_evento=$eventoId'));
 }
