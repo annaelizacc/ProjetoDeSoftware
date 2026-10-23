@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
 import '../widgets/rotulo_secao.dart';
 import 'palestra_details_page.dart';
@@ -249,7 +250,7 @@ class _Saudacao extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_diasSemana[agora.weekday - 1]} ${agora.day} ${_meses[agora.month - 1]} · '
+          '${diasSemana[agora.weekday - 1]} ${agora.day} ${meses[agora.month - 1]} · '
           '${hora.toString().padLeft(2, '0')}:$minutos',
           style: textos.labelMedium,
         ),
@@ -272,9 +273,6 @@ class _Saudacao extends StatelessWidget {
   }
 }
 
-const _diasSemana = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
-const _meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-
 /// Período do evento como no canvas: `10—12 SET 2026` no mesmo mês,
 /// `30 SET—02 OUT 2026` em meses diferentes e
 /// `30 DEZ 2026—02 JAN 2027` em anos diferentes.
@@ -283,11 +281,11 @@ String _periodo(String? inicioTexto, String? fimTexto) {
   final fim = DateTime.tryParse(fimTexto ?? '');
   if (inicio == null) return 'DATA A DEFINIR';
   String dia(DateTime d) => d.day.toString().padLeft(2, '0');
-  final mesInicio = _meses[inicio.month - 1];
+  final mesInicio = meses[inicio.month - 1];
   if (fim == null || DateUtils.isSameDay(inicio, fim)) {
     return '${dia(inicio)} $mesInicio ${inicio.year}';
   }
-  final mesFim = _meses[fim.month - 1];
+  final mesFim = meses[fim.month - 1];
   final comeco = inicio.year != fim.year
       ? '${dia(inicio)} $mesInicio ${inicio.year}'
       : (inicio.month == fim.month ? dia(inicio) : '${dia(inicio)} $mesInicio');

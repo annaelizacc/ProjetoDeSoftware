@@ -1,3 +1,4 @@
+import '../utils/datas.dart';
 import 'avaliacao.dart';
 
 /// Model (do lado do Flutter): Palestra.
@@ -110,6 +111,19 @@ class Palestra {
         : ' - ${finalData.hour.toString().padLeft(2, '0')}:${finalData.minute.toString().padLeft(2, '0')}';
     return '$hora$finalHora';
   }
+
+  /// Início e fim como `DateTime` (ou `null`, se a API não mandou ou o
+  /// texto não for uma data válida). Usados para ordenar e agrupar por dia.
+  DateTime? get dataInicio => DateTime.tryParse(inicio ?? '');
+  DateTime? get dataFim => DateTime.tryParse(fim ?? '');
+
+  /// Horário de início e de fim separados (ex.: `09:00` e `10:30`), para
+  /// as telas que mostram os dois em linhas diferentes, como no canvas.
+  String get horaInicio => dataInicio == null ? '--:--' : horaCurta(dataInicio!);
+  String get horaFim => dataFim == null ? '' : horaCurta(dataFim!);
+
+  /// Dia da palestra no formato dos rótulos (ex.: `QUA 10`).
+  String get diaCurtoTexto => dataInicio == null ? '' : diaCurto(dataInicio!);
 
   /// Média no formato brasileiro, com vírgula (ex.: `4,6`).
   String get mediaTexto =>
