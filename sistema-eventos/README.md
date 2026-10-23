@@ -47,6 +47,9 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     palestras (com local, palestrante e total de vagas) e os
     patrocinadores (com logo). As imagens aceitas são PNG, JPG ou WEBP
     de até 5 MB. Excluir um evento pede a senha de quem está logado.
+18. Ver e pesquisar os palestrantes do evento pelo nome (Início →
+    "Palestrantes"). Tocar num palestrante abre o perfil dele, e tocar
+    numa palestra do perfil abre os detalhes dela.
 
 Todas as funcionalidades principais percorrem:
 
@@ -270,7 +273,7 @@ conta**, preenche o cadastro e entra direto no app.
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
 **Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (só o **Patrocínio** já abre;
+o botão **Ver programação**, os atalhos (**Palestrantes** e **Patrocínio** já abrem;
 os outros aparecem como "Em breve"), a descrição e a próxima palestra
 da agenda da pessoa nesse evento. Com mais de um evento, a lista
 **Trocar evento** acima do card troca o evento mostrado. Nos detalhes
