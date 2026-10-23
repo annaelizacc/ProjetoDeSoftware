@@ -61,7 +61,7 @@ class _SplashPageState extends State<SplashPage> {
                         WidgetSpan(
                           alignment: PlaceholderAlignment.baseline,
                           baseline: TextBaseline.alphabetic,
-                          child: MarcaTexto('sem desencontros', estilo: slogan, cor: cores.surface),
+                          child: MarcaTexto('sem desencontros', estilo: slogan, cor: cores.surface, subir: 14),
                         ),
                         const TextSpan(text: '.'),
                       ],

@@ -120,12 +120,16 @@ class FundoRio extends StatelessWidget {
 /// Desenha a curva larga do rio atravessando a tela, de cima para baixo.
 ///
 /// O caminho foi copiado do canvas, que usa uma tela de 390 × 844. Para
-/// caber em qualquer tamanho de tela, cada ponto é multiplicado pela
-/// proporção entre a tela real e a do canvas (`sx` e `sy`).
+/// caber em qualquer tela sem deformar, todos os pontos (e a espessura)
+/// são multiplicados pela MESMA `escala`, tirada só da altura: assim o "S"
+/// mantém o formato do canvas, e a largura da tela não muda o rio. O
+/// desenho é então centralizado na horizontal (`dx`), alinhado com a logo
+/// e o cartão, que também ficam no centro.
 ///
-/// A espessura do rio, ao contrário, é fixa (110, como no canvas): se
-/// acompanhasse a largura, o rio ficaria grosso demais em telas largas
-/// (tablet, navegador) e mudaria de tamanho ao girar o celular.
+/// Em telas largas sobra espaço dos lados, e as pontas do rio ficariam
+/// soltas no meio da tela. Por isso o caminho começa acima da tela e
+/// termina com uma reta que segue a direção da curva até bem fora dela:
+/// o rio sempre entra pela borda de cima e sai pela de baixo.
 class _RioPainter extends CustomPainter {
   final Color cor;
 
@@ -133,11 +137,17 @@ class _RioPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final sx = size.width / 390;
-    final sy = size.height / 844;
-    Offset p(double x, double y) => Offset(x * sx, y * sy);
+    final escala = size.height / 844;
+    final dx = (size.width - 390 * escala) / 2;
+    Offset p(double x, double y) => Offset(dx + x * escala, y * escala);
 
-    final caminho = Path()..moveTo(p(420, 10).dx, p(420, 10).dy);
+    // Ponta de cima: começa acima da tela e desce na vertical. No canvas o
+    // rio vinha da direita, quase na horizontal; em telas largas esse
+    // trecho aparecia como um "braço" solto no alto. A primeira curva
+    // termina no mesmo ponto (260, 130) e na mesma direção da original,
+    // então o resto do "S" continua igual e a emenda não faz "quina".
+    final inicio = p(340, -120);
+    final caminho = Path()..moveTo(inicio.dx, inicio.dy);
     // Cada `cubicTo` é uma curva: dois pontos que "puxam" a linha e o
     // ponto onde ela termina (o `C` do SVG do canvas).
     void curva(double x1, double y1, double x2, double y2, double x, double y) {
@@ -145,17 +155,20 @@ class _RioPainter extends CustomPainter {
       caminho.cubicTo(a.dx, a.dy, b.dx, b.dy, c.dx, c.dy);
     }
 
-    curva(330, 20, 350, 90, 260, 130);
+    curva(340, -30, 350, 90, 260, 130);
     curva(140, 185, 60, 230, 150, 330);
     curva(240, 430, 380, 430, 330, 570);
     curva(290, 690, 90, 720, -40, 830);
+    // Ponta de baixo: continua na direção da última curva até sair da tela.
+    final fim = p(-170, 940);
+    caminho.lineTo(fim.dx, fim.dy);
 
     canvas.drawPath(
       caminho,
       Paint()
         ..color = cor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 110
+        ..strokeWidth = 110 * escala
         ..strokeCap = StrokeCap.round,
     );
   }

@@ -22,22 +22,39 @@ class MarcaTexto extends StatelessWidget {
   /// cards (`colorScheme.surface`), como no canvas.
   final Color? cor;
 
-  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true, this.cor});
+  /// Quanto a faixa sobe, em porcentagem da altura do texto (0 = colada
+  /// embaixo). A caixa do texto inclui o espaço abaixo da linha das letras
+  /// (para o "p" e o "g"); em textos sem essas letras, como o slogan, a
+  /// faixa colada embaixo fica abaixo das letras, e subir deixa o grifo
+  /// atrás delas, mais legível.
+  final int subir;
+
+  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true, this.cor, this.subir = 0});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // A faixa ocupa os 42% de baixo da altura do texto.
+        // A altura do texto é dividida em partes com `flex` (como
+        // porcentagens): um espaço vazio em cima, a faixa com 42 partes e,
+        // embaixo, as `subir` partes que levantam a faixa. O `stretch`
+        // estica a faixa na largura do texto (sem ele, um `ColoredBox`
+        // sem conteúdo ficaria com largura zero).
         Positioned.fill(
-          child: FractionallySizedBox(
-            alignment: Alignment.bottomCenter,
-            heightFactor: 0.42,
-            child: ColoredBox(
-              color: ativo
-                  ? cor ?? Theme.of(context).colorScheme.tertiary
-                  : Colors.transparent,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Spacer(flex: 58 - subir),
+              Expanded(
+                flex: 42,
+                child: ColoredBox(
+                  color: ativo
+                      ? cor ?? Theme.of(context).colorScheme.tertiary
+                      : Colors.transparent,
+                ),
+              ),
+              if (subir > 0) Spacer(flex: subir),
+            ],
           ),
         ),
         Padding(
