@@ -50,6 +50,9 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 18. Ver e pesquisar os palestrantes do evento pelo nome (Início →
     "Palestrantes"). Tocar num palestrante abre o perfil dele, e tocar
     numa palestra do perfil abre os detalhes dela.
+19. Ver a planta do evento (Início → "Mapa do local"): a imagem enviada
+    pelo organizador, com zoom, e a lista dos locais com o passo a passo
+    de como chegar.
 
 Todas as funcionalidades principais percorrem:
 
@@ -273,8 +276,8 @@ conta**, preenche o cadastro e entra direto no app.
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
 **Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (**Palestrantes** e **Patrocínio** já abrem;
-os outros aparecem como "Em breve"), a descrição e a próxima palestra
+o botão **Ver programação**, os atalhos (**Mapa do local**, **Palestrantes** e **Patrocínio** já
+abrem; **Onde comer** aparece como "Em breve"), a descrição e a próxima palestra
 da agenda da pessoa nesse evento. Com mais de um evento, a lista
 **Trocar evento** acima do card troca o evento mostrado. Nos detalhes
 da palestra, tocar no palestrante (**Ver perfil**) abre o perfil dele,

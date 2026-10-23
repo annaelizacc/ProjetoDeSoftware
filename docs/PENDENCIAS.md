@@ -154,6 +154,7 @@ mais rápidas, por último as maiores.
 | 15 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
 | 16 | F22 Perfil de administrador geral | 🟢 | Nenhum RF pede; tarefa de segurança, precisa de mais tempo |
 | 17 | F23 Área do palestrante | 🟢 | Nenhum RF pede; muda uma decisão da F05 (palestrante sem login) |
+| 18 | S09 Capa do evento e tela "Escolher evento" | 🟢 | Nenhum RF pede; muda o banco (`evento.imagem_capa`) e o Início. Incluída com autorização da Manuela (23/10/2026) |
 
 A P13 não entra na lista: ela se resolve quando F03, F04, F08 e F13
 forem feitas.
@@ -179,7 +180,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF07 | Favoritar palestras | Concluído | — |
 | RF08 | Agenda personalizada | Concluído | — |
 | RF09 | Notificações sobre o início das palestras | Parcial: o lembrete é só gravado, nada avisa o usuário | F02 |
-| RF10 | Planta baixa do local | Parcial: só a tabela e a Model | F03 |
+| RF10 | Planta baixa do local | Concluído | F03 |
 | RF11 | Rotas até salas e auditórios | Pendente: só a tabela `localizacao` (nome e descrição) | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
 | RF13 | Pesquisar palestrantes pelo nome | Concluído | F05 |
@@ -191,7 +192,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 17 concluídos, 2 parciais e 1 pendente.
+**Resumo:** 18 concluídos, 1 parcial e 1 pendente.
 
 ## 1.2 Tarefas
 
@@ -204,7 +205,7 @@ o nome indicado, que aparece acima de cada tela.
 |---|---|---|---|---|
 | F01 | RF01 | 🔴 | Tela de cadastro de usuário | Concluído |
 | F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
-| F03 | RF10 | 🔴 | Planta baixa do evento | Parcial |
+| F03 | RF10 | 🔴 | Planta baixa do evento | Concluído |
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Concluído |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
@@ -288,6 +289,12 @@ o nome indicado, que aparece acima de cada tela.
 - **Mesma solução para:** a foto do palestrante (F05) e o logo do
   patrocinador (F10).
 - **Depende de:** F14 (telas de cadastro do organizador).
+- **Concluído (23/10/2026):** tela "Planta do local"
+  (`pages/planta_page.dart`), aberta pelo atalho "Mapa do local" do
+  Início. Mostra a imagem com zoom (`InteractiveViewer`, do próprio
+  Flutter), a descrição da planta e a lista de locais com o passo a
+  passo de como chegar. Sem imagem, avisa que o organizador ainda não
+  enviou a planta. A F04 reaproveita a tela no botão "Ver planta".
 
 ### F04 Rotas até salas e auditórios (RF11)
 
@@ -928,6 +935,7 @@ Uma sugestão aprovada vira uma tarefa F; uma recusada é marcada como tal.
 | S06 | Nova proposta visual para o app ([canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | Corrige problemas do protótipo do Figma: contraste, fontes misturadas, menu duplicado, telas sem informações essenciais (vagas, botão de inscrição) e textos em inglês. Já inclui o modo escuro (RF20) | Aprovada: definida pela Manuela em outra conversa, aplicada na F20 |
 | S07 | Outros tipos de atividade além de palestra (workshop, mesa-redonda), com mais de um palestrante por atividade | Amplia o uso do app para eventos variados. Fica fora desta entrega porque nenhum RF pede e o diagrama não prevê | Melhoria futura: só registrar na documentação final |
 | S08 | Marcar avisos como lidos | Sem isso, o contador de avisos novos da barra de navegação (canvas) não tem o que contar | Aprovada: virou F21 |
+| S09 | Deixar claro que o app tem vários eventos, cada um em um lugar: imagem de capa do evento enviada pelo organizador (no card do Início e na lista de eventos) e tela "Escolher evento" no lugar da lista "Trocar evento" (página "Proposta · eventos, lugares e salas" do [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | No teste da F03, a equipe não percebeu que "Trocar evento" leva a outro evento, em outro lugar, com outra planta. Decidido pela equipe (23/10/2026): a legibilidade do texto sobre a imagem fica a critério do organizador, e o cadastro avisa que a imagem deve ser horizontal. Precisa de `evento.imagem_capa` (o banco muda) e mexe no Início e no formulário do evento (trilha da Manuela) | Aprovada para "se sobrar tempo": item 18 da seção 0.2 |
 
 ---
 
