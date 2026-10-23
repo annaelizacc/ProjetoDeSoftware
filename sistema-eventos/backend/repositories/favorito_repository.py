@@ -47,7 +47,9 @@ class FavoritoRepository:
         O JOIN evita que o Flutter precise fazer uma segunda chamada para
         cada favorito só para saber o título/horário da palestra. O nome do
         local vem de `localizacao` (LEFT JOIN, desde a F19) com o apelido
-        `sala`, como antes.
+        `sala`, como antes, e o nome de quem apresenta vem de `palestrante`
+        (LEFT JOIN, desde a F20: a tela de Favoritos mostra
+        "sala · palestrante", como a agenda).
         """
         sql = text(
             """
@@ -62,6 +64,7 @@ class FavoritoRepository:
                 l.nome_local AS sala,
                 p.id_localizacao,
                 p.id_palestrante,
+                pe.nome AS palestrante,
                 p.horario_inicio,
                 p.horario_fim,
                 p.id_evento,
@@ -70,6 +73,7 @@ class FavoritoRepository:
             FROM favorito f
             JOIN palestra p ON p.id_palestra = f.id_palestra
             LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
+            LEFT JOIN palestrante pe ON pe.id_palestrante = p.id_palestrante
             WHERE f.id_usuario = :id_usuario
             ORDER BY f.data_favoritacao DESC
             """

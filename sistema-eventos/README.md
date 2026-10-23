@@ -282,8 +282,9 @@ sem alterar as telas.
 
 ### Navegação e visual
 
-A primeira tela é o login. Quem ainda não tem conta toca em **Criar
-conta**, preenche o cadastro e entra direto no app.
+O app abre com a tela de abertura (logo, slogan e o rio da marca, por
+5 segundos) e segue para o login. Quem ainda não tem conta toca em
+**Criar conta**, preenche o cadastro e entra direto no app.
 
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
@@ -299,6 +300,18 @@ com a descrição, a rede social e as palestras dele no evento. Os **Favoritos**
 interruptor de **Modo escuro** e o botão **Sair**, que volta para o
 login. A escolha do tema é salva no próprio aparelho com o pacote
 `shared_preferences` (não vai para o banco).
+
+- **Programação:** uma aba para cada dia do evento (os dias que já
+  passaram ficam acinzentados, mas abrem), filtros por tema, a lupa para
+  buscar e o botão de **Patrocinadores** no topo. Cada palestra mostra um
+  selo: `ENCERRADA`, `EM ANDAMENTO`, `INSCRITA`, `ESGOTADA` ou as vagas.
+- **Agenda:** as palestras em que a pessoa está inscrita, um dia por vez,
+  em linha do tempo; as setas do topo pulam entre os dias com inscrição.
+  No dia de hoje, a palestra em andamento (ou a próxima) aparece em
+  destaque. Entre duas palestras aparece o intervalo livre ou o almoço;
+  as que já terminaram ficam acinzentadas.
+- **Favoritos:** tocar na estrela de uma palestra tira ela dos
+  favoritos; tocar no resto da linha abre os detalhes.
 
 Quem entra como organizador (ex.: `elisa.prado@email.com`) vê também a
 **Área do organizador** no Perfil. Ela abre o painel do evento dessa
@@ -546,12 +559,14 @@ Detalhes -> Cancelar inscrição -> remove participacao -> devolve vaga
 
 ```text
 Detalhes -> Favoritar -> tabela favorito -> Perfil -> Favoritos
+  -> estrela da lista remove o favorito
 ```
 
 ### Fluxo 5 — agenda
 
 ```text
 Inscrições do usuário -> consulta participacao -> palestras ordenadas
+  -> Agenda: um dia por vez (setas), destaque da atual ou da próxima
 ```
 
 ### Fluxo 6 — lembrete
