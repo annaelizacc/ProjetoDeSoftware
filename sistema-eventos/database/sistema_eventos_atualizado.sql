@@ -411,9 +411,11 @@ INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
 --  3: acontecendo agora (a "próxima palestra" do Início);
 --  4: amanhã, esgotada (1 vaga, ocupada pela Carla);
 --  5: amanhã, última vaga (2 vagas, 1 ocupada): quem se inscrever esgota;
---  6: amanhã, com vagas e sem avaliações;
+--  6: amanhã, com vagas e sem avaliações (a Ana está inscrita);
 --  7 e 8: Feira de Ciências, daqui a duas semanas;
---  9 e 10: Mostra de Projetos, encerrada (a 10 não tem palestrante).
+--  9 e 10: Mostra de Projetos, encerrada (a 10 não tem palestrante);
+--  11: amanhã, no mesmo horário da 6: ao se inscrever, a Ana vê o aviso
+--      de choque de horário (F16). Fica no fim para os ids 1 a 10 não mudarem.
 INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_evento, id_localizacao, id_palestrante, vagas_total) VALUES
 ('Introdução à Inteligência Artificial',  'Panorama geral sobre IA',                           'Tecnologia', TIMESTAMP(@hoje - INTERVAL 1 DAY, '09:00'),  TIMESTAMP(@hoje - INTERVAL 1 DAY, '10:30'),  1, 2, 1,    40),
 ('Banco de Dados na Prática',             'Modelagem e consultas SQL',                         'Tecnologia', TIMESTAMP(@hoje - INTERVAL 1 DAY, '11:00'),  TIMESTAMP(@hoje - INTERVAL 1 DAY, '12:30'),  1, 3, 2,    40),
@@ -424,14 +426,16 @@ INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_even
 ('Experimentos de Química no Dia a Dia',  'Reações químicas com materiais de casa',            'Ciências',   TIMESTAMP(@hoje + INTERVAL 14 DAY, '09:00'), TIMESTAMP(@hoje + INTERVAL 14 DAY, '10:30'), 2, 4, 5,    25),
 ('Astronomia para Iniciantes',            'Como observar o céu sem telescópio',                'Ciências',   TIMESTAMP(@hoje + INTERVAL 14 DAY, '14:00'), TIMESTAMP(@hoje + INTERVAL 14 DAY, '15:30'), 2, 5, 5,    25),
 ('Robótica Educacional',                  'Projetos de robôs feitos pelos alunos',             'Robótica',   TIMESTAMP(@hoje - INTERVAL 30 DAY, '09:00'), TIMESTAMP(@hoje - INTERVAL 30 DAY, '10:30'), 3, 6, 6,    30),
-('Roda de Conversa: Carreira em TI',      'Ex-alunos contam como entraram no mercado',         'Carreira',   TIMESTAMP(@hoje - INTERVAL 30 DAY, '11:00'), TIMESTAMP(@hoje - INTERVAL 30 DAY, '12:00'), 3, 6, NULL, 20);
+('Roda de Conversa: Carreira em TI',      'Ex-alunos contam como entraram no mercado',         'Carreira',   TIMESTAMP(@hoje - INTERVAL 30 DAY, '11:00'), TIMESTAMP(@hoje - INTERVAL 30 DAY, '12:00'), 3, 6, NULL, 20),
+('Acessibilidade em Aplicativos',         'Como fazer apps que todas as pessoas conseguem usar', 'Design',   TIMESTAMP(@hoje + INTERVAL 1 DAY, '14:30'),  TIMESTAMP(@hoje + INTERVAL 1 DAY, '15:30'),  1, 3, 4,    30);
 
--- Inscrições. Ana: palestras de ontem, a de agora, uma da Feira e as
--- duas da Mostra (a agenda tem passado, presente e futuro). Carla:
+-- Inscrições. Ana: palestras de ontem, a de agora, a 6 de amanhã (que
+-- bate no horário com a 11, para o aviso de choque da F16), uma da
+-- Feira e as duas da Mostra (a agenda tem passado, presente e futuro). Carla:
 -- ocupa a vaga única da palestra 4 e uma das duas vagas da 5. Ela não se
 -- inscreve na palestra 1, porque é a palestrante dela.
 INSERT INTO participacao (id_usuario, id_palestra) VALUES
-(1, 1), (1, 2), (1, 3), (1, 8), (1, 9), (1, 10),
+(1, 1), (1, 2), (1, 3), (1, 6), (1, 8), (1, 9), (1, 10),
 (3, 2), (3, 4), (3, 5), (3, 9);
 
 -- Mantém o contador coerente com os dados fictícios oficiais.

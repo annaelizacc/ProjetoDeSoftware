@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/avaliacao.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
+import '../widgets/aviso_choque_horario.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/estrelas.dart';
 import '../widgets/perfil_palestrante.dart';
@@ -129,6 +130,25 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
     );
   }
 
+  /// Inscreve na palestra (F16). Se a API avisar que a pessoa já tem
+  /// inscrição em outra palestra no mesmo horário, mostra o aviso de
+  /// choque e só inscreve se a pessoa tocar em "Inscrever mesmo assim".
+  Future<void> inscreverComAvisoDeChoque(Palestra p) async {
+    try {
+      await ApiService.inscrever(widget.usuarioId, p.id);
+    } on ChoqueDeHorarioException catch (aviso) {
+      if (!mounted) return;
+      final confirmou = await mostrarAvisoDeChoque(
+        context,
+        jaInscrita: Palestra.fromJson(aviso.palestraConflitante),
+        nova: p,
+      );
+      if (confirmou) {
+        await ApiService.inscrever(widget.usuarioId, p.id, confirmarChoque: true);
+      }
+    }
+  }
+
   /// Abre a planta do evento (F03) a partir da linha "Onde" (F04).
   void abrirPlanta(Palestra p) {
     Navigator.push(
@@ -214,7 +234,7 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
                 palestra: p,
                 aoInscrever: () => executar(() => p.inscrito
                     ? ApiService.cancelarInscricao(widget.usuarioId, p.id)
-                    : ApiService.inscrever(widget.usuarioId, p.id)),
+                    : inscreverComAvisoDeChoque(p)),
                 aoFavoritar: () => executar(() => ApiService.alterarFavorito(widget.usuarioId, p.id, !p.favorita)),
                 aoLembrar: () => executar(() => ApiService.alterarLembrete(widget.usuarioId, p.id, !p.lembreteAtivo)),
               ),

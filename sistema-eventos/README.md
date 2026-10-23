@@ -57,6 +57,10 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     chegar"): o passo a passo a partir da entrada, escrito pelo
     organizador com um passo por linha. O botão **Ver planta**, na linha
     "Onde", abre a planta do evento.
+21. Aviso de choque de horário (F16): ao se inscrever numa palestra que
+    bate no horário com outra em que a pessoa já está inscrita, o app
+    mostra as duas e pergunta se ela quer se inscrever mesmo assim. A
+    inscrição não é bloqueada.
 
 Todas as funcionalidades principais percorrem:
 
@@ -156,8 +160,11 @@ O que dá para testar com cada usuário:
   - "Apps com Flutter" (amanhã): **esgotada** (1 vaga, ocupada pela Carla);
   - "APIs REST com Flask" (amanhã): **última vaga**; ao se inscrever, a
     palestra esgota;
-  - "Design de Interfaces" (amanhã): com vagas, sem avaliações,
-    favoritada e com lembrete ativo;
+  - "Design de Interfaces" (amanhã): inscrita, com vagas, sem
+    avaliações, favoritada e com lembrete ativo;
+  - "Acessibilidade em Aplicativos" (amanhã, 14:30): bate no horário
+    com "Design de Interfaces"; ao tocar em **Garantir vaga**, aparece o
+    **aviso de choque de horário** (F16);
   - Agenda com palestras passadas, de agora e futuras; Favoritos com duas
     palestras;
   - Avisos: um de cada tipo (comunicado do evento, comunicado de uma
@@ -487,7 +494,7 @@ administrador; os outros recebem 403).
 | GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
 | POST | `/api/palestras` | Cria palestra | dono do evento |
 | PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra (um novo `vagas_total` recalcula as vagas livres e não pode ser menor que o número de inscritos) | dono do evento |
-| POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
+| POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra` e, opcional, `confirmar_choque: true`). Com choque de horário e sem a confirmação, responde **409** com `choque_horario: true` e `palestra_conflitante` (F16) | login |
 | DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`) | login |
 | GET | `/api/favoritos/usuario/<id_usuario>` | Meus favoritos | própria |
 | POST | `/api/favoritos` | Adicionar favorito (corpo: `id_palestra`) | login |

@@ -532,3 +532,43 @@ evento em cada situação e um exemplo de cada estado que o app mostra.
   hoje; a correção é a P06.
 - **Banco precisa ser recriado:** quem tem o banco antigo continua com
   os dados velhos (passo 1.4 do `FLUXO_DE_TRABALHO.md`).
+
+---
+
+## 10. F05: palestrantes, busca por nome e perfil (RF13, RF14)
+
+Concluída em 23/10/2026. O relatório pede que o participante pesquise
+palestrantes pelo nome (RF13) e veja as informações de cada um (RF14).
+A F14 já tinha feito a parte do backend (rotas de palestrantes por
+evento, com busca) e o perfil aberto pelos detalhes da palestra; faltava
+uma tela onde o participante encontrasse os palestrantes sem precisar
+abrir uma palestra antes.
+
+### 10.1 O que foi feito
+
+- **Tela "Palestrantes"** (`pages/palestrantes_page.dart`), aberta pelo
+  atalho "Palestrantes" do Início, que antes aparecia como "Em breve".
+  Mostra os palestrantes do evento (foto ou iniciais, nome e o começo da
+  descrição) e um campo "Pesquisar pelo nome".
+- **Busca na API:** a cada letra digitada, o app chama
+  `GET /api/palestrantes?id_evento=<id>&busca=<texto>`.
+- **Perfil reaproveitado:** tocar num palestrante abre o mesmo perfil
+  dos detalhes da palestra (`abrirPerfilPalestrante`, RF14), e tocar
+  numa palestra do perfil abre os detalhes dela.
+
+### 10.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Busca feita pela API, e não filtrando a lista no próprio app | A rota com `busca` já existia (F14) e é o lugar da regra; filtrar no app repetiria a regra em dois lugares |
+| A busca roda a cada letra, sem botão | Com poucos palestrantes por evento, a resposta é rápida. O `FutureBuilder` mostra só o resultado da busca mais recente: uma resposta antiga que chegue atrasada é ignorada |
+| A lista anterior continua na tela enquanto a nova busca carrega | Sem isso, o círculo de carregando piscaria a cada letra (`snapshot.hasData` durante a espera) |
+| Entrada pelo atalho do Início | O canvas já previa o atalho "Palestrantes" no Início; a barra de navegação tem só 5 abas |
+
+### 10.3 Limitações conhecidas
+
+- **Uma requisição por letra:** para eventos com muitos palestrantes,
+  valeria esperar a pessoa parar de digitar antes de buscar (técnica
+  chamada *debounce*).
+- **Rede social só para copiar:** o link aparece como texto selecionável;
+  abrir o navegador exigiria o pacote `url_launcher` (depois da P17).
