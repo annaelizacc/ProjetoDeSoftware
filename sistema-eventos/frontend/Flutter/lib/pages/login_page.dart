@@ -11,7 +11,8 @@ import 'cadastro_page.dart';
 /// Envia email e senha para `POST /api/auth/login` através do
 /// `ApiService.login`. Em caso de sucesso, navega (substituindo a tela
 /// atual, para o usuário não poder "voltar" ao login com o botão do
-/// celular) para o `AppShell`, levando o ID e o nome do usuário logado.
+/// celular) para o `AppShell`, levando o ID, o nome e o perfil do usuário
+/// logado (se é organizador, para o Perfil mostrar a área do organizador).
 /// Quem ainda não tem conta abre a `CadastroPage` pelo link "Criar conta"
 /// (F01).
 ///
@@ -19,9 +20,6 @@ import 'cadastro_page.dart';
 /// de acesso (`widgets/tela_acesso.dart`). O botão "Continuar com Google"
 /// e o link "Esqueci minha senha" do canvas ainda não existem no backend,
 /// por isso ficam de fora (o Google é a F18).
-///
-/// Os campos já vêm preenchidos com a usuária de exemplo Ana Silva, do
-/// banco oficial, para agilizar os testes.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -46,6 +44,7 @@ class _LoginPageState extends State<LoginPage> {
           builder: (_) => AppShell(
             usuarioId: usuario['id_usuario'],
             nomeUsuario: usuario['nome'],
+            ehOrganizador: usuario['tipo_usuario'] == 'organizador',
           ),
         ),
       );

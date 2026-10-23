@@ -6,6 +6,12 @@ CAMADA: Services (regra de negócio do caso de uso "Atualizar Palestra").
 Quando `id_localizacao` ou `id_palestrante` são enviados, passam pelas
 mesmas conferências da criação (existem? o local é do mesmo evento?).
 
+Só os campos de `CAMPOS_EDITAVEIS` são aceitos (lista do que é
+permitido, desde a F08, como no evento e no usuário). As vagas
+(`vagas_total` e `vagas_disponiveis`) ficam de fora: são controladas
+pelas inscrições, e mudar a capacidade exige recalcular o saldo (fica
+para a tela de cadastro de palestra, F14).
+
 Método principal:
     execute(id_palestra, dados): retorna a Palestra atualizada.
 """
@@ -14,6 +20,17 @@ from datetime import datetime
 
 from backend.models.palestra import Palestra
 from backend.services.palestra.criar_palestra_service import validar_local_e_palestrante
+
+CAMPOS_EDITAVEIS = (
+    "titulo",
+    "resumo",
+    "tema",
+    "horario_inicio",
+    "horario_fim",
+    "id_evento",
+    "id_localizacao",
+    "id_palestrante",
+)
 
 
 def _converter_data(valor):
@@ -29,7 +46,7 @@ class AtualizarPalestraService:
     """Caso de uso responsável pela atualização de uma palestra existente."""
 
     def execute(self, id_palestra, dados):
-        dados = dict(dados)
+        dados = {campo: dados[campo] for campo in CAMPOS_EDITAVEIS if campo in dados}
         if "horario_inicio" in dados:
             dados["horario_inicio"] = _converter_data(dados["horario_inicio"])
         if "horario_fim" in dados:

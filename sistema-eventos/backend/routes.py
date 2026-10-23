@@ -12,6 +12,7 @@ from backend.controllers.avaliacao_controller import avaliacao_bp
 from backend.controllers.evento_controller import evento_bp
 from backend.controllers.favorito_controller import favorito_bp
 from backend.controllers.notificacao_controller import notificacao_bp
+from backend.controllers.organizador_controller import organizador_bp
 from backend.controllers.palestra_controller import palestra_bp
 from backend.controllers.participacao_controller import participacao_bp
 from backend.controllers.usuario_controller import usuario_bp
@@ -29,5 +30,6 @@ def registrar_rotas(app):
         favorito_bp,
         notificacao_bp,
         avaliacao_bp,
+        organizador_bp,
     ):
         app.register_blueprint(blueprint)

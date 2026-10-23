@@ -15,6 +15,10 @@ e de `CRUDMixin`, que fornece os métodos `criar`, `buscar_por_id`,
 Relacionamento: um Evento possui várias Palestras (`palestras`), com
 `cascade="all, delete-orphan"` — ou seja, se um evento for removido, suas
 palestras também são removidas, preservando a integridade dos dados.
+
+Responsável (F08): todo evento tem um só Organizador (`id_organizador`),
+gravado na criação com o organizador logado. Só ele (ou um
+administrador) altera o evento e o que pertence a ele.
 """
 
 from backend.extensions import db
@@ -32,6 +36,9 @@ class Evento(db.Model, CRUDMixin):
     data_inicio = db.Column(db.Date, nullable=False)
     data_fim = db.Column(db.Date, nullable=False)
     local = db.Column(db.String(200))
+    id_organizador = db.Column(
+        db.Integer, db.ForeignKey("organizador.id_organizador"), nullable=False
+    )
 
     palestras = db.relationship(
         "Palestra", back_populates="evento", cascade="all, delete-orphan"
@@ -46,4 +53,5 @@ class Evento(db.Model, CRUDMixin):
             "data_inicio": self.data_inicio.isoformat() if self.data_inicio else None,
             "data_fim": self.data_fim.isoformat() if self.data_fim else None,
             "local": self.local,
+            "id_organizador": self.id_organizador,
         }

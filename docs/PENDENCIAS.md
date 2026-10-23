@@ -130,6 +130,7 @@ mais rápidas, por último as maiores.
 | 13 | F15 Aviso de alteração de palestra | 🟢 | Depende da F14 |
 | 14 | P12 Testes automatizados | 🟢 | Maior, mas protege as regras principais |
 | 15 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
+| 16 | F22 Perfil de administrador geral | 🟢 | Nenhum RF pede; tarefa de segurança, precisa de mais tempo |
 
 A P13 não entra na lista: ela se resolve quando F03, F04, F08 e F13
 forem feitas.
@@ -162,12 +163,12 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF14 | Informações dos palestrantes | Pendente | F05 |
 | RF15 | Comentários e feedbacks sobre palestras | Parcial: a API `/api/avaliacoes` está pronta (F19), mas não há tela | F06 |
 | RF16 | Avaliar palestras por estrelas | Parcial: tabela `avaliacao` e API prontas (F19); falta a tela e a média | F07 |
-| RF17 | Organizador gerencia inscrições | Pendente | F08 |
+| RF17 | Organizador gerencia inscrições | Concluído | F08 |
 | RF18 | Organizador envia comunicados gerais | Pendente | F09 |
 | RF19 | Patrocinadores do evento | Pendente: tabela `patrocinador` criada na F19; faltam rota e tela | F10 |
 | RF20 | Modo claro e modo escuro | Pendente: o app só tem o tema claro | F11 |
 
-**Resumo:** 8 concluídos, 4 parciais e 8 pendentes.
+**Resumo:** 9 concluídos, 4 parciais e 7 pendentes.
 
 ## 1.2 Tarefas
 
@@ -185,7 +186,7 @@ o nome indicado, que aparece acima de cada tela.
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Pendente |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Parcial |
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Parcial |
-| F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Pendente |
+| F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Concluído |
 | F09 | RF18 | 🔴 | Comunicados gerais do organizador | Pendente |
 | F10 | RF19 | 🔴 | Patrocinadores do evento | Pendente |
 | F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Pendente |
@@ -194,11 +195,12 @@ o nome indicado, que aparece acima de cada tela.
 | F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Pendente |
 | F15 | RF09, RF18 | 🟢 | Aviso de alteração de palestra na aba Avisos | Pendente |
 | F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Pendente |
-| F17 | — (S03) | 🟡 | Logout e login lembrado | Pendente |
+| F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
 | F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Em andamento |
 | F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
+| F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -346,6 +348,38 @@ o nome indicado, que aparece acima de cada tela.
 - **Decidido (20/10/2026):** a entrada "Área do organizador" fica no
   Perfil e aparece **só** para organizadores. Participantes não veem a
   opção.
+- **Decidido (22/10/2026):**
+  - o app reconhece o organizador pelo `tipo_usuario` que o login já
+    devolve. Os organizadores continuam sendo criados pelo banco; criar
+    pelo app virou a F22;
+  - a "Área do organizador" é um painel do evento: palestras, inscrições,
+    esgotadas, ocupação das vagas (%) e média das avaliações, mais o
+    ranking das palestras (inscritos/vagas e média de cada uma);
+  - gerenciar inscrições = ver os inscritos de cada palestra (com busca)
+    e remover uma inscrição, com confirmação antes. A remoção usa o mesmo
+    `CancelarInscricaoService` do participante (a vaga volta) e grava um
+    aviso do tipo `atencao` para a pessoa removida;
+  - **cada evento tem um só organizador responsável**
+    (`evento.id_organizador`). O organizador vê e gerencia só os
+    próprios eventos (painel, inscrições, evento, palestras e moderação
+    de avaliações); o administrador (`nivel_acesso = 'administrador'`)
+    vê e gerencia todos. Quem cria o evento (`POST /api/eventos`) vira o
+    responsável, e o responsável não pode ser trocado pela API;
+  - fluxo previsto: o administrador cria o organizador (F22; até lá, pelo
+    banco) e o organizador cria o evento, que já fica ligado a ele (F14);
+  - o painel mostra só os eventos da pessoa. Com mais de um, aparece o
+    seletor "Trocar evento" do canvas.
+- **Concluído (22/10/2026):** rotas `/api/organizador/...` (meus
+  eventos, painel, inscritos e remover, só para organizadores e só nos
+  próprios eventos) e as telas "Área do organizador" e "Inscrições". No
+  painel, o comunicado (F09) e os cadastros (F14) aparecem como "Em
+  breve". No banco, a coluna `evento.id_organizador` e a organizadora de
+  exemplo Elisa Prado (evento 2). Junto, o botão **Sair** do Perfil
+  (parte da F17), por decisão da Manuela de fazer na mesma branch.
+  Ajustes da revisão: listar, ver e remover contas de outras pessoas
+  ficou só para o administrador; quem é responsável por eventos não pode
+  ser removido; a atualização de evento e de palestra aceita só uma
+  lista de campos permitidos (avanço na P03).
 
 ### F09 Comunicados gerais do organizador (RF18)
 
@@ -422,6 +456,12 @@ o nome indicado, que aparece acima de cada tela.
 - **Por que é necessária:** o sistema serve para qualquer evento sem
   mudar a interface, então tudo o que é do evento precisa ser cadastrado
   pelo organizador no app.
+- **Já pronto na F08 (22/10/2026):** o evento criado por
+  `POST /api/eventos` fica ligado a quem o criou, e só esse organizador
+  (ou um administrador) altera o evento e as palestras dele. As rotas
+  novas desta tarefa (locais, planta, palestrantes, patrocinadores)
+  devem usar `verificar_dono_do_evento` (em
+  `controllers/autenticacao.py`) do mesmo jeito.
 - **Depende de:** P01 e F08.
 
 ### F15 Aviso de alteração de palestra na aba Avisos
@@ -469,6 +509,10 @@ o nome indicado, que aparece acima de cada tela.
 - **Decidido (21/10/2026):** quando a API responder 401 (token vencido
   ou inválido), o app deve voltar sozinho para a tela de login. Hoje a
   tela só mostra a mensagem "Sessão expirada ou inválida".
+- **Parcial (22/10/2026, feito na branch da F08):** o botão **Sair** do
+  Perfil apaga o token e volta para o login, sem deixar "voltar" com o
+  botão do celular. Falta manter o login ao reabrir o app e a volta
+  automática ao login no 401.
 
 ### F18 Entrar com Google
 
@@ -577,6 +621,29 @@ o nome indicado, que aparece acima de cada tela.
   Falta o campo no banco (com script de migração, sem recriar o banco),
   uma rota para marcar como lido (por exemplo, ao abrir a aba Avisos) e
   passar a contagem para a barra no `app_shell.dart`.
+
+### F22 Perfil de administrador geral
+
+- **Origem:** sugestão da Manuela durante o planejamento da F08, aprovada
+  em 22/10/2026.
+- **O que já existe:** os organizadores são criados direto no banco
+  (decisão da P01, `DOCUMENTACAO.md` seção 4), e a tabela `organizador`
+  já tem o campo `nivel_acesso` (o Bruno Costa está como
+  `administrador`).
+- **O que falta:** um administrador (`nivel_acesso = 'administrador'`)
+  promover participantes a organizadores pelo app (e tirar a permissão),
+  sem precisar abrir o MySQL. A promoção precisa atualizar os dois
+  registros juntos: `usuario.tipo_usuario` e a tabela `organizador`.
+- **Por que ficou para depois:** nenhum dos 20 RFs pede essa função, e a
+  entrega é em 23/10/2026. É uma tarefa de segurança (quem pode dar
+  permissão a quem), então precisa de `/security-review` e de mais tempo.
+  Entra na documentação final como "próximos passos".
+- **O que o administrador já faz (F08):** vê e gerencia todos os eventos
+  (painel, inscrições, evento, palestras e avaliações), com o seletor
+  "Trocar evento". O que for exclusivo dele fica nesta tarefa.
+- **Sugestão (22/10/2026):** uma visão consolidada só para o
+  administrador, com os números de todos os eventos somados (total de
+  inscrições do sistema, eventos mais procurados).
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 
@@ -696,7 +763,7 @@ qualquer alteração.
 | P05 | 🟢 | Abas do app recarregam a cada troca | Pendente |
 | P06 | 🟡 | Fuso horário inconsistente | Pendente |
 | P07 | 🟢 | Uso de método obsoleto do SQLAlchemy | Pendente |
-| P08 | 🟢 | Tipo de notificação "atencao" nunca é criado | Pendente |
+| P08 | 🟢 | Tipo de notificação "atencao" nunca é criado | Parcial |
 | P09 | 🔴 | README desatualizado | Pendente |
 | P10 | 🟢 | Comentário desatualizado na tela de favoritos | Pendente |
 | P11 | 🔴 **antes da P14** | Arquivos locais versionados e falta de `.gitignore` | Concluído |
@@ -769,6 +836,11 @@ qualquer alteração.
   que já existe gera erro 500 em vez de uma mensagem clara.
 - **Já corrigido em um caso:** desde a F19, a atualização de avaliação
   aceita só `nota_estrelas` e `comentario` (não dá para trocar o autor).
+- **Evento e palestra corrigidos na F08 (22/10/2026):** as duas
+  atualizações aceitam só uma lista de campos permitidos. O evento não
+  troca de responsável (`id_organizador`), e a palestra não aceita
+  `vagas_total` nem `vagas_disponiveis` (mudar a capacidade fica para a
+  F14, recalculando o saldo).
 - **`tipo_usuario` corrigido na P01 (21/10/2026):** o cadastro e a
   atualização de usuário ignoram esse campo. O restante (como
   `vagas_disponiveis` da palestra e o erro 500 com email repetido)
@@ -838,6 +910,9 @@ qualquer alteração.
   envio real de lembrete: ativar um lembrete apenas cria um registro.
 - **Por que importa:** é uma funcionalidade pela metade. Precisa ser
   implementada ou documentada como limitação.
+- **Andamento (22/10/2026, F08):** o backend passou a criar avisos do
+  tipo `atencao` quando o organizador remove uma inscrição. Falta o
+  envio real do lembrete (F02).
 
 ## Documentação e organização
 
