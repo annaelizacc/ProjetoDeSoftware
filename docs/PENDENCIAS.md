@@ -165,7 +165,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF16 | Avaliar palestras por estrelas | Concluído | F07 |
 | RF17 | Organizador gerencia inscrições | Concluído | F08 |
 | RF18 | Organizador envia comunicados gerais | Pendente | F09 |
-| RF19 | Patrocinadores do evento | Pendente: tabela `patrocinador` criada na F19; faltam rota e tela | F10 |
+| RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Pendente: o app só tem o tema claro | F11 |
 
 **Resumo:** 12 concluídos, 2 parciais e 6 pendentes.
@@ -188,7 +188,7 @@ o nome indicado, que aparece acima de cada tela.
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Concluído |
 | F09 | RF18 | 🔴 | Comunicados gerais do organizador | Pendente |
-| F10 | RF19 | 🔴 | Patrocinadores do evento | Pendente |
+| F10 | RF19 | 🔴 | Patrocinadores do evento | Concluído |
 | F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Pendente |
 | F12 | — (diagrama) | 🟢 | Certificado de participação | Pendente |
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
@@ -418,6 +418,18 @@ o nome indicado, que aparece acima de cada tela.
 - **Decidido (D01):** criar a tabela `patrocinador` seguindo o diagrama.
 - **Decidido:** o logo é enviado pelo organizador e salvo no backend,
   com a mesma solução da F03.
+- **Concluído (22/10/2026):** rota `GET /api/patrocinadores?id_evento=`
+  (login obrigatório; evento inexistente ou `id_evento` faltando dão
+  erro 400) e tela "Patrocinadores", aberta pelo botão no topo da
+  Programação, em grade de duas colunas como no canvas.
+  - **Decidido:** enquanto a F14 não traz o envio do logo, o card mostra
+    as iniciais da empresa ("TechNova" → "TE") num quadro colorido. O
+    site aparece como texto selecionável; o link clicável (pacote
+    `url_launcher`) fica para depois da P17, porque um pacote novo muda
+    o `pubspec.lock`.
+  - **Fica para a F14 (Manuela):** cadastro de patrocinador pelo
+    organizador e envio do logo; a tela passa a mostrar a imagem no
+    lugar das iniciais quando `logo` vier preenchido.
 
 ### F11 Modo claro e escuro (RF20)
 
