@@ -10,6 +10,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Exigido pelo pacote flutter_local_notifications (F02): permite
+        // usar recursos novos do Java (datas) em versões antigas do Android.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -42,4 +45,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Biblioteca do "desugaring" acima (F02).
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

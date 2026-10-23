@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/avaliacao.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
+import '../services/lembrete_service.dart';
 import '../widgets/aviso_choque_horario.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/estrelas.dart';
@@ -130,6 +131,28 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
     );
   }
 
+  /// Liga ou desliga o lembrete (F02): grava no backend, como antes, e
+  /// agenda ou cancela o aviso no celular (`LembreteService`).
+  Future<void> alterarLembrete(Palestra p) async {
+    final ativar = !p.lembreteAtivo;
+    await ApiService.alterarLembrete(widget.usuarioId, p.id, ativar);
+    if (ativar) {
+      await LembreteService.agendar(p);
+    } else {
+      await LembreteService.cancelar(p.id);
+    }
+  }
+
+  /// Cancela a inscrição. Se o lembrete estava ativo, desliga junto (no
+  /// backend e no celular): sem inscrição, o aviso não faz sentido (F02).
+  Future<void> cancelarInscricao(Palestra p) async {
+    await ApiService.cancelarInscricao(widget.usuarioId, p.id);
+    if (p.lembreteAtivo) {
+      await ApiService.alterarLembrete(widget.usuarioId, p.id, false);
+      await LembreteService.cancelar(p.id);
+    }
+  }
+
   /// Inscreve na palestra (F16). Se a API avisar que a pessoa já tem
   /// inscrição em outra palestra no mesmo horário, mostra o aviso de
   /// choque e só inscreve se a pessoa tocar em "Inscrever mesmo assim".
@@ -232,11 +255,9 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
               ),
               _BarraAcoes(
                 palestra: p,
-                aoInscrever: () => executar(() => p.inscrito
-                    ? ApiService.cancelarInscricao(widget.usuarioId, p.id)
-                    : inscreverComAvisoDeChoque(p)),
+                aoInscrever: () => executar(() => p.inscrito ? cancelarInscricao(p) : inscreverComAvisoDeChoque(p)),
                 aoFavoritar: () => executar(() => ApiService.alterarFavorito(widget.usuarioId, p.id, !p.favorita)),
-                aoLembrar: () => executar(() => ApiService.alterarLembrete(widget.usuarioId, p.id, !p.lembreteAtivo)),
+                aoLembrar: () => executar(() => alterarLembrete(p)),
               ),
             ],
           );
@@ -491,6 +512,12 @@ class _Comentario extends StatelessWidget {
   }
 }
 
+/// `true` se a palestra ainda não começou (ou não tem horário definido).
+bool _aindaNaoComecou(Palestra p) {
+  final inicio = p.inicio == null ? null : DateTime.tryParse(p.inicio!);
+  return inicio == null || inicio.isAfter(DateTime.now());
+}
+
 /// Barra fixa embaixo: favoritar, lembrete e o botão principal de inscrição.
 class _BarraAcoes extends StatelessWidget {
   final Palestra palestra;
@@ -548,14 +575,18 @@ class _BarraAcoes extends StatelessWidget {
             dica: p.favorita ? 'Remover dos favoritos' : 'Favoritar',
             aoTocar: aoFavoritar,
           ),
-          const SizedBox(width: 10),
-          botaoIcone(
-            ligado: p.lembreteAtivo,
-            icone: Icons.notifications_none,
-            iconeLigado: Icons.notifications_active,
-            dica: p.lembreteAtivo ? 'Desativar lembrete' : 'Ativar lembrete',
-            aoTocar: aoLembrar,
-          ),
+          // O lembrete avisa antes do início (F02): depois que a palestra
+          // começou, o botão não aparece.
+          if (_aindaNaoComecou(p)) ...[
+            const SizedBox(width: 10),
+            botaoIcone(
+              ligado: p.lembreteAtivo,
+              icone: Icons.notifications_none,
+              iconeLigado: Icons.notifications_active,
+              dica: p.lembreteAtivo ? 'Desativar lembrete' : 'Ativar lembrete',
+              aoTocar: aoLembrar,
+            ),
+          ],
           const SizedBox(width: 10),
           Expanded(
             child: p.inscrito
