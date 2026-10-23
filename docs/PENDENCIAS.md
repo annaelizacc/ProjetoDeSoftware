@@ -160,8 +160,8 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF12 | Pesquisar palestras por tema | Concluído | — |
 | RF13 | Pesquisar palestrantes pelo nome | Pendente: tabela `palestrante` criada na F19; faltam rota e tela | F05 |
 | RF14 | Informações dos palestrantes | Pendente | F05 |
-| RF15 | Comentários e feedbacks sobre palestras | Parcial: a API `/api/avaliacoes` está pronta (F19), mas não há tela | F06 |
-| RF16 | Avaliar palestras por estrelas | Parcial: tabela `avaliacao` e API prontas (F19); falta a tela e a média | F07 |
+| RF15 | Comentários e feedbacks sobre palestras | Concluído | F06 |
+| RF16 | Avaliar palestras por estrelas | Concluído | F07 |
 | RF17 | Organizador gerencia inscrições | Pendente | F08 |
 | RF18 | Organizador envia comunicados gerais | Pendente | F09 |
 | RF19 | Patrocinadores do evento | Pendente: tabela `patrocinador` criada na F19; faltam rota e tela | F10 |
@@ -183,8 +183,8 @@ o nome indicado, que aparece acima de cada tela.
 | F03 | RF10 | 🔴 | Planta baixa do evento | Parcial |
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Pendente |
-| F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Parcial |
-| F07 | RF16 | 🔴 | Avaliação por estrelas | Parcial |
+| F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
+| F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Pendente |
 | F09 | RF18 | 🔴 | Comunicados gerais do organizador | Pendente |
 | F10 | RF19 | 🔴 | Patrocinadores do evento | Pendente |
@@ -322,6 +322,10 @@ o nome indicado, que aparece acima de cada tela.
   e a tela "Avaliar".
 - **Atenção:** relacionado a P01 (qualquer um pode editar ou apagar a
   avaliação de outra pessoa enquanto não houver autenticação).
+- **Concluído (22/10/2026), junto com a F07:** os comentários aparecem
+  nos Detalhes (autor, nota e data), e a tela "Avaliar" envia o
+  comentário junto com as estrelas. A P01 resolveu o ponto de atenção:
+  só o autor edita, e o autor ou um organizador remove.
 
 ### F07 Avaliação por estrelas (RF16)
 
@@ -332,6 +336,17 @@ o nome indicado, que aparece acima de cada tela.
   mesma palestra (para mudar a nota, usa-se o `PATCH`).
 - **O que falta:** a média por palestra e a exibição no app (feita junto
   com a F06, na tela "Avaliar").
+- **Decidido (22/10/2026):** só quem está inscrito avalia, e só a partir
+  do `horario_inicio` da palestra (hora local do servidor). A regra fica
+  no backend (`motivo_para_nao_avaliar`, em
+  `criar_avaliacao_service.py`), e os detalhes devolvem `pode_avaliar`
+  para o app esconder o botão. Se a pessoa cancelar a inscrição depois
+  de avaliar, a avaliação continua. A média é calculada no SQL (`AVG`) e
+  vem na listagem de palestras e nos detalhes.
+- **Concluído (22/10/2026), junto com a F06:** tela "Avaliar" (criar,
+  editar e excluir a própria avaliação), seção "Avaliações e
+  comentários" nos Detalhes e média nos cards da Programação. As telas
+  de Detalhes e o card da Programação passaram para o visual novo.
 
 ### F08 Área do organizador: gerenciar inscrições (RF17)
 
@@ -703,7 +718,9 @@ qualquer alteração.
 | P12 | 🟢 | Projeto sem testes automatizados | Pendente |
 | P13 | 🟢 | Tabelas sem uso no app | Decidido: todas terão uso (F03, F04, F08, F13) |
 | P14 | 🔴 | Versão antiga e nova sem commit | Concluído |
-| P15 | 🟡 | Botão de inscrição não mostra o estado da inscrição | Pendente |
+| P15 | 🟡 | Botão de inscrição não mostra o estado da inscrição | Concluído |
+| P16 | 🟡 | Fim de linha diferente entre sistemas (falta `.gitattributes`) | Pendente |
+| P17 | 🟡 | Versão do Flutter não definida (`pubspec.lock` muda em cada máquina) | Pendente |
 
 ---
 
@@ -934,3 +951,50 @@ qualquer alteração.
   (RF05 e RF06) e aparece na gravação de tela.
 - **Decidido (21/10/2026):** resolver junto com as tarefas de interface
   (F20 parte 2), e não na P01.
+- **Concluído (22/10/2026), na F06/F07:** a causa era o
+  `setState(() => futuro = carregar())` da tela de detalhes. Com a seta,
+  a função devolvia o `Future` atribuído, e o Flutter lançava o erro
+  "setState() callback argument returned a Future". A ação dava certo
+  no backend, mas a tela não recarregava e o botão ficava com o texto
+  antigo; um segundo toque recebia "Inscrição não encontrada" ou "Usuário
+  já está inscrito". Corrigido com chaves no `setState` (método
+  `recarregar()`), também na Programação e no "puxar para atualizar" do
+  Início. Testado no app pela Bianca.
+
+### P16 🟡 Fim de linha diferente entre sistemas (falta `.gitattributes`)
+
+- **Onde:** raiz do repositório (o arquivo `.gitattributes` não existe).
+- **O que acontece:** cada sistema operacional marca o fim de linha de
+  um jeito (Windows: CRLF; Linux e macOS: LF). No Windows, o Flutter
+  regera os arquivos `GeneratedPluginRegistrant` (Android e iOS) com
+  outro fim de linha a cada `flutter run` ou `flutter analyze`. O
+  conteúdo é o mesmo, mas o Git mostra os arquivos inteiros como
+  alterados (visto na F06/F07, em 22/10/2026).
+- **Por que importa:** com um `git add .`, esses arquivos entram no
+  commit sem ninguém perceber, poluem o histórico e podem gerar
+  conflitos entre as pessoas da equipe.
+- **Proposta (aprovada em 22/10/2026):** criar `.gitattributes` na raiz
+  com `* text=auto eol=lf`, para o Git guardar todos os arquivos de
+  texto com LF, em qualquer sistema. Depois de criar o arquivo, rodar
+  uma vez `git add --renormalize .`, que aplica a regra nova aos
+  arquivos que já estão no repositório, e conferir o resultado com
+  `git status` antes do commit.
+
+### P17 🟡 Versão do Flutter não definida (`pubspec.lock` muda em cada máquina)
+
+- **Onde:** `README.md` (seção "Pré-requisitos", que hoje diz só
+  "Flutter 3 ou mais recente") e `frontend/Flutter/pubspec.lock`.
+- **O que acontece:** o `pubspec.lock` guarda a versão exata de cada
+  pacote. Com versões diferentes do Flutter, o `flutter pub get` escolhe
+  versões diferentes de pacotes e reescreve o arquivo. No Flutter 3.44.1
+  da Bianca, ele voltou pacotes para versões mais antigas (ex.: `clock`
+  1.1.3 → 1.1.2) e removeu outros (`code_assets`, `crypto`, `hooks`),
+  em 22/10/2026.
+- **Por que importa:** se o arquivo entrar num commit, as versões dos
+  pacotes mudam para toda a equipe sem ninguém ter decidido. O app
+  também pode se comportar diferente em cada máquina.
+- **Proposta (aprovada em 22/10/2026):** registrar no `README.md` a
+  versão exata do Flutter que a equipe usa (conferir com
+  `flutter --version`) e todas as pessoas usarem essa versão.
+- **Decidir com a Manuela:** qual versão usar (a 3.44.1 da Bianca ou a
+  da Manuela, que gerou o `pubspec.lock` atual).

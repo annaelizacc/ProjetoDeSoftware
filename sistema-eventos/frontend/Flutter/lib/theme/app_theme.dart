@@ -77,6 +77,16 @@ class AppColors {
 
   /// Texto principal no modo escuro.
   static const textoEscuro = Color(0xFFF3EDE4);
+
+  // ---- Estrelas das avaliações (F07) ----
+  // Cor própria, fora do `ColorScheme`, usada só pelo widget `Estrelas`
+  // (`widgets/estrelas.dart`), que escolhe uma ou outra pelo modo atual.
+
+  /// Estrelas marcadas no modo claro (tom do canvas, prancha "Avaliar").
+  static const estrela = Color(0xFFB8862B);
+
+  /// Estrelas marcadas no modo escuro.
+  static const estrelaEscura = Color(0xFFE9B949);
 }
 
 /// Nomes das fontes declaradas no `pubspec.yaml` (pasta `assets/fonts/`).

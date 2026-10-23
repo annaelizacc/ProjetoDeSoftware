@@ -184,4 +184,36 @@ class ApiService {
       body: {'id_usuario': usuarioId, 'id_palestra': palestraId},
     );
   }
+
+  /// Lista as avaliações de uma palestra, da mais recente para a mais
+  /// antiga, já com o nome de quem avaliou
+  /// (`GET /api/avaliacoes/palestra/<id>`, F06).
+  static Future<List<dynamic>> avaliacoes(int palestraId) async =>
+      List<dynamic>.from(await request('/api/avaliacoes/palestra/$palestraId'));
+
+  /// Avalia uma palestra (`POST /api/avaliacoes`, F06 e F07). O autor é
+  /// o usuário do token. O backend recusa quem não está inscrito, quem
+  /// avalia antes de a palestra começar e uma segunda avaliação.
+  static Future<void> criarAvaliacao(int palestraId, int nota, String? comentario) async {
+    await request(
+      '/api/avaliacoes',
+      method: 'POST',
+      body: {'id_palestra': palestraId, 'nota_estrelas': nota, 'comentario': comentario},
+    );
+  }
+
+  /// Muda a nota e o comentário de uma avaliação do próprio usuário
+  /// (`PUT /api/avaliacoes/<id>`).
+  static Future<void> atualizarAvaliacao(int avaliacaoId, int nota, String? comentario) async {
+    await request(
+      '/api/avaliacoes/$avaliacaoId',
+      method: 'PUT',
+      body: {'nota_estrelas': nota, 'comentario': comentario},
+    );
+  }
+
+  /// Exclui uma avaliação do próprio usuário (`DELETE /api/avaliacoes/<id>`).
+  static Future<void> excluirAvaliacao(int avaliacaoId) async {
+    await request('/api/avaliacoes/$avaliacaoId', method: 'DELETE');
+  }
 }
