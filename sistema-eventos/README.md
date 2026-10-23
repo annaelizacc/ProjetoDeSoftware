@@ -30,6 +30,14 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     avaliação. Só quem está inscrito pode avaliar, e só depois que a
     palestra começa. A média aparece nos cards da Programação e nos
     Detalhes, com a lista de comentários.
+14. Área do organizador (Perfil → Área do organizador, só para
+    organizadores): painel do evento (palestras, inscrições, esgotadas,
+    ocupação das vagas e média das avaliações), ranking das palestras e
+    gerenciamento das inscrições (ver os inscritos e remover uma
+    inscrição, que devolve a vaga e avisa a pessoa). Cada evento tem um
+    só organizador responsável, que vê só os próprios eventos; o
+    administrador vê todos.
+15. Sair da conta (Perfil → Sair).
 
 Todas as funcionalidades principais percorrem:
 
@@ -82,13 +90,17 @@ rodá-lo de novo, sabendo que os dados locais serão perdidos.
 A tabela oficial `notificacao` já tinha `id_palestra` e `tipo_notificacao`.
 Por isso ela também armazena os lembretes, sem criar uma tabela adicional.
 
-Os dados de teste do banco são (a senha é a mesma para os três):
+Os dados de teste do banco são (a senha é a mesma para os quatro):
 
 ```text
-Participante: ana.silva@email.com   / Senha@123
-Participante: carla.souza@email.com / Senha@123
-Organizador:  bruno.costa@email.com / Senha@123
+Participante:   ana.silva@email.com   / Senha@123
+Participante:   carla.souza@email.com / Senha@123
+Administrador:  bruno.costa@email.com / Senha@123  (responsável pela Semana de Tecnologia; vê todos os eventos)
+Organizadora:   elisa.prado@email.com / Senha@123  (responsável pela Feira de Ciências; vê só esse evento)
 ```
+
+Cada evento tem um só organizador responsável (`evento.id_organizador`,
+desde a F08).
 
 O banco guarda só o hash das senhas, nunca o texto puro. O login recusa
 qualquer senha que não esteja guardada como hash.
@@ -191,8 +203,17 @@ conta**, preenche o cadastro e entra direto no app.
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do primeiro evento cadastrado), **Agenda**, **Avisos** e
 **Perfil**. Os **Favoritos** ficam dentro do Perfil, junto com o
-interruptor de **Modo escuro**. A escolha do tema é salva no próprio
-aparelho com o pacote `shared_preferences` (não vai para o banco).
+interruptor de **Modo escuro** e o botão **Sair**, que volta para o
+login. A escolha do tema é salva no próprio aparelho com o pacote
+`shared_preferences` (não vai para o banco).
+
+Quem entra como organizador (ex.: `elisa.prado@email.com`) vê também a
+**Área do organizador** no Perfil. Ela abre o painel do evento dessa
+pessoa (o administrador, `bruno.costa@email.com`, vê todos, com o
+seletor **Trocar evento**); tocar numa palestra (ou em **Inscrições**)
+abre a lista de inscritos, com busca e o botão **Remover**. Os outros
+itens do painel (comunicado e cadastros do evento) aparecem como "Em
+breve".
 
 O visual segue a identidade do projeto (ver `CLAUDE.md`, na raiz do
 repositório):
@@ -202,8 +223,8 @@ repositório):
   então todas acompanham o modo escuro;
 - controle do tema (ler e salvar a escolha): `lib/theme/controle_tema.dart`;
 - componentes usados em mais de uma tela: `lib/widgets/` (barra de
-  navegação, marca-texto, rótulo de seção, selo, cabeçalho e o fundo das
-  telas de login e cadastro);
+  navegação, marca-texto, rótulo de seção, selo, cabeçalho, avatar com
+  iniciais e o fundo das telas de login e cadastro);
 - fontes (Bricolage Grotesque, Figtree e JetBrains Mono): arquivos em
   `assets/fonts/`, já incluídos no app, então não precisam de internet.
 
@@ -292,13 +313,16 @@ enviado no corpo ou na URL, que a API sabe quem fez o pedido.
 - Todo cadastro cria um **participante**. Organizadores são criados
   direto no banco. A API confere a coluna `usuario.tipo_usuario`, e a
   tabela `organizador` guarda o nível de acesso. Os dois precisam ficar
-  iguais:
+  iguais. O nível `organizador` gerencia só os próprios eventos; o
+  `administrador` gerencia todos:
 
   ```sql
   UPDATE usuario SET tipo_usuario = 'organizador' WHERE email = 'email@da.pessoa';
   INSERT INTO organizador (id_usuario, nivel_acesso)
-  SELECT id_usuario, 'administrador' FROM usuario WHERE email = 'email@da.pessoa';
+  SELECT id_usuario, 'organizador' FROM usuario WHERE email = 'email@da.pessoa';
   ```
+
+  Depois disso, os eventos que a pessoa criar ficam ligados a ela.
 
 Testando com `curl`:
 
@@ -315,7 +339,9 @@ curl http://127.0.0.1:5000/api/palestras -H "Authorization: Bearer <TOKEN>"
 ### Rotas
 
 Acesso: **pública** (sem token), **login** (qualquer usuário logado),
-**própria** (só a pessoa dona do `id` da URL), **organizador**.
+**própria** (só a pessoa dona do `id` da URL), **organizador**,
+**dono do evento** (só o organizador responsável pelo evento, ou um
+administrador; os outros recebem 403).
 
 | Método | Rota | Uso | Acesso |
 |---|---|---|---|
@@ -323,19 +349,19 @@ Acesso: **pública** (sem token), **login** (qualquer usuário logado),
 | GET | `/api/auth/me` | Dados do usuário do token | login |
 | POST | `/api/auth/logout` | Logout (o app apaga o token) | pública |
 | POST | `/api/usuarios` | Cadastro (sempre como participante; nome preenchido, e-mail em formato válido e senha de 8 a 16 caracteres) | pública |
-| GET | `/api/usuarios` | Lista usuários | organizador |
-| GET, DELETE | `/api/usuarios/<id>` | Ver ou remover conta | própria ou organizador |
+| GET | `/api/usuarios` | Lista usuários | administrador |
+| GET, DELETE | `/api/usuarios/<id>` | Ver ou remover conta (quem é responsável por eventos não pode ser removido) | própria ou administrador |
 | PUT/PATCH | `/api/usuarios/<id>` | Alterar `nome`, `email` ou `senha` (outros campos são ignorados; mesmas regras do cadastro) | própria |
 | GET | `/api/eventos` | Lista eventos | login |
 | GET | `/api/eventos/<id>` | Detalhes do evento | login |
-| POST | `/api/eventos` | Cria evento | organizador |
-| PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento | organizador |
+| POST | `/api/eventos` | Cria evento (fica ligado a quem criou; `id_organizador` no corpo é ignorado) | organizador |
+| PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento (o responsável não muda) | dono do evento |
 | GET | `/api/eventos/<id>/programacao` | Programação do evento | login |
 | GET | `/api/eventos/<id_usuario>/agenda` | Agenda personalizada | própria |
 | GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa, com `media_estrelas` e `total_avaliacoes` | login |
 | GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
-| POST | `/api/palestras` | Cria palestra | organizador |
-| PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | organizador |
+| POST | `/api/palestras` | Cria palestra | dono do evento |
+| PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | dono do evento |
 | POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
 | DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`) | login |
 | GET | `/api/favoritos/usuario/<id_usuario>` | Meus favoritos | própria |
@@ -347,10 +373,16 @@ Acesso: **pública** (sem token), **login** (qualquer usuário logado),
 | GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra | login |
 | POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional; só inscritos, depois do início da palestra) | login |
 | PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário | só o autor |
-| DELETE | `/api/avaliacoes/<id>` | Remover avaliação | autor ou organizador |
+| DELETE | `/api/avaliacoes/<id>` | Remover avaliação | autor ou dono do evento |
+| GET | `/api/organizador/eventos` | Eventos que a pessoa gerencia (todos, para o administrador) | organizador |
+| GET | `/api/organizador/eventos/<id>/painel` | Números do evento e ranking das palestras | dono do evento |
+| GET | `/api/organizador/palestras/<id>/inscritos` | Inscritos de uma palestra (nome e e-mail) | dono do evento |
+| DELETE | `/api/organizador/palestras/<id>/inscritos/<id_usuario>` | Remove a inscrição, devolve a vaga e avisa a pessoa | dono do evento |
 
 Nas rotas de inscrição, favorito, lembrete e avaliação, o usuário é
-sempre o do token: um `id_usuario` enviado no corpo é ignorado.
+sempre o do token: um `id_usuario` enviado no corpo é ignorado. Só nas
+rotas do organizador o `id_usuario` vem da URL, porque é ele quem
+escolhe de quem remover a inscrição.
 
 ## 8. Fluxos para demonstrar ao professor
 
@@ -411,6 +443,13 @@ Detalhes (inscrito, palestra já começou) -> Avaliar -> POST /api/avaliacoes
 
 Para testar com os dados de exemplo, a palestra precisa já ter começado
 (`horario_inicio` no passado) e a pessoa precisa estar inscrita nela.
+
+### Fluxo 10 — área do organizador
+
+```text
+Login (organizador) -> Perfil -> Área do organizador -> palestra
+  -> Inscrições -> Remover -> vaga devolvida + aviso na aba Avisos da pessoa
+```
 
 ## 9. Tratamento de erros
 

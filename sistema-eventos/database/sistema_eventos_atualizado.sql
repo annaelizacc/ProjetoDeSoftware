@@ -136,6 +136,17 @@ CREATE TABLE organizador (
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Organizador responsável pelo evento (F08): cada evento tem um só, e um
+-- organizador pode ter vários eventos. Entra com ALTER TABLE porque a
+-- tabela `organizador` é criada depois de `evento`. ON DELETE RESTRICT:
+-- o banco não deixa apagar um organizador (nem o usuário dele) que ainda
+-- tem eventos, para nenhum evento ficar sem responsável.
+ALTER TABLE evento
+    ADD COLUMN id_organizador INT NOT NULL,
+    ADD CONSTRAINT fk_evento_organizador
+        FOREIGN KEY (id_organizador) REFERENCES organizador(id_organizador)
+        ON DELETE RESTRICT;
+
 -- =====================================================================
 -- 8. TABELA: participacao
 -- Entidade associativa (relacionamento "participa") entre
@@ -296,18 +307,27 @@ CREATE TABLE certificado (
 -- DADOS FICTÍCIOS PARA DEMONSTRAÇÃO
 -- =====================================================================
 
--- Senha dos três usuários: Senha@123 (P02). O banco guarda só o hash
+-- Senha dos quatro usuários: Senha@123 (P02). O banco guarda só o hash
 -- gerado pelo Werkzeug (`generate_password_hash`), nunca a senha em
 -- texto puro. Cada hash é diferente, mesmo com a senha igual, porque
 -- leva um "salt" aleatório (o trecho entre o primeiro e o segundo `$`).
 INSERT INTO usuario (nome, email, senha, tipo_usuario) VALUES
 ('Ana Silva',    'ana.silva@email.com',    'scrypt:32768:8:1$uNDOTi1cboQkE7BG$400cf8c8dc332a823eb34a82938da6d3875f3bfc25490fac4c5c9e967d354bee4e0685c1010b79006ac034aa6b0d0441fa334bf9a94004b6d46404c6268d42bc', 'participante'),
 ('Bruno Costa',  'bruno.costa@email.com',  'scrypt:32768:8:1$Cvx9QzxMyqEDlutd$056cfbd646f51cf5de5360c2b6c600b95be9b880c99c2e169744bdf0cf88cfca1328116f96851e088264b9bf9a85a0a1d3cf20b866ced3519bd2e77558c8ee2f', 'organizador'),
-('Carla Souza',  'carla.souza@email.com',  'scrypt:32768:8:1$gBNu7G9tWcg7wpCU$ca8422cd44a939077db0882d78b0205a00ff0c3d665cce3617bb40664e7b2e2aa79d4a32182ef88005109ac63cbce4e93a9a79d1dff2a918a933437d2fe1492a', 'participante');
+('Carla Souza',  'carla.souza@email.com',  'scrypt:32768:8:1$gBNu7G9tWcg7wpCU$ca8422cd44a939077db0882d78b0205a00ff0c3d665cce3617bb40664e7b2e2aa79d4a32182ef88005109ac63cbce4e93a9a79d1dff2a918a933437d2fe1492a', 'participante'),
+('Elisa Prado',  'elisa.prado@email.com',  'scrypt:32768:8:1$wPEcM9DExZvXTtRT$68086f8578bcc74ab2d3f64b5f7e0bf412acb1f6d3c855c44cc30d16ac3155ccff929b82734893cf0d31d7942e1066316c04982c1ac9f1f1a602725b756f05a8', 'organizador');
 
-INSERT INTO evento (nome, descricao, data_inicio, data_fim, local) VALUES
-('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI', '2026-09-10', '2026-09-12', 'Centro de Convenções UFMG'),
-('Feira de Ciências',    'Exposição de projetos escolares',      '2026-10-05', '2026-10-06', 'Ginásio Municipal');
+-- Os organizadores vêm antes dos eventos, porque todo evento aponta para
+-- o seu responsável (F08). Bruno é o administrador (vê todos os eventos)
+-- e responde pela Semana de Tecnologia; Elisa é organizadora da Feira de
+-- Ciências e só enxerga esse evento.
+INSERT INTO organizador (id_usuario, nivel_acesso) VALUES
+(2, 'administrador'),
+(4, 'organizador');
+
+INSERT INTO evento (nome, descricao, data_inicio, data_fim, local, id_organizador) VALUES
+('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI', '2026-09-10', '2026-09-12', 'Centro de Convenções UFMG', 1),
+('Feira de Ciências',    'Exposição de projetos escolares',      '2026-10-05', '2026-10-06', 'Ginásio Municipal',         2);
 
 INSERT INTO restaurante (nome, avaliacao, distancia, categoria, endereco) VALUES
 ('Sabor Mineiro',   4.5, 0.80, 'Comida Mineira', 'Rua das Flores, 100'),
@@ -332,9 +352,6 @@ INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
 INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_evento, id_localizacao, id_palestrante) VALUES
 ('Introdução à Inteligência Artificial', 'Panorama geral sobre IA', 'Tecnologia', '2026-09-10 09:00:00', '2026-09-10 10:30:00', 1, 2, 1),
 ('Banco de Dados na Prática',            'Modelagem e consultas SQL', 'Tecnologia', '2026-09-10 11:00:00', '2026-09-10 12:30:00', 1, 3, 2);
-
-INSERT INTO organizador (id_usuario, nivel_acesso) VALUES
-(2, 'administrador');
 
 INSERT INTO participacao (id_usuario, id_palestra) VALUES
 (1, 1),

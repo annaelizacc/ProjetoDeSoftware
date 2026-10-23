@@ -14,17 +14,22 @@ import 'programacao_aba_page.dart';
 /// o tamanho deste app). Os Favoritos saíram da barra na F20 e agora são
 /// abertos pelo Perfil, como no canvas.
 ///
-/// Recebe `usuarioId`/`nomeUsuario` uma única vez (vindos do login) e os
-/// repassa para cada tela filha, evitando que cada tela precise refazer a
-/// autenticação ou buscar esses dados de novo.
+/// Recebe `usuarioId`/`nomeUsuario`/`ehOrganizador` uma única vez (vindos
+/// do login) e os repassa para cada tela filha, evitando que cada tela
+/// precise refazer a autenticação ou buscar esses dados de novo.
 class AppShell extends StatefulWidget {
   final int usuarioId;
   final String nomeUsuario;
+
+  /// Se a pessoa logada é organizadora (`tipo_usuario` do login). Só
+  /// decide o que aparece na tela: quem protege as rotas é o backend.
+  final bool ehOrganizador;
 
   const AppShell({
     super.key,
     required this.usuarioId,
     required this.nomeUsuario,
+    required this.ehOrganizador,
   });
 
   @override
@@ -41,7 +46,11 @@ class _AppShellState extends State<AppShell> {
       ProgramacaoAbaPage(usuarioId: widget.usuarioId),
       AgendaPage(usuarioId: widget.usuarioId),
       NotificacoesPage(usuarioId: widget.usuarioId),
-      PerfilPage(usuarioId: widget.usuarioId, nomeUsuario: widget.nomeUsuario),
+      PerfilPage(
+        usuarioId: widget.usuarioId,
+        nomeUsuario: widget.nomeUsuario,
+        ehOrganizador: widget.ehOrganizador,
+      ),
     ];
     return Scaffold(
       body: telas[aba],
