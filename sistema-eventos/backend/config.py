@@ -20,3 +20,10 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_AS_ASCII = False
+
+    # Imagens enviadas pelo organizador (F14): planta, foto do palestrante
+    # e logo do patrocinador. O banco guarda só o nome do arquivo.
+    PASTA_UPLOADS = Path(__file__).with_name("uploads")
+    # Limite de tamanho de qualquer requisição (5 MB). Acima disso, o
+    # Flask recusa o envio antes de o arquivo ser lido.
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024

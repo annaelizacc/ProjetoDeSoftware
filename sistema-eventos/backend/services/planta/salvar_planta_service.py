@@ -1,0 +1,36 @@
+"""
+Caso de uso: salvar a planta baixa de um evento (F03, F14).
+
+CAMADA: Services (regra de negócio do caso de uso "Salvar Planta").
+
+Como cada evento tem no máximo uma planta, o mesmo caso de uso cria a
+planta (na primeira vez) ou atualiza a que já existe. Assim o app não
+precisa saber se a planta já foi cadastrada.
+
+A imagem chega como o nome devolvido por `POST /api/uploads` e é
+conferida por `validar_nome_imagem`. A conferência do dono do evento é
+feita antes, no Controller.
+
+Método principal:
+    execute(id_evento, dados): retorna a planta salva.
+"""
+
+from backend.models.planta_baixa import PlantaBaixa
+from backend.services.upload.salvar_imagem_service import validar_nome_imagem
+
+
+class SalvarPlantaService:
+    """Caso de uso responsável por criar ou atualizar a planta de um evento."""
+
+    def execute(self, id_evento, dados):
+        imagem = validar_nome_imagem(dados.get("imagem_mapa"))
+        descricao = dados.get("descricao")
+
+        planta = PlantaBaixa.query.filter_by(id_evento=id_evento).first()
+        if planta is None:
+            return PlantaBaixa.criar(
+                imagem_mapa=imagem, descricao=descricao, id_evento=id_evento
+            )
+        return PlantaBaixa.atualizar(
+            planta.id_planta, imagem_mapa=imagem, descricao=descricao
+        )

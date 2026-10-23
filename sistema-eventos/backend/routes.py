@@ -16,6 +16,8 @@ from backend.controllers.organizador_controller import organizador_bp
 from backend.controllers.palestra_controller import palestra_bp
 from backend.controllers.participacao_controller import participacao_bp
 from backend.controllers.patrocinador_controller import patrocinador_bp
+from backend.controllers.planta_controller import planta_bp
+from backend.controllers.upload_controller import upload_bp
 from backend.controllers.usuario_controller import usuario_bp
 
 
@@ -33,5 +35,7 @@ def registrar_rotas(app):
         avaliacao_bp,
         organizador_bp,
         patrocinador_bp,
+        planta_bp,
+        upload_bp,
     ):
         app.register_blueprint(blueprint)

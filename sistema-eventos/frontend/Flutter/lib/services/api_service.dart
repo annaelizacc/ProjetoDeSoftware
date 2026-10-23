@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 /// Centraliza todas as chamadas HTTP para a API Flask.
 ///
@@ -54,7 +55,13 @@ class ApiService {
     } catch (_) {
       throw Exception('Servidor indisponível. Verifique a API Flask.');
     }
+    return _lerResposta(response);
+  }
 
+  /// Lê o JSON da resposta e lança uma exceção com a mensagem do backend
+  /// quando o status é de erro. Usado pelo `request` e pelo envio de
+  /// imagem, para os dois tratarem os erros do mesmo jeito.
+  static dynamic _lerResposta(http.Response response) {
     dynamic data;
     try {
       data = jsonDecode(response.body);
@@ -259,4 +266,74 @@ class ApiService {
   /// (`GET /api/patrocinadores?id_evento=<id>`, F10).
   static Future<List<dynamic>> patrocinadores(int eventoId) async =>
       List<dynamic>.from(await request('/api/patrocinadores?id_evento=$eventoId'));
+
+  // ---------------------------------------------------------------------
+  // Cadastros do organizador (F14)
+  // ---------------------------------------------------------------------
+
+  /// Tipos e tamanho aceitos no envio de imagem. Os mesmos do backend
+  /// (`SalvarImagemService`): o aviso aparece embaixo de cada campo de
+  /// imagem, para o organizador saber antes de escolher o arquivo.
+  static const tiposDeImagem = 'PNG, JPG OU WEBP · ATÉ 5 MB';
+
+  /// Endereço para mostrar uma imagem enviada (`GET /uploads/<nome>`).
+  static String urlImagem(String nome) => '$baseUrl/uploads/$nome';
+
+  /// Envia uma imagem escolhida no aparelho (`POST /api/uploads`) e
+  /// devolve o nome com que o backend a salvou. O cadastro grava depois
+  /// esse nome (ex.: `imagem_mapa`, `foto`, `logo`).
+  ///
+  /// A imagem vai numa requisição "multipart", o formato usado para
+  /// mandar arquivos. `fromBytes` lê o conteúdo do arquivo e funciona
+  /// tanto no celular quanto na web (na web não existe caminho de
+  /// arquivo, por isso não dá para usar `fromPath`).
+  static Future<String> enviarImagem(XFile arquivo) async {
+    final pedido = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/uploads'));
+    if (token != null) pedido.headers['Authorization'] = 'Bearer $token';
+    pedido.files.add(http.MultipartFile.fromBytes(
+      'imagem',
+      await arquivo.readAsBytes(),
+      filename: arquivo.name,
+    ));
+
+    late http.Response response;
+    try {
+      response = await http.Response.fromStream(await pedido.send());
+    } catch (_) {
+      throw Exception('Servidor indisponível. Verifique a API Flask.');
+    }
+    return _lerResposta(response)['arquivo'] as String;
+  }
+
+  /// Cria um evento (`POST /api/eventos`). O responsável é o organizador
+  /// do token. Devolve o evento criado, com o `id_evento`.
+  static Future<Map<String, dynamic>> criarEvento(Map<String, dynamic> dados) async =>
+      Map<String, dynamic>.from(await request('/api/eventos', method: 'POST', body: dados));
+
+  /// Altera um evento (`PUT /api/eventos/<id>`).
+  static Future<void> atualizarEvento(int eventoId, Map<String, dynamic> dados) async {
+    await request('/api/eventos/$eventoId', method: 'PUT', body: dados);
+  }
+
+  /// Apaga um evento inteiro (`DELETE /api/eventos/<id>`). O backend pede
+  /// a senha da pessoa logada para confirmar.
+  static Future<void> removerEvento(int eventoId, String senha) async {
+    await request('/api/eventos/$eventoId', method: 'DELETE', body: {'senha': senha});
+  }
+
+  /// Planta do evento (`GET /api/eventos/<id>/planta`), ou `null` se o
+  /// evento ainda não tem planta.
+  static Future<Map<String, dynamic>?> planta(int eventoId) async {
+    final dados = await request('/api/eventos/$eventoId/planta');
+    return dados is Map ? Map<String, dynamic>.from(dados) : null;
+  }
+
+  /// Cria ou atualiza a planta do evento (`PUT /api/eventos/<id>/planta`).
+  static Future<void> salvarPlanta(int eventoId, String? imagem, String? descricao) async {
+    await request(
+      '/api/eventos/$eventoId/planta',
+      method: 'PUT',
+      body: {'imagem_mapa': imagem, 'descricao': descricao},
+    );
+  }
 }
