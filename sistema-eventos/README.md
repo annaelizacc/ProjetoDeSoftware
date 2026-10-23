@@ -38,6 +38,9 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     só organizador responsável, que vê só os próprios eventos; o
     administrador vê todos.
 15. Sair da conta (Perfil → Sair).
+16. Ver os patrocinadores do evento (Programação → "Patrocinadores"):
+    nome, descrição e site de cada empresa. Por enquanto, o logo
+    aparece como as iniciais da empresa.
 
 Todas as funcionalidades principais percorrem:
 
@@ -378,6 +381,7 @@ administrador; os outros recebem 403).
 | GET | `/api/organizador/eventos/<id>/painel` | Números do evento e ranking das palestras | dono do evento |
 | GET | `/api/organizador/palestras/<id>/inscritos` | Inscritos de uma palestra (nome e e-mail) | dono do evento |
 | DELETE | `/api/organizador/palestras/<id>/inscritos/<id_usuario>` | Remove a inscrição, devolve a vaga e avisa a pessoa | dono do evento |
+| GET | `/api/patrocinadores?id_evento=` | Patrocinadores do evento, em ordem alfabética | login |
 
 Nas rotas de inscrição, favorito, lembrete e avaliação, o usuário é
 sempre o do token: um `id_usuario` enviado no corpo é ignorado. Só nas
@@ -449,6 +453,12 @@ Para testar com os dados de exemplo, a palestra precisa já ter começado
 ```text
 Login (organizador) -> Perfil -> Área do organizador -> palestra
   -> Inscrições -> Remover -> vaga devolvida + aviso na aba Avisos da pessoa
+```
+
+### Fluxo 11 — patrocinadores
+
+```text
+Programação -> Patrocinadores -> GET /api/patrocinadores?id_evento=1 -> cards
 ```
 
 ## 9. Tratamento de erros

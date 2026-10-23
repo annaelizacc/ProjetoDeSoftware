@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../widgets/estrelas.dart';
 import '../widgets/selo.dart';
 import 'palestra_details_page.dart';
+import 'patrocinadores_page.dart';
 
 /// Tela de programação de um evento.
 ///
@@ -13,6 +14,9 @@ import 'palestra_details_page.dart';
 /// (`ApiService.programacao(eventoId, tema: ...)`, que repassa o parâmetro
 /// `tema` para o `PalestraRepository` no backend). Cada palestra é exibida
 /// em um card do tema (fundo e linha fina), igual para todas as palestras.
+///
+/// O botão "Patrocinadores", no topo, abre a lista de patrocinadores do
+/// evento (F10, RF19).
 class ProgramacaoPage extends StatefulWidget {
   final int eventoId;
   final int usuarioId;
@@ -55,7 +59,22 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.nomeEvento)),
+      appBar: AppBar(
+        title: Text(widget.nomeEvento),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PatrocinadoresPage(eventoId: widget.eventoId, nomeEvento: widget.nomeEvento),
+              ),
+            ),
+            icon: const Icon(Icons.handshake_outlined, size: 18),
+            label: const Text('Patrocinadores'),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
