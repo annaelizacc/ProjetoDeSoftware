@@ -18,6 +18,10 @@ import 'avaliacao.dart';
 /// `palestrante` é o nome de quem apresenta (F14), ou `null` se a
 /// palestra ainda não tiver palestrante; `idPalestrante` abre o perfil
 /// dele, e `idEvento` lista as outras palestras dele no mesmo evento.
+///
+/// `comoChegar` é o passo a passo da entrada até a sala (F04, RF11), um
+/// passo por linha, e `nomeEvento` aparece na tela da planta, aberta pelo
+/// botão "Ver planta" dos detalhes.
 class Palestra {
   final int id;
   final int? idEvento;
@@ -26,6 +30,8 @@ class Palestra {
   final String? resumo;
   final String? tema;
   final String? sala;
+  final String? comoChegar;
+  final String? nomeEvento;
   final String? palestrante;
   final String? inicio;
   final String? fim;
@@ -47,6 +53,8 @@ class Palestra {
     this.resumo,
     this.tema,
     this.sala,
+    this.comoChegar,
+    this.nomeEvento,
     this.palestrante,
     this.inicio,
     this.fim,
@@ -76,6 +84,8 @@ class Palestra {
       resumo: json['resumo'],
       tema: json['tema'],
       sala: json['sala'],
+      comoChegar: json['como_chegar'],
+      nomeEvento: json['nome_evento'],
       palestrante: json['palestrante'],
       inicio: json['horario_inicio'],
       fim: json['horario_fim'],
