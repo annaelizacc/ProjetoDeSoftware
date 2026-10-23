@@ -49,7 +49,7 @@ branch própria.
 | Ter 20/10 | **P11 (`.gitignore`)** → P14 (commit inicial) → **F19 (banco)** → **F20 parte 1 (base visual, com F11)** | F02 notificação local |
 | Qua 21/10 | P01, P02, F08 | F01, F06 + F07 (uma tela só, "Avaliar") |
 | Qui 22/10 | F14 (com upload de imagem), F09 | F05, F03, F04, F10 (telas de visualização, com dados no SQL) |
-| Sex 23/10 | F20 parte 2 (telas restantes), S05 (dados de demonstração com datas futuras), P09 (README), revisão final | Folga para atrasos e itens da seção 0.2; gravação de tela no fim do dia |
+| Sex 23/10 | F20 parte 2 (telas restantes), S05/F24 (dados de demonstração com datas futuras), P09 (README), revisão final | Folga para atrasos e itens da seção 0.2; gravação de tela no fim do dia |
 
 - **Por que a P11 vem antes da P14:** a pasta nova ainda não tem
   nenhum commit, então os arquivos locais (`local.properties`,
@@ -92,6 +92,13 @@ branch própria.
   `FLUXO_DE_TRABALHO.md`). Para não perder os dados locais, dá para só
   acrescentar a coluna:
   `ALTER TABLE notificacao ADD COLUMN id_evento INT NULL, ADD CONSTRAINT fk_notificacao_evento FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE;`
+- **Mudança da S05/F24 que afeta a Bianca (23/10/2026):** os dados de
+  exemplo foram trocados (três eventos: acontecendo, futuro e
+  encerrado, com datas calculadas no dia em que o script roda; 10
+  palestras). As tabelas não mudaram. Depois que a S05 entrar na
+  `main`, **recriar o banco local** com o script novo (passo 1.4 do
+  `FLUXO_DE_TRABALHO.md`). O que testar com cada usuário está no
+  README, em "Dados de demonstração (S05)".
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -111,7 +118,10 @@ branch própria.
   F09 e F10 são as primeiras a cair, e a Bianca pode assumir a F10 na
   sexta.
 - **Antes da gravação:** a S05 precisa estar pronta. Sem eventos com
-  datas futuras, nenhuma palestra aceita inscrição.
+  datas atuais, o Início mostra um evento antigo, a "próxima palestra"
+  fica vazia e o aviso de início (F02) não tem o que avisar. A
+  inscrição em si não confere a data (isso é a F16). Concluída em
+  23/10/2026.
 - 📌 **Lembrete para o fim (P09, README):** incluir no README o aviso de
   que o script `database/sistema_eventos_atualizado.sql` **apaga e
   recria** o banco inteiro (`DROP DATABASE`), inclusive dados reais, e
@@ -215,6 +225,7 @@ o nome indicado, que aparece acima de cada tela.
 | F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
 | F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
 | F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
+| F24 | — (S05) | 🔴 | Dados de demonstração: eventos encerrado, acontecendo e futuro | Concluído |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -589,6 +600,24 @@ o nome indicado, que aparece acima de cada tela.
     quem usa o app (ajustado em 20/10/2026).
   - **Palestra já iniciada ou encerrada (S02):** a inscrição é
     bloqueada pelo backend, e o app não mostra o botão de inscrição.
+  - **Visual da palestra encerrada (23/10/2026):** a palestra que já
+    terminou aparece acinzentada, com a tag **"Encerrada"**, no mesmo
+    estilo da tag de esgotada. A palestra que já começou e ainda não
+    terminou também não aceita inscrição.
+  - **Card do evento no Início (23/10/2026):** o card (banner do topo)
+    mostra a situação do evento com uma tag no mesmo estilo da de
+    esgotada: **"ACONTECENDO AGORA"**, **"ENCERRADO"** ou o tempo que
+    falta (ex.: **"EM 14 DIAS"**). O evento encerrado fica com o card
+    acinzentado, e o botão "Ver programação" vira **"Ver avaliações"**.
+    Origem: teste da S05, em que a Mostra de Projetos (encerrada)
+    aparecia igual aos outros eventos.
+  - **Decisão necessária (ao planejar):** o que o botão "Ver
+    avaliações" abre. Ainda não existe tela com as avaliações de um
+    evento; a Programação já mostra a média de cada palestra.
+  - **Para testar:** os dados da S05 têm palestras encerradas, uma
+    acontecendo ("Segurança da Informação") e futuras. A que está
+    acontecendo só vale por 2 a 3 horas depois de o script rodar, então
+    recriar o banco antes de testar.
 - **Onde:** no Service que cria a inscrição (`CriarInscricaoService`) e
   na tela de detalhes da palestra.
 - **Decisão necessária (ao planejar):** como o app informa ao backend
@@ -772,6 +801,29 @@ o nome indicado, que aparece acima de cada tela.
   desde a F14 é feito por evento.
 - **Depende de:** F14 e F05.
 
+### F24 Dados de demonstração (S05)
+
+- **Origem:** sugestão S05, aprovada em 23/10/2026 para a gravação e a
+  apresentação final.
+- **O que acontecia:** os dois eventos de exemplo tinham datas fixas
+  que já tinham passado. O Início mostrava um evento antigo, a "próxima
+  palestra" ficava vazia, e havia só 2 palestras.
+- **Decidido (23/10/2026):**
+  - três eventos: um encerrado, um acontecendo e um futuro;
+  - datas relativas ao dia em que o script roda (`CURDATE()`), para os
+    dados não envelhecerem;
+  - um exemplo de cada situação que o app mostra: palestra esgotada,
+    última vaga, palestra acontecendo agora, avaliações (com média de
+    duas notas e uma palestra para avaliar ao vivo), palestra sem
+    palestrante, evento sem patrocinadores e um aviso de cada tipo;
+  - fotos, logos e planta ficam de fora (são enviados pelo app, F14).
+- **Onde:** `database/sistema_eventos_atualizado.sql` (só os dados; as
+  tabelas não mudaram) e o README ("Dados de demonstração (S05)", com o
+  que testar com cada usuário).
+- **Atenção:** a palestra "acontecendo agora" vale por 2 a 3 horas
+  depois de o script rodar. Recriar o banco pouco antes da apresentação.
+- **Registro:** `DOCUMENTACAO.md`, seção 9.
+
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 
 Estes itens aparecem na Seção 1 (tabela de observação), na análise das
@@ -867,7 +919,7 @@ Uma sugestão aprovada vira uma tarefa F; uma recusada é marcada como tal.
 | S02 | Bloquear inscrição em palestra que já começou ou terminou | Mesma lógica da S01, no mesmo Service | Aprovada: virou F16 |
 | S03 | Logout e login lembrado | O app não tem botão de sair e pede o login toda vez que é aberto | Aprovada: virou F17 |
 | S04 | Telas para o organizador cadastrar eventos e palestras | A API já existe, mas hoje só dá para criar um evento direto no banco. Completa a área do organizador (F08) | Aprovada: virou F14 |
-| S05 | Mais dados de demonstração no banco | Com só 2 palestras, a apresentação não mostra bem o controle de vagas, a busca e a agenda | Adiada: a equipe ajusta os dados depois (antes da apresentação, os eventos de exemplo precisam ter datas futuras) |
+| S05 | Mais dados de demonstração no banco | Com só 2 palestras, a apresentação não mostra bem o controle de vagas, a busca e a agenda | Aprovada em 23/10/2026: virou F24 |
 | S06 | Nova proposta visual para o app ([canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | Corrige problemas do protótipo do Figma: contraste, fontes misturadas, menu duplicado, telas sem informações essenciais (vagas, botão de inscrição) e textos em inglês. Já inclui o modo escuro (RF20) | Aprovada: definida pela Manuela em outra conversa, aplicada na F20 |
 | S07 | Outros tipos de atividade além de palestra (workshop, mesa-redonda), com mais de um palestrante por atividade | Amplia o uso do app para eventos variados. Fica fora desta entrega porque nenhum RF pede e o diagrama não prevê | Melhoria futura: só registrar na documentação final |
 | S08 | Marcar avisos como lidos | Sem isso, o contador de avisos novos da barra de navegação (canvas) não tem o que contar | Aprovada: virou F21 |
@@ -1023,9 +1075,10 @@ qualquer alteração.
   `datetime.utcnow` também está obsoleto no Python 3.12.
 - **Contorno na F09 (23/10/2026):** a aba Avisos lê `data_envio` como
   UTC e converte para a hora do celular (`toLocal()`), então os avisos
-  criados pela API aparecem na hora certa. O lembrete de exemplo do
-  script SQL (gravado na hora local) aparece 3 horas atrasado. A
-  correção de vez continua sendo desta tarefa.
+  criados pela API aparecem na hora certa. Na S05 (23/10/2026), os
+  avisos de exemplo do script SQL passaram a ser gravados em UTC
+  (`UTC_TIMESTAMP()`) pelo mesmo motivo. A correção de vez continua
+  sendo desta tarefa.
 
 ### P07 🟢 Uso de método obsoleto do SQLAlchemy
 

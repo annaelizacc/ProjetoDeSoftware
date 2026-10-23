@@ -334,15 +334,49 @@ INSERT INTO usuario (nome, email, senha, tipo_usuario) VALUES
 
 -- Os organizadores vêm antes dos eventos, porque todo evento aponta para
 -- o seu responsável (F08). Bruno é o administrador (vê todos os eventos)
--- e responde pela Semana de Tecnologia; Elisa é organizadora da Feira de
--- Ciências e só enxerga esse evento.
+-- e responde pela Semana de Tecnologia e pela Mostra de Projetos; Elisa é
+-- organizadora da Feira de Ciências e só enxerga esse evento.
 INSERT INTO organizador (id_usuario, nivel_acesso) VALUES
 (2, 'administrador'),
 (4, 'organizador');
 
+-- ---------------------------------------------------------------------
+-- Datas relativas (S05)
+-- As datas dos eventos e das palestras são calculadas a partir do dia em
+-- que o script roda, e não escritas à mão. Assim o banco sempre tem um
+-- evento encerrado, um acontecendo e um futuro, em qualquer dia em que
+-- for recriado (com datas fixas, os eventos de exemplo "envelheciam" e
+-- as telas do app ficavam vazias).
+--
+-- - `@hoje` guarda a data de hoje (`CURDATE()`);
+-- - `@hoje - INTERVAL 1 DAY` é ontem, `@hoje + INTERVAL 14 DAY` é daqui a
+--   duas semanas;
+-- - `TIMESTAMP(@hoje + INTERVAL 1 DAY, '09:00')` é amanhã às 09:00;
+-- - `@hora_cheia` é hoje, na hora cheia atual (às 15:20, vale 15:00). A
+--   palestra "acontecendo agora" começa uma hora antes dela e termina
+--   três horas depois, então continua acontecendo por 2 a 3 horas
+--   depois de o script rodar. Por isso, no dia da apresentação, o banco
+--   deve ser recriado pouco antes de usar o app (e não perto da
+--   meia-noite, quando essa palestra cairia em outro dia).
+--
+-- Os horários ficam na hora local, como os que o organizador cadastra
+-- pelo app. `CURDATE()` e `NOW()` usam o fuso do MySQL, que precisa ser
+-- o mesmo do computador onde roda o backend (o padrão de uma instalação
+-- local, `time_zone = SYSTEM`).
+-- ---------------------------------------------------------------------
+SET @hoje = CURDATE();
+SET @hora_cheia = TIMESTAMP(CURDATE(), MAKETIME(HOUR(NOW()), 0, 0));
+
+-- Três eventos, um em cada situação:
+-- 1. Semana de Tecnologia: acontecendo (de ontem até amanhã);
+-- 2. Feira de Ciências: futuro (daqui a duas semanas);
+-- 3. Mostra de Projetos: encerrado (há um mês).
+-- O evento encerrado entra por último para os ids 1 e 2 continuarem os
+-- mesmos dos exemplos do README.
 INSERT INTO evento (nome, descricao, data_inicio, data_fim, local, id_organizador) VALUES
-('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI', '2026-09-10', '2026-09-12', 'Centro de Convenções UFMG', 1),
-('Feira de Ciências',    'Exposição de projetos escolares',      '2026-10-05', '2026-10-06', 'Ginásio Municipal',         2);
+('Semana de Tecnologia', 'Evento acadêmico sobre inovação e TI',                        @hoje - INTERVAL 1 DAY,  @hoje + INTERVAL 1 DAY,  'Centro de Convenções UFMG', 1),
+('Feira de Ciências',    'Exposição de projetos escolares',                             @hoje + INTERVAL 14 DAY, @hoje + INTERVAL 15 DAY, 'Ginásio Municipal',         2),
+('Mostra de Projetos',   'Apresentação dos projetos finais dos alunos do curso técnico', @hoje - INTERVAL 30 DAY, @hoje - INTERVAL 29 DAY, 'Escola Técnica Estadual',   1);
 
 INSERT INTO restaurante (nome, avaliacao, distancia, categoria, endereco) VALUES
 ('Sabor Mineiro',   4.5, 0.80, 'Comida Mineira', 'Rua das Flores, 100'),
@@ -352,25 +386,53 @@ INSERT INTO restaurante_evento (id_restaurante, id_evento) VALUES
 (1, 1),
 (2, 1);
 
--- Os palestrantes de exemplo (F05). Carla Souza era uma usuária do tipo
--- 'palestrante'; agora é palestrante aqui e participante em `usuario`.
+-- Os palestrantes de exemplo (F05), cada um no seu evento. Carla Souza
+-- era uma usuária do tipo 'palestrante'; agora é palestrante aqui e
+-- participante em `usuario`.
 INSERT INTO palestrante (nome, foto, descricao, rede_social, id_evento) VALUES
-('Carla Souza',   NULL, 'Pesquisadora em Inteligência Artificial.', 'https://www.linkedin.com/in/carla-souza',  1),
-('Diego Martins', NULL, 'Administrador de banco de dados.',         'https://www.linkedin.com/in/diego-martins', 1);
+('Carla Souza',    NULL, 'Pesquisadora em Inteligência Artificial.',         'https://www.linkedin.com/in/carla-souza',    1),
+('Diego Martins',  NULL, 'Administrador de banco de dados.',                 'https://www.linkedin.com/in/diego-martins',  1),
+('Rafael Lima',    NULL, 'Especialista em segurança da informação.',         'https://www.linkedin.com/in/rafael-lima',    1),
+('Juliana Alves',  NULL, 'Desenvolvedora mobile e designer de interfaces.',  'https://www.linkedin.com/in/juliana-alves',  1),
+('Helena Duarte',  NULL, 'Professora de Química e divulgadora científica.',  'https://www.linkedin.com/in/helena-duarte',  2),
+('Marcos Pereira', NULL, 'Professor de robótica educacional.',               'https://www.linkedin.com/in/marcos-pereira', 3);
 
 -- Os textos que antes ficavam em `palestra.sala` viraram locais (F04).
 INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
-('Auditório Principal', 'Local das palestras principais', 1),
+('Auditório Principal', 'Local das palestras principais',  1),
 ('Sala A1',             'Sala do bloco A, primeiro andar', 1),
-('Sala A2',             'Sala do bloco A, primeiro andar', 1);
+('Sala A2',             'Sala do bloco A, primeiro andar', 1),
+('Quadra principal',    'Estandes dos projetos',           2),
+('Sala de Exposições',  'Sala ao lado da quadra',          2),
+('Auditório da Escola', 'Bloco central, térreo',           3);
 
-INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_evento, id_localizacao, id_palestrante) VALUES
-('Introdução à Inteligência Artificial', 'Panorama geral sobre IA', 'Tecnologia', '2026-09-10 09:00:00', '2026-09-10 10:30:00', 1, 2, 1),
-('Banco de Dados na Prática',            'Modelagem e consultas SQL', 'Tecnologia', '2026-09-10 11:00:00', '2026-09-10 12:30:00', 1, 3, 2);
+-- Cada palestra mostra uma situação do app (o id está no comentário):
+--  1 e 2: ontem, já aconteceram (dá para avaliar);
+--  3: acontecendo agora (a "próxima palestra" do Início);
+--  4: amanhã, esgotada (1 vaga, ocupada pela Carla);
+--  5: amanhã, última vaga (2 vagas, 1 ocupada): quem se inscrever esgota;
+--  6: amanhã, com vagas e sem avaliações;
+--  7 e 8: Feira de Ciências, daqui a duas semanas;
+--  9 e 10: Mostra de Projetos, encerrada (a 10 não tem palestrante).
+INSERT INTO palestra (titulo, resumo, tema, horario_inicio, horario_fim, id_evento, id_localizacao, id_palestrante, vagas_total) VALUES
+('Introdução à Inteligência Artificial',  'Panorama geral sobre IA',                           'Tecnologia', TIMESTAMP(@hoje - INTERVAL 1 DAY, '09:00'),  TIMESTAMP(@hoje - INTERVAL 1 DAY, '10:30'),  1, 2, 1,    40),
+('Banco de Dados na Prática',             'Modelagem e consultas SQL',                         'Tecnologia', TIMESTAMP(@hoje - INTERVAL 1 DAY, '11:00'),  TIMESTAMP(@hoje - INTERVAL 1 DAY, '12:30'),  1, 3, 2,    40),
+('Segurança da Informação',               'Senhas, golpes e como proteger seus dados',         'Segurança',  @hora_cheia - INTERVAL 1 HOUR,               @hora_cheia + INTERVAL 3 HOUR,               1, 1, 3,    30),
+('Apps com Flutter',                      'Do zero ao primeiro aplicativo no celular',         'Programação', TIMESTAMP(@hoje + INTERVAL 1 DAY, '09:00'), TIMESTAMP(@hoje + INTERVAL 1 DAY, '10:30'),  1, 2, 4,    1),
+('APIs REST com Flask',                   'Como o app conversa com o servidor',                'Programação', TIMESTAMP(@hoje + INTERVAL 1 DAY, '11:00'), TIMESTAMP(@hoje + INTERVAL 1 DAY, '12:30'),  1, 3, 2,    2),
+('Design de Interfaces',                  'Cores, fontes e telas fáceis de usar',              'Design',     TIMESTAMP(@hoje + INTERVAL 1 DAY, '14:00'),  TIMESTAMP(@hoje + INTERVAL 1 DAY, '15:30'),  1, 2, 4,    30),
+('Experimentos de Química no Dia a Dia',  'Reações químicas com materiais de casa',            'Ciências',   TIMESTAMP(@hoje + INTERVAL 14 DAY, '09:00'), TIMESTAMP(@hoje + INTERVAL 14 DAY, '10:30'), 2, 4, 5,    25),
+('Astronomia para Iniciantes',            'Como observar o céu sem telescópio',                'Ciências',   TIMESTAMP(@hoje + INTERVAL 14 DAY, '14:00'), TIMESTAMP(@hoje + INTERVAL 14 DAY, '15:30'), 2, 5, 5,    25),
+('Robótica Educacional',                  'Projetos de robôs feitos pelos alunos',             'Robótica',   TIMESTAMP(@hoje - INTERVAL 30 DAY, '09:00'), TIMESTAMP(@hoje - INTERVAL 30 DAY, '10:30'), 3, 6, 6,    30),
+('Roda de Conversa: Carreira em TI',      'Ex-alunos contam como entraram no mercado',         'Carreira',   TIMESTAMP(@hoje - INTERVAL 30 DAY, '11:00'), TIMESTAMP(@hoje - INTERVAL 30 DAY, '12:00'), 3, 6, NULL, 20);
 
+-- Inscrições. Ana: palestras de ontem, a de agora, uma da Feira e as
+-- duas da Mostra (a agenda tem passado, presente e futuro). Carla:
+-- ocupa a vaga única da palestra 4 e uma das duas vagas da 5. Ela não se
+-- inscreve na palestra 1, porque é a palestrante dela.
 INSERT INTO participacao (id_usuario, id_palestra) VALUES
-(1, 1),
-(1, 2);
+(1, 1), (1, 2), (1, 3), (1, 8), (1, 9), (1, 10),
+(3, 2), (3, 4), (3, 5), (3, 9);
 
 -- Mantém o contador coerente com os dados fictícios oficiais.
 UPDATE palestra p
@@ -383,16 +445,40 @@ SET p.vagas_disponiveis = GREATEST(
     p.vagas_total - COALESCE(i.total_inscritos, 0), 0
 );
 
+-- Avaliações só de quem está inscrito e de palestras que já começaram
+-- (a mesma regra do `CriarAvaliacaoService`). A palestra 9 fica com
+-- média 4,5. A palestra 2 tem só a nota da Carla (4): a Ana ainda não
+-- avaliou, para demonstrar a tela Avaliar e ver a média mudar.
 INSERT INTO avaliacao (nota_estrelas, comentario, id_usuario, id_palestra) VALUES
-(5, 'Palestra muito esclarecedora!', 1, 1);
+(5, 'Palestra muito esclarecedora!',                        1, 1),
+(4, 'Gostei dos exemplos, mas faltou tempo para perguntas.', 3, 2),
+(4, 'Muito bom ver os projetos funcionando.',               1, 9),
+(5, NULL,                                                   3, 9);
 
-INSERT INTO notificacao (mensagem, tipo_notificacao, id_usuario, id_palestra) VALUES
-('A palestra "Introdução à Inteligência Artificial" começa em 30 minutos.', 'lembrete', 1, 1);
+-- Favoritos da Ana: uma palestra esgotada e uma com vagas.
+INSERT INTO favorito (id_usuario, id_palestra) VALUES
+(1, 4),
+(1, 6);
+
+-- Um aviso de cada tipo, com as mesmas mensagens que a API grava:
+-- comunicado para todo o evento (Ana e Carla, as inscritas), comunicado
+-- de uma palestra, inscrição removida pela organização (ATENÇÃO) e
+-- lembrete. `data_envio` usa `UTC_TIMESTAMP()` porque a aba Avisos lê
+-- esse campo em UTC, como os avisos criados pela API (ver P06).
+INSERT INTO notificacao (mensagem, tipo_notificacao, id_usuario, id_palestra, id_evento, data_envio) VALUES
+('Boas-vindas à Semana de Tecnologia! O credenciamento fica no hall de entrada.', 'comunicado', 1, NULL, 1, UTC_TIMESTAMP() - INTERVAL 1 DAY),
+('Boas-vindas à Semana de Tecnologia! O credenciamento fica no hall de entrada.', 'comunicado', 3, NULL, 1, UTC_TIMESTAMP() - INTERVAL 1 DAY),
+('Traga seu notebook: a palestra terá uma parte prática.',                         'comunicado', 1, 3,    1, UTC_TIMESTAMP() - INTERVAL 2 HOUR),
+('Sua inscrição em Experimentos de Química no Dia a Dia foi removida pela organização.', 'atencao', 1, 7, NULL, UTC_TIMESTAMP() - INTERVAL 1 HOUR),
+(CONCAT('Lembrete ativado: Design de Interfaces começa em ',
+        DATE_FORMAT(TIMESTAMP(@hoje + INTERVAL 1 DAY, '14:00'), '%d/%m às %H:%i'), '.'),
+                                                                                   'lembrete',   1, 6,    NULL, UTC_TIMESTAMP() - INTERVAL 10 MINUTE);
 
 -- Sem imagem: a imagem da planta é enviada pelo organizador no app (F14).
 INSERT INTO planta_baixa (imagem_mapa, descricao, id_evento) VALUES
 (NULL, 'Mapa do centro de convenções', 1);
 
+-- A Mostra de Projetos fica sem patrocinador, para mostrar a tela vazia.
 INSERT INTO patrocinador (nome_empresa, logo, site, descricao, id_evento) VALUES
-('TechNova', NULL, 'https://www.technova.com.br', 'Empresa de software e serviços em nuvem.', 1);
-
+('TechNova',           NULL, 'https://www.technova.com.br',      'Empresa de software e serviços em nuvem.', 1),
+('Laboratório Aurora', NULL, 'https://www.laboratorioaurora.com.br', 'Laboratório de análises e kits de ciências.', 2);
