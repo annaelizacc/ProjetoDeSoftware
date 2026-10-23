@@ -199,7 +199,7 @@ o nome indicado, que aparece acima de cada tela.
 | F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Pendente |
 | F12 | — (diagrama) | 🟢 | Certificado de participação | Pendente |
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
-| F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Em andamento |
+| F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Concluído |
 | F15 | RF09, RF18 | 🟢 | Aviso de alteração de palestra na aba Avisos | Pendente |
 | F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Pendente |
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |

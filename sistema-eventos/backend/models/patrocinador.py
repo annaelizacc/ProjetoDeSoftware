@@ -7,7 +7,8 @@ Representa uma empresa que patrocina um Evento (F19/D01, usada na F10).
 Herda `db.Model` (tabela `patrocinador`) e `CRUDMixin` (CRUD padrão).
 
 A listagem por evento está em `GET /api/patrocinadores?id_evento=`
-(F10). O cadastro pelo organizador vem com a F14.
+(F10). O cadastro pelo organizador usa as mesmas rotas (F14). `logo`
+guarda o nome do arquivo enviado por `POST /api/uploads`.
 """
 
 from backend.extensions import db

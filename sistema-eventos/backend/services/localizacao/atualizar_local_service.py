@@ -11,6 +11,12 @@ Método principal:
 """
 
 from backend.models.localizacao import Localizacao
+from backend.services.validacoes_cadastro import (
+    TAMANHO_DESCRICAO,
+    TAMANHO_NOME,
+    texto_obrigatorio,
+    texto_opcional,
+)
 
 CAMPOS_EDITAVEIS = ("nome_local", "descricao")
 
@@ -21,9 +27,13 @@ class AtualizarLocalService:
     def execute(self, id_localizacao, dados):
         alteracoes = {campo: dados[campo] for campo in CAMPOS_EDITAVEIS if campo in dados}
         if "nome_local" in alteracoes:
-            if not str(alteracoes["nome_local"] or "").strip():
-                raise ValueError("Digite o nome do local.")
-            alteracoes["nome_local"] = str(alteracoes["nome_local"]).strip()
+            alteracoes["nome_local"] = texto_obrigatorio(
+                alteracoes["nome_local"], "Digite o nome do local.", TAMANHO_NOME
+            )
+        if "descricao" in alteracoes:
+            alteracoes["descricao"] = texto_opcional(
+                alteracoes["descricao"], "descrição", TAMANHO_DESCRICAO
+            )
 
         local = Localizacao.atualizar(id_localizacao, **alteracoes)
         if not local:

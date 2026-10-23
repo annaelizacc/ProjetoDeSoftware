@@ -44,6 +44,11 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
   bool temPlanta = false;
   bool salvando = false;
 
+  /// Id do evento já gravado: o que veio para edição ou o que acabou de
+  /// ser criado. Se a planta falhar depois de criar o evento, um novo
+  /// toque em "Salvar" altera esse evento em vez de criar outro igual.
+  late int? eventoId = widget.evento?['id_evento'];
+
   bool get editando => widget.evento != null;
 
   @override
@@ -112,15 +117,13 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
 
     setState(() => salvando = true);
     try {
-      int eventoId;
-      if (editando) {
-        eventoId = widget.evento!['id_evento'];
-        await ApiService.atualizarEvento(eventoId, dados);
-      } else {
+      if (eventoId == null) {
         eventoId = (await ApiService.criarEvento(dados))['id_evento'];
+      } else {
+        await ApiService.atualizarEvento(eventoId!, dados);
       }
       if (temPlanta || imagemPlanta != null || descricaoPlanta.text.trim().isNotEmpty) {
-        await ApiService.salvarPlanta(eventoId, imagemPlanta, descricaoPlanta.text.trim());
+        await ApiService.salvarPlanta(eventoId!, imagemPlanta, descricaoPlanta.text.trim());
       }
       if (mounted) Navigator.pop(context, ResultadoEvento.salvo);
     } catch (erro) {
@@ -133,37 +136,11 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
 
   /// Pede a senha numa janela e, se a pessoa confirmar, apaga o evento.
   Future<void> excluir() async {
-    final senha = TextEditingController();
-    final confirmou = await showDialog<bool>(
+    final digitada = await showDialog<String>(
       context: context,
-      builder: (contexto) => AlertDialog(
-        title: const Text('Excluir evento?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'O evento será apagado com todas as palestras, inscrições, '
-              'locais e patrocinadores. Isso não pode ser desfeito.',
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: senha,
-              obscureText: true,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'Digite sua senha do app'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(contexto, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(contexto, true), child: const Text('Excluir')),
-        ],
-      ),
+      builder: (_) => const _JanelaSenha(),
     );
-    final digitada = senha.text;
-    senha.dispose();
-    if (confirmou != true || !mounted) return;
+    if (digitada == null || !mounted) return;
 
     setState(() => salvando = true);
     try {
@@ -242,6 +219,57 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
     descricao.dispose();
     local.dispose();
     descricaoPlanta.dispose();
+    super.dispose();
+  }
+}
+
+/// Janela "Excluir evento?" com o campo de senha. Devolve a senha
+/// digitada ao confirmar, ou `null` ao cancelar.
+///
+/// É um widget com estado próprio porque o campo de senha precisa de um
+/// `TextEditingController`, que só pode ser descartado (`dispose`) depois
+/// que a janela some da tela, inclusive da animação de fechar.
+class _JanelaSenha extends StatefulWidget {
+  const _JanelaSenha();
+
+  @override
+  State<_JanelaSenha> createState() => _JanelaSenhaState();
+}
+
+class _JanelaSenhaState extends State<_JanelaSenha> {
+  final senha = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Excluir evento?'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'O evento será apagado com todas as palestras, inscrições, '
+            'locais e patrocinadores. Isso não pode ser desfeito.',
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: senha,
+            obscureText: true,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'Digite sua senha do app'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(onPressed: () => Navigator.pop(context, senha.text), child: const Text('Excluir')),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    senha.dispose();
     super.dispose();
   }
 }

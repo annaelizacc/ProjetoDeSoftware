@@ -12,6 +12,12 @@ Método principal:
 """
 
 from backend.models.localizacao import Localizacao
+from backend.services.validacoes_cadastro import (
+    TAMANHO_DESCRICAO,
+    TAMANHO_NOME,
+    texto_obrigatorio,
+    texto_opcional,
+)
 
 
 class CriarLocalService:
@@ -20,11 +26,9 @@ class CriarLocalService:
     def execute(self, dados):
         if not dados.get("id_evento"):
             raise ValueError("id_evento é obrigatório.")
-        if not str(dados.get("nome_local") or "").strip():
-            raise ValueError("Digite o nome do local.")
 
         return Localizacao.criar(
-            nome_local=str(dados["nome_local"]).strip(),
-            descricao=dados.get("descricao"),
+            nome_local=texto_obrigatorio(dados.get("nome_local"), "Digite o nome do local.", TAMANHO_NOME),
+            descricao=texto_opcional(dados.get("descricao"), "descrição", TAMANHO_DESCRICAO),
             id_evento=dados["id_evento"],
         )

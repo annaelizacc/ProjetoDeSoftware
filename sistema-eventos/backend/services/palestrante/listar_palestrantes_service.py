@@ -28,7 +28,10 @@ class ListarPalestrantesService:
 
         consulta = Palestrante.query.filter_by(id_evento=id_evento)
         if busca:
-            # `ilike` é o "contém", sem diferenciar maiúsculas. O texto vai
-            # como parâmetro, nunca colado no SQL.
-            consulta = consulta.filter(Palestrante.nome.ilike(f"%{busca.strip()}%"))
+            # `icontains` é o "contém", sem diferenciar maiúsculas. O texto
+            # vai como parâmetro, nunca colado no SQL, e `autoescape` faz
+            # `%` e `_` valerem como letras (no LIKE, eles são curingas).
+            consulta = consulta.filter(
+                Palestrante.nome.icontains(busca.strip(), autoescape=True)
+            )
         return [p.to_dict() for p in consulta.order_by(Palestrante.nome).all()]

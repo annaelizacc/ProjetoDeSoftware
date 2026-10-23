@@ -14,8 +14,8 @@ import '../widgets/rotulo_secao.dart';
 /// sabe qual é o evento.
 ///
 /// Por enquanto:
-/// - o logo aparece como as iniciais da empresa num quadro colorido, até
-///   a F14 trazer o envio de imagem pelo organizador;
+/// - o logo enviado pelo organizador (F14) aparece no quadro do topo do
+///   card. Sem logo, o quadro mostra as iniciais da empresa;
 /// - o site é um texto que dá para selecionar e copiar. Abrir o navegador
 ///   exigiria o pacote `url_launcher`, que fica para depois da P17
 ///   (versão do Flutter da equipe).
@@ -97,8 +97,8 @@ class _PatrocinadoresPageState extends State<PatrocinadoresPage> {
   }
 }
 
-/// Card de um patrocinador: logo (as iniciais, por enquanto), nome,
-/// descrição e site.
+/// Card de um patrocinador: logo (ou as iniciais), nome, descrição e
+/// site.
 class _CardPatrocinador extends StatelessWidget {
   final Patrocinador patrocinador;
 
@@ -135,10 +135,18 @@ class _CardPatrocinador extends StatelessWidget {
                   color: posicao.isEven ? cores.tertiary : cores.secondaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  p.iniciais,
-                  style: tema.textTheme.titleLarge?.copyWith(fontSize: 22, color: cores.onSecondaryContainer),
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: p.logo == null
+                    ? Text(
+                        p.iniciais,
+                        style: tema.textTheme.titleLarge?.copyWith(fontSize: 22, color: cores.onSecondaryContainer),
+                      )
+                    : Image.network(
+                        ApiService.urlImagem(p.logo!),
+                        fit: BoxFit.contain,
+                        // Se a imagem não carregar, volta para as iniciais.
+                        errorBuilder: (_, __, ___) => Text(p.iniciais, style: tema.textTheme.titleLarge),
+                      ),
               ),
             ),
           ),

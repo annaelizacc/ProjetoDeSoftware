@@ -15,7 +15,6 @@ Acesso (P01): enviar é só para organizadores.
 """
 
 from flask import Blueprint, jsonify, request, send_from_directory
-from werkzeug.exceptions import RequestEntityTooLarge
 
 from backend.config import Config
 from backend.controllers.autenticacao import somente_organizador
@@ -30,14 +29,9 @@ class UploadController:
     @tratar_erros
     @somente_organizador
     def enviar():
-        # O Flask só lê o arquivo ao acessar `request.files`. Se passar
-        # de 5 MB, o erro aparece aqui, e não no `tratar_erros` (que o
-        # transformaria em um 500 genérico).
-        try:
-            arquivo = request.files.get("imagem")
-        except RequestEntityTooLarge:
-            return jsonify({"erro": "A imagem passa de 5 MB."}), 413
-        nome = SalvarImagemService().execute(arquivo)
+        # Acima de 5 MB, o Flask recusa ao ler `request.files`, e o
+        # tratador de 413 de `app.py` responde.
+        nome = SalvarImagemService().execute(request.files.get("imagem"))
         return jsonify({"arquivo": nome}), 201
 
     @staticmethod

@@ -14,6 +14,12 @@ def criar_app():
     db.init_app(app)
     registrar_rotas(app)
 
+    # Envio maior que `MAX_CONTENT_LENGTH` (5 MB, em `config.py`): responde
+    # em JSON, como as outras mensagens de erro da API.
+    @app.errorhandler(413)
+    def envio_grande_demais(_erro):
+        return jsonify({"erro": "O envio passa de 5 MB."}), 413
+
     @app.get("/")
     def inicio():
         return jsonify({"status": "API do Sistema de Eventos no ar"})

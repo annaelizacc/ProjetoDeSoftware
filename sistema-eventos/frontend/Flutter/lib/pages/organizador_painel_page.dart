@@ -11,6 +11,7 @@ import 'organizador_inscricoes_page.dart';
 import 'organizador_locais_page.dart';
 import 'organizador_palestrantes_page.dart';
 import 'organizador_palestras_page.dart';
+import 'organizador_patrocinadores_page.dart';
 
 /// Tela "Área do organizador" (F08, RF17): o painel do evento.
 ///
@@ -259,9 +260,12 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
                         descricao: 'Horário, local, palestrante e vagas',
                         aoTocar: () => abrirCadastro(OrganizadorPalestrasPage(eventoId: eventoId!)),
                       ),
-                      const _ItemMenu(
-                          nome: 'Patrocinadores',
-                          descricao: 'Empresa, logo e site'),
+                      _ItemMenu(
+                        nome: 'Patrocinadores',
+                        descricao: 'Empresa, logo e site',
+                        aoTocar: () =>
+                            abrirCadastro(OrganizadorPatrocinadoresPage(eventoId: eventoId!)),
+                      ),
                       _ItemMenu(
                         nome: 'Novo evento',
                         descricao: 'Cadastrar outro evento',

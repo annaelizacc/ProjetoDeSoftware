@@ -4,7 +4,9 @@ Caso de uso: atualizar uma palestra existente.
 CAMADA: Services (regra de negócio do caso de uso "Atualizar Palestra").
 
 Quando `id_localizacao` ou `id_palestrante` são enviados, passam pelas
-mesmas conferências da criação (existem? o local é do mesmo evento?).
+mesmas conferências da criação (existem? são do mesmo evento?). Se a
+palestra mudar de evento, o local e o palestrante que ela já tem também
+são conferidos com o evento novo.
 
 Só os campos de `CAMPOS_EDITAVEIS` são aceitos (lista do que é
 permitido, desde a F08, como no evento e no usuário).
@@ -12,9 +14,12 @@ permitido, desde a F08, como no evento e no usuário).
 Vagas (F14): o organizador pode mudar o total de vagas (`vagas_total`),
 mas `vagas_disponiveis` nunca vem da requisição: é recalculado aqui.
 Quem já se inscreveu continua inscrito, então:
-- inscritos = total antigo - vagas disponíveis;
+- inscritos = as inscrições da palestra, contadas na tabela `participacao`;
 - o total novo não pode ser menor que o número de inscritos;
 - vagas disponíveis = total novo - inscritos.
+A linha da palestra fica bloqueada (`with_for_update`, como na
+inscrição) até o fim, para uma inscrição feita no mesmo instante não
+se perder na conta.
 
 Método principal:
     execute(id_palestra, dados): retorna a Palestra atualizada.
@@ -23,6 +28,7 @@ Método principal:
 from datetime import datetime
 
 from backend.models.palestra import Palestra
+from backend.models.participacao import Participacao
 from backend.services.palestra.criar_palestra_service import (
     validar_local_e_palestrante,
     validar_vagas,
@@ -51,7 +57,7 @@ def _converter_data(valor):
 
 def recalcular_vagas(palestra, novo_total):
     """Devolve as vagas livres para um novo total, sem tirar ninguém."""
-    inscritos = palestra.vagas_total - palestra.vagas_disponiveis
+    inscritos = Participacao.query.filter_by(id_palestra=palestra.id_palestra).count()
     if novo_total < inscritos:
         raise ValueError(
             f"A palestra já tem {inscritos} inscrições. O total de vagas não pode ser menor."
@@ -70,10 +76,18 @@ class AtualizarPalestraService:
         if "horario_fim" in dados:
             dados["horario_fim"] = _converter_data(dados["horario_fim"])
 
-        atual = Palestra.buscar_por_id(id_palestra)
+        atual = Palestra.query.with_for_update().filter_by(id_palestra=id_palestra).first()
         if not atual:
             raise ValueError("Palestra não encontrada.")
-        validar_local_e_palestrante(dados, dados.get("id_evento") or atual.id_evento)
+        # Confere o que vai ficar salvo: o valor enviado ou, se não veio,
+        # o atual (importa quando só o `id_evento` muda).
+        validar_local_e_palestrante(
+            {
+                "id_localizacao": dados.get("id_localizacao", atual.id_localizacao),
+                "id_palestrante": dados.get("id_palestrante", atual.id_palestrante),
+            },
+            dados.get("id_evento") or atual.id_evento,
+        )
 
         if "vagas_total" in dados_recebidos:
             novo_total = validar_vagas(dados_recebidos["vagas_total"])

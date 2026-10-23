@@ -14,6 +14,13 @@ Método principal:
 
 from backend.models.palestrante import Palestrante
 from backend.services.upload.salvar_imagem_service import validar_nome_imagem
+from backend.services.validacoes_cadastro import (
+    TAMANHO_DESCRICAO,
+    TAMANHO_LINK,
+    TAMANHO_NOME,
+    texto_obrigatorio,
+    texto_opcional,
+)
 
 
 class CriarPalestranteService:
@@ -22,13 +29,11 @@ class CriarPalestranteService:
     def execute(self, dados):
         if not dados.get("id_evento"):
             raise ValueError("id_evento é obrigatório.")
-        if not str(dados.get("nome") or "").strip():
-            raise ValueError("Digite o nome do palestrante.")
 
         return Palestrante.criar(
-            nome=str(dados["nome"]).strip(),
+            nome=texto_obrigatorio(dados.get("nome"), "Digite o nome do palestrante.", TAMANHO_NOME),
             foto=validar_nome_imagem(dados.get("foto")),
-            descricao=dados.get("descricao"),
-            rede_social=dados.get("rede_social"),
+            descricao=texto_opcional(dados.get("descricao"), "descrição", TAMANHO_DESCRICAO),
+            rede_social=texto_opcional(dados.get("rede_social"), "rede social", TAMANHO_LINK),
             id_evento=dados["id_evento"],
         )
