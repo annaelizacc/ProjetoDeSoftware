@@ -310,6 +310,15 @@ o nome indicado, que aparece acima de cada tela.
   para mapas externos (não funciona dentro de prédios). Marcar as salas
   na planta pode virar melhoria futura.
 - **Depende de:** F14 (telas de cadastro do organizador).
+- **Feita dentro da F20 (decidido pela Manuela em 23/10/2026):** por
+  exceção à regra de uma branch por tarefa, a F04 entra no commit dos
+  Detalhes da branch `f20-telas-restantes`, porque mexe na mesma tela e
+  é pequena. O cadastro do passo a passo já existe (tela Locais, F14).
+  Falta: a API da palestra devolver `como_chegar` (a `descricao` do
+  local) e, nos Detalhes, um botão "Como chegar" que abre uma janela que
+  sobe de baixo, com os passos numerados (cada linha do texto é um
+  passo). Sem instruções cadastradas, o botão não aparece. O "Ver
+  planta" continua na F03.
 
 ### F05 Palestrantes: busca e informações (RF13, RF14)
 
@@ -611,6 +620,19 @@ o nome indicado, que aparece acima de cada tela.
     acinzentado, e o botão "Ver programação" vira **"Ver avaliações"**.
     Origem: teste da S05, em que a Mostra de Projetos (encerrada)
     aparecia igual aos outros eventos.
+  - **Cancelamento depois do início (23/10/2026):** o backend também
+    recusa cancelar a inscrição numa palestra que já começou (em
+    andamento ou encerrada). A inscrição numa palestra que já aconteceu é
+    o registro de participação, usado para avaliar (F07) e, no futuro,
+    para o certificado (F12); e a vaga devolvida não serve a mais
+    ninguém. Esconder o botão no app não basta: quem chama a API direto
+    ainda conseguiria cancelar.
+  - **Detalhes de palestra em andamento ou encerrada (23/10/2026):** o
+    cartão de vagas some. Na barra de baixo, quem estava inscrito vê só a
+    estrela de favoritar (pequena) e o botão **Avaliar** (ou **Editar
+    avaliação**); quem não estava inscrito não vê nenhum botão. O
+    lembrete também some. A parte visual entra na F20 (commit dos
+    Detalhes); o bloqueio no backend fica nesta tarefa.
   - **Decisão necessária (ao planejar):** o que o botão "Ver
     avaliações" abre. Ainda não existe tela com as avaliações de um
     evento; a Programação já mostra a média de cada palestra.
@@ -747,7 +769,46 @@ o nome indicado, que aparece acima de cada tela.
     `ONTEM`, ou a data), selo por tipo (`ORGANIZAÇÃO` na cor Areia,
     `ATENÇÃO`, `LEMBRETE`, `INFO`) e puxar para recarregar. Os ícones em
     imagem saíram.
-  - **Falta:** splash, programação, agenda e favoritos.
+  - **Andamento da parte 2 (23/10/2026, fim do dia):** feitos e
+    commitados abertura, favoritos, programação e agenda (commits 1 a
+    4). **Falta, nesta ordem:** avisos (5), detalhes com a F04 (6),
+    perfil (7), início (8) e documentação (9: README, este arquivo com a
+    F20 e a F04 concluídas, os próximos passos e o `/code-review` antes
+    do último commit). Antes do Pull Request, trazer a `main` para a
+    branch (ela já recebeu a F05 da Bianca; o teste de junção não deu
+    conflito).
+  - **Plano da parte 2 (aprovado em 23/10/2026), um commit por tela,
+    na branch `f20-telas-restantes`:** abertura (com o rio de espessura
+    fixa, centralizado e sem deformar em telas largas), favoritos,
+    programação, agenda, avisos, detalhes, perfil e início, e por fim a
+    documentação.
+  - **Programação (23/10/2026):** todos os dias do evento nas abas (os
+    que já passaram ficam acinzentados, mas clicáveis), filtros por tema,
+    grupos por período e selos `ENCERRADA` (estilo de esgotada, com a
+    palestra acinzentada), `EM ANDAMENTO` (estilo das vagas), `INSCRITA`,
+    `ESGOTADA` e vagas, nessa ordem de prioridade. Dia ou evento sem
+    palestra mostra um aviso pequeno.
+  - **Agenda (23/10/2026):** linha do tempo de um dia por vez (hora,
+    linha do rio com ponto e card), setas que pulam entre os dias com
+    inscrição e data em destaque abaixo do título (`SÁB 24 OUT`, com o
+    selo `HOJE`). Abre hoje, se tiver inscrição; senão, o próximo dia
+    com inscrição; senão, o último. Cada card mostra `EVENTO · SALA ·
+    ATÉ 12:30`, porque a agenda junta todos os eventos. Só no dia de
+    hoje, a palestra em andamento (`AGORA · ATÉ 10:30`) ou, sem ela, a
+    próxima (`PRÓXIMA · EM 30 MIN`) fica em um card maior, na cor
+    principal; os outros ficam compactos. Entre palestras aparece a
+    pausa ("Intervalo livre de 30 min" ou, se passa pelo meio-dia,
+    "Almoço · ver onde comer", com "Em breve" até a F13). As que já
+    terminaram continuam na agenda, acinzentadas (servem para avaliar e
+    como histórico). O card Areia da prancha não foi usado: o canvas não
+    define para que serve.
+  - **Detalhes (planejado em 23/10/2026):** topo Céu com o rio, selo do
+    tema e título grande, e picote acima da barra de ações. Palestra em
+    andamento ou encerrada: o cartão de vagas some; na barra, quem
+    estava inscrito vê só favoritar (pequeno) e **Avaliar** (ou **Editar
+    avaliação**), e quem não estava inscrito não vê nenhum botão; o
+    lembrete some. O bloqueio no backend é da F16. O mesmo commit inclui
+    a F04 (botão "Como chegar" com janela que sobe de baixo; ver F04).
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
