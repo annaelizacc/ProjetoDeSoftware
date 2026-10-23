@@ -8,6 +8,7 @@ import '../widgets/estrelas.dart';
 import '../widgets/perfil_palestrante.dart';
 import '../widgets/rotulo_secao.dart';
 import 'avaliar_page.dart';
+import 'planta_page.dart';
 
 /// O que a tela carrega: a palestra e a lista de avaliações. É um
 /// "record" do Dart, um par de valores com nome, sem precisar criar uma
@@ -36,6 +37,10 @@ typedef _DadosDetalhes = ({Palestra palestra, List<Avaliacao> avaliacoes});
 /// cartão de vagas, avaliações e uma barra fixa embaixo com favoritar,
 /// lembrete e inscrição. Tocar no palestrante ("Ver perfil") abre o
 /// perfil dele (`abrirPerfilPalestrante`).
+///
+/// Rotas (F04, RF11): a linha "Onde" tem o botão "Ver planta", que abre a
+/// planta do evento (`PlantaPage`, F03), e a seção "Como chegar" mostra o
+/// passo a passo da entrada até a sala (`como_chegar` no JSON).
 class PalestraDetailsPage extends StatefulWidget {
   final int usuarioId;
   final int palestraId;
@@ -124,6 +129,16 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
     );
   }
 
+  /// Abre a planta do evento (F03) a partir da linha "Onde" (F04).
+  void abrirPlanta(Palestra p) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlantaPage(eventoId: p.idEvento!, nomeEvento: p.nomeEvento ?? ''),
+      ),
+    );
+  }
+
   /// Abre a tela Avaliar e, se algo mudou (ela devolve `true`), recarrega
   /// a média e os comentários.
   Future<void> abrirAvaliar(Palestra p) async {
@@ -163,7 +178,12 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
                   padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
                   children: [
                     _LinhaInfo(rotulo: 'Quando', valor: p.horario, mono: true),
-                    _LinhaInfo(rotulo: 'Onde', valor: p.sala ?? 'Local a definir'),
+                    _LinhaInfo(
+                      rotulo: 'Onde',
+                      valor: p.sala ?? 'Local a definir',
+                      textoAcao: 'Ver planta',
+                      aoTocar: p.idEvento == null ? null : () => abrirPlanta(p),
+                    ),
                     if (p.palestrante != null)
                       _LinhaInfo(
                         rotulo: 'Palestrante',
@@ -171,6 +191,10 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
                         textoAcao: 'Ver perfil',
                         aoTocar: p.idPalestrante == null || p.idEvento == null ? null : () => abrirPerfil(p),
                       ),
+                    if (passosDaRota(p.comoChegar).isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      _ComoChegar(passos: passosDaRota(p.comoChegar)),
+                    ],
                     const SizedBox(height: 18),
                     const RotuloSecao('Sobre'),
                     const SizedBox(height: 6),
@@ -245,6 +269,65 @@ class _LinhaInfo extends StatelessWidget {
       ]),
     );
     return aoTocar == null ? linha : InkWell(onTap: aoTocar, child: linha);
+  }
+}
+
+/// Separa o "como chegar" em passos: o organizador escreve um passo por
+/// linha (ex.: "1. Entre pelo hall principal."). Linhas vazias são
+/// ignoradas, e a numeração digitada ("1.", "2)", "3 -") sai, porque a
+/// tela desenha o próprio número.
+List<String> passosDaRota(String? texto) {
+  if (texto == null) return [];
+  return [
+    for (final linha in texto.split('\n'))
+      if (linha.trim().isNotEmpty) linha.trim().replaceFirst(RegExp(r'^\d+\s*[.)-]\s*'), ''),
+  ];
+}
+
+/// Seção "Como chegar · a partir da entrada" (F04, RF11), como na prancha
+/// "Detalhes da palestra" do canvas: cada passo com o número num
+/// quadradinho Marinho.
+class _ComoChegar extends StatelessWidget {
+  final List<String> passos;
+
+  const _ComoChegar({required this.passos});
+
+  @override
+  Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const RotuloSecao('Como chegar · a partir da entrada'),
+        const SizedBox(height: 10),
+        for (var i = 0; i < passos.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: cores.primary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${i + 1}',
+                    style: textos.labelMedium?.copyWith(fontWeight: FontWeight.w700, color: cores.onPrimary),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(passos[i], style: textos.bodyLarge?.copyWith(height: 1.4))),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }
 

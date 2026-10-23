@@ -99,6 +99,11 @@ branch própria.
   `main`, **recriar o banco local** com o script novo (passo 1.4 do
   `FLUXO_DE_TRABALHO.md`). O que testar com cada usuário está no
   README, em "Dados de demonstração (S05)".
+- **Mudança da F04 que afeta a Manuela (23/10/2026):** as descrições dos
+  locais de exemplo viraram um passo a passo de verdade (um passo por
+  linha). As tabelas não mudaram. Depois que a F04 entrar na `main`,
+  **recriar o banco local** com o script novo para ver os passos novos;
+  sem recriar, o app funciona com as descrições antigas.
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -181,7 +186,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF08 | Agenda personalizada | Concluído | — |
 | RF09 | Notificações sobre o início das palestras | Parcial: o lembrete é só gravado, nada avisa o usuário | F02 |
 | RF10 | Planta baixa do local | Concluído | F03 |
-| RF11 | Rotas até salas e auditórios | Pendente: só a tabela `localizacao` (nome e descrição) | F04 |
+| RF11 | Rotas até salas e auditórios | Concluído | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
 | RF13 | Pesquisar palestrantes pelo nome | Concluído | F05 |
 | RF14 | Informações dos palestrantes | Concluído | F05 |
@@ -192,7 +197,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 18 concluídos, 1 parcial e 1 pendente.
+**Resumo:** 19 concluídos e 1 parcial (RF09, F02).
 
 ## 1.2 Tarefas
 
@@ -206,7 +211,7 @@ o nome indicado, que aparece acima de cada tela.
 | F01 | RF01 | 🔴 | Tela de cadastro de usuário | Concluído |
 | F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
 | F03 | RF10 | 🔴 | Planta baixa do evento | Concluído |
-| F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
+| F04 | RF11 | 🔴 | Rotas até salas e auditórios | Concluído |
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Concluído |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
@@ -317,6 +322,14 @@ o nome indicado, que aparece acima de cada tela.
   para mapas externos (não funciona dentro de prédios). Marcar as salas
   na planta pode virar melhoria futura.
 - **Depende de:** F14 (telas de cadastro do organizador).
+- **Concluído (23/10/2026):** nos detalhes da palestra, a linha "Onde"
+  ganhou o botão "Ver planta" (abre a tela da F03) e a seção "Como
+  chegar · a partir da entrada" mostra o passo a passo numerado, como na
+  prancha do canvas. O backend devolve o texto do local em
+  `como_chegar` no JSON da palestra (assim o app não precisa de outra
+  chamada), e o app separa os passos pelas linhas, tirando a numeração
+  digitada pelo organizador. Os locais de exemplo do SQL ganharam um
+  passo a passo de verdade.
 
 ### F05 Palestrantes: busca e informações (RF13, RF14)
 
