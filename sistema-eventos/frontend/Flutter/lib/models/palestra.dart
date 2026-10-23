@@ -19,6 +19,8 @@ import 'avaliacao.dart';
 /// `palestrante` é o nome de quem apresenta (F14), ou `null` se a
 /// palestra ainda não tiver palestrante; `idPalestrante` abre o perfil
 /// dele, e `idEvento` lista as outras palestras dele no mesmo evento.
+///
+/// `nomeEvento` só vem na agenda, que junta palestras de vários eventos.
 class Palestra {
   final int id;
   final int? idEvento;
@@ -28,6 +30,7 @@ class Palestra {
   final String? tema;
   final String? sala;
   final String? palestrante;
+  final String? nomeEvento;
   final String? inicio;
   final String? fim;
   final int vagas;
@@ -49,6 +52,7 @@ class Palestra {
     this.tema,
     this.sala,
     this.palestrante,
+    this.nomeEvento,
     this.inicio,
     this.fim,
     this.vagas = 0,
@@ -78,6 +82,7 @@ class Palestra {
       tema: json['tema'],
       sala: json['sala'],
       palestrante: json['palestrante'],
+      nomeEvento: json['nome_evento'],
       inicio: json['horario_inicio'],
       fim: json['horario_fim'],
       vagas: json['vagas_disponiveis'] ?? 0,
