@@ -636,6 +636,19 @@ o nome indicado, que aparece acima de cada tela.
     acinzentado, e o botão "Ver programação" vira **"Ver avaliações"**.
     Origem: teste da S05, em que a Mostra de Projetos (encerrada)
     aparecia igual aos outros eventos.
+  - **Cancelamento depois do início (23/10/2026):** o backend também
+    recusa cancelar a inscrição numa palestra que já começou (em
+    andamento ou encerrada). A inscrição numa palestra que já aconteceu é
+    o registro de participação, usado para avaliar (F07) e, no futuro,
+    para o certificado (F12); e a vaga devolvida não serve a mais
+    ninguém. Esconder o botão no app não basta: quem chama a API direto
+    ainda conseguiria cancelar.
+  - **Detalhes de palestra em andamento ou encerrada (23/10/2026):** o
+    cartão de vagas some. Na barra de baixo, quem estava inscrito vê só a
+    estrela de favoritar (pequena) e o botão **Avaliar** (ou **Editar
+    avaliação**); quem não estava inscrito não vê nenhum botão. O
+    lembrete também some. A parte visual entra na F20 (commit dos
+    Detalhes); o bloqueio no backend fica nesta tarefa.
   - **Decisão necessária (ao planejar):** o que o botão "Ver
     avaliações" abre. Ainda não existe tela com as avaliações de um
     evento; a Programação já mostra a média de cada palestra.
@@ -772,7 +785,48 @@ o nome indicado, que aparece acima de cada tela.
     `ONTEM`, ou a data), selo por tipo (`ORGANIZAÇÃO` na cor Areia,
     `ATENÇÃO`, `LEMBRETE`, `INFO`) e puxar para recarregar. Os ícones em
     imagem saíram.
-  - **Falta:** splash, programação, agenda e favoritos.
+  - **Andamento da parte 2 (23/10/2026, fim do dia):** feitos e
+    commitados abertura, favoritos, programação e agenda (commits 1 a
+    4). **Falta, nesta ordem:** avisos (5), detalhes (6),
+    perfil (7), início (8) e documentação (9: README, este arquivo com a
+    F20 concluída, os próximos passos e o `/code-review` antes
+    do último commit). A `main` (com F03, F04 e F05 da Bianca) já foi
+    trazida para a branch; antes do Pull Request, trazer de novo se
+    houver novidades.
+  - **Plano da parte 2 (aprovado em 23/10/2026), um commit por tela,
+    na branch `f20-telas-restantes`:** abertura (com o rio de espessura
+    fixa, centralizado e sem deformar em telas largas), favoritos,
+    programação, agenda, avisos, detalhes, perfil e início, e por fim a
+    documentação.
+  - **Programação (23/10/2026):** todos os dias do evento nas abas (os
+    que já passaram ficam acinzentados, mas clicáveis), filtros por tema,
+    grupos por período e selos `ENCERRADA` (estilo de esgotada, com a
+    palestra acinzentada), `EM ANDAMENTO` (estilo das vagas), `INSCRITA`,
+    `ESGOTADA` e vagas, nessa ordem de prioridade. Dia ou evento sem
+    palestra mostra um aviso pequeno.
+  - **Agenda (23/10/2026):** linha do tempo de um dia por vez (hora,
+    linha do rio com ponto e card), setas que pulam entre os dias com
+    inscrição e data em destaque abaixo do título (`SÁB 24 OUT`, com o
+    selo `HOJE`). Abre hoje, se tiver inscrição; senão, o próximo dia
+    com inscrição; senão, o último. Cada card mostra `EVENTO · SALA ·
+    ATÉ 12:30`, porque a agenda junta todos os eventos. Só no dia de
+    hoje, a palestra em andamento (`AGORA · ATÉ 10:30`) ou, sem ela, a
+    próxima (`PRÓXIMA · EM 30 MIN`) fica em um card maior, na cor
+    principal; os outros ficam compactos. Entre palestras aparece a
+    pausa ("Intervalo livre de 30 min" ou, se passa pelo meio-dia,
+    "Almoço · ver onde comer", com "Em breve" até a F13). As que já
+    terminaram continuam na agenda, acinzentadas (servem para avaliar e
+    como histórico). O card Areia da prancha não foi usado: o canvas não
+    define para que serve.
+  - **Detalhes (planejado em 23/10/2026):** topo Céu com o rio, selo do
+    tema e título grande, e picote acima da barra de ações. Palestra em
+    andamento ou encerrada: o cartão de vagas some; na barra, quem
+    estava inscrito vê só favoritar (pequeno) e **Avaliar** (ou **Editar
+    avaliação**), e quem não estava inscrito não vê nenhum botão; o
+    lembrete some. O bloqueio no backend é da F16. O "Como chegar" e o
+    "Ver planta" já vieram prontos da F04 e da F03 (Bianca), em uma
+    seção na própria tela, como na prancha; o commit dos Detalhes parte
+    da versão dela.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).

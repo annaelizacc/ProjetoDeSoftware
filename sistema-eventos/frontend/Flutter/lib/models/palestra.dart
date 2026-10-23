@@ -1,3 +1,4 @@
+import '../utils/datas.dart';
 import 'avaliacao.dart';
 
 /// Model (do lado do Flutter): Palestra.
@@ -21,7 +22,8 @@ import 'avaliacao.dart';
 ///
 /// `comoChegar` é o passo a passo da entrada até a sala (F04, RF11), um
 /// passo por linha, e `nomeEvento` aparece na tela da planta, aberta pelo
-/// botão "Ver planta" dos detalhes.
+/// botão "Ver planta" dos detalhes, e nos cards da agenda, que junta
+/// palestras de vários eventos.
 class Palestra {
   final int id;
   final int? idEvento;
@@ -111,15 +113,40 @@ class Palestra {
     if (inicio == null) return 'Horário a definir';
     final data = DateTime.tryParse(inicio!);
     if (data == null) return inicio!;
-    final hora =
-        '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
-    if (fim == null) return hora;
+    if (fim == null) return horaCurta(data);
     final finalData = DateTime.tryParse(fim!);
-    final finalHora = finalData == null
-        ? ''
-        : ' - ${finalData.hour.toString().padLeft(2, '0')}:${finalData.minute.toString().padLeft(2, '0')}';
-    return '$hora$finalHora';
+    return finalData == null ? horaCurta(data) : '${horaCurta(data)} - ${horaCurta(finalData)}';
   }
+
+  /// Início e fim como `DateTime` (ou `null`, se a API não mandou ou o
+  /// texto não for uma data válida). Usados para ordenar e agrupar por dia.
+  DateTime? get dataInicio => DateTime.tryParse(inicio ?? '');
+  DateTime? get dataFim => DateTime.tryParse(fim ?? '');
+
+  /// Horário de início e de fim separados (ex.: `09:00` e `10:30`), para
+  /// as telas que mostram os dois em linhas diferentes, como no canvas.
+  String get horaInicio => dataInicio == null ? '--:--' : horaCurta(dataInicio!);
+  String get horaFim => dataFim == null ? '' : horaCurta(dataFim!);
+
+  /// Fim da palestra; sem fim cadastrado, o próprio início.
+  DateTime? get fimOuInicio => dataFim ?? dataInicio;
+
+  /// Situação da palestra no tempo, a mesma regra para a Programação e a
+  /// Agenda: encerrada quando o fim já passou; em andamento quando já
+  /// começou e ainda não terminou. `agora` vem de quem chama, para a tela
+  /// inteira usar o mesmo instante.
+  bool encerradaEm(DateTime agora) {
+    final fim = fimOuInicio;
+    return fim != null && fim.isBefore(agora);
+  }
+
+  bool emAndamentoEm(DateTime agora) {
+    final comeco = dataInicio;
+    return comeco != null && !comeco.isAfter(agora) && !encerradaEm(agora);
+  }
+
+  /// Dia da palestra no formato dos rótulos (ex.: `QUA 10`).
+  String get diaCurtoTexto => dataInicio == null ? '' : diaCurto(dataInicio!);
 
   /// Média no formato brasileiro, com vírgula (ex.: `4,6`).
   String get mediaTexto =>
