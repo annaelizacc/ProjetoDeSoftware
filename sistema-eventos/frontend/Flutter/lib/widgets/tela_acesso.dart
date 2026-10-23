@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 /// partes para as duas telas não repetirem o mesmo código:
 ///
 /// - `FundoAcesso`: o fundo, o rio e o cartão de vidro;
+/// - `FundoRio`: só o fundo Céu com o rio (usado também na abertura);
 /// - `LogoFluxo`: a logo (círculo com o rio) e o nome "fluxo";
 /// - `CampoAcesso`: um campo de texto com o rótulo em cima.
 ///
@@ -36,55 +37,47 @@ class FundoAcesso extends StatelessWidget {
     final cantos = BorderRadius.circular(26);
 
     return Scaffold(
-      backgroundColor: cores.tertiary,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _RioPainter(Theme.of(context).scaffoldBackgroundColor),
-            ),
-          ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 380),
-                  // A sombra fica fora do `ClipRRect`, senão seria cortada.
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: cantos,
-                      boxShadow: [
-                        BoxShadow(
-                          color: cores.primary.withValues(alpha: 0.14),
-                          blurRadius: 40,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: cantos,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: cores.surface.withValues(alpha: 0.2),
-                            borderRadius: cantos,
-                            border: Border.all(
-                              color: cores.surface.withValues(alpha: 0.6),
-                              width: 1.5,
-                            ),
+      body: FundoRio(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                // A sombra fica fora do `ClipRRect`, senão seria cortada.
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: cantos,
+                    boxShadow: [
+                      BoxShadow(
+                        color: cores.primary.withValues(alpha: 0.14),
+                        blurRadius: 40,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: cantos,
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: cores.surface.withValues(alpha: 0.2),
+                          borderRadius: cantos,
+                          border: Border.all(
+                            color: cores.surface.withValues(alpha: 0.6),
+                            width: 1.5,
                           ),
-                          // O grão é desenhado atrás do conteúdo. O
-                          // `RepaintBoundary` evita redesenhar os pontos a
-                          // cada letra digitada nos campos.
-                          child: CustomPaint(
-                            painter: _GraoPainter(cores.onSurface, cores.surface),
-                            child: RepaintBoundary(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(26, 28, 26, 22),
-                                child: child,
-                              ),
+                        ),
+                        // O grão é desenhado atrás do conteúdo. O
+                        // `RepaintBoundary` evita redesenhar os pontos a
+                        // cada letra digitada nos campos.
+                        child: CustomPaint(
+                          painter: _GraoPainter(cores.onSurface, cores.surface),
+                          child: RepaintBoundary(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(26, 28, 26, 22),
+                              child: child,
                             ),
                           ),
                         ),
@@ -95,7 +88,30 @@ class FundoAcesso extends StatelessWidget {
               ),
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fundo Céu com a curva larga do rio, usado nas telas de acesso e na
+/// abertura (splash). O `child` ocupa a tela inteira, por cima do rio.
+///
+/// O `CustomPaint` desenha o rio atrás do `child`; o `SizedBox.expand`
+/// faz o desenho ocupar todo o espaço disponível, e não só o tamanho do
+/// conteúdo.
+class FundoRio extends StatelessWidget {
+  final Widget child;
+
+  const FundoRio({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.tertiary,
+      child: CustomPaint(
+        painter: _RioPainter(Theme.of(context).scaffoldBackgroundColor),
+        child: SizedBox.expand(child: child),
       ),
     );
   }
@@ -106,6 +122,10 @@ class FundoAcesso extends StatelessWidget {
 /// O caminho foi copiado do canvas, que usa uma tela de 390 × 844. Para
 /// caber em qualquer tamanho de tela, cada ponto é multiplicado pela
 /// proporção entre a tela real e a do canvas (`sx` e `sy`).
+///
+/// A espessura do rio, ao contrário, é fixa (110, como no canvas): se
+/// acompanhasse a largura, o rio ficaria grosso demais em telas largas
+/// (tablet, navegador) e mudaria de tamanho ao girar o celular.
 class _RioPainter extends CustomPainter {
   final Color cor;
 
@@ -135,7 +155,7 @@ class _RioPainter extends CustomPainter {
       Paint()
         ..color = cor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 110 * sx
+        ..strokeWidth = 110
         ..strokeCap = StrokeCap.round,
     );
   }
@@ -210,37 +230,46 @@ class _GraoPainter extends CustomPainter {
 
 /// Logo do Fluxo: um círculo na cor principal cortado pelo rio, ao lado
 /// do nome "fluxo" em Bricolage Grotesque.
+///
+/// Com `vertical: true`, o nome fica embaixo do círculo, como na abertura
+/// do canvas (círculo de 96 e nome de 52).
 class LogoFluxo extends StatelessWidget {
   /// Tamanho do círculo; o nome acompanha a proporção.
   final double tamanho;
+  final bool vertical;
 
-  const LogoFluxo({super.key, this.tamanho = 36});
+  const LogoFluxo({super.key, this.tamanho = 36, this.vertical = false});
 
   @override
   Widget build(BuildContext context) {
     final cores = Theme.of(context).colorScheme;
+    final circulo = CustomPaint(
+      size: Size.square(tamanho),
+      painter: _LogoPainter(
+        circulo: cores.primary,
+        rio: Theme.of(context).scaffoldBackgroundColor,
+      ),
+    );
+    final nome = Text(
+      'fluxo',
+      style: TextStyle(
+        fontFamily: AppFontes.titulo,
+        fontSize: tamanho * (vertical ? 0.54 : 0.94),
+        fontWeight: FontWeight.w600,
+        letterSpacing: vertical ? -1 : -0.5,
+        color: cores.primary,
+      ),
+    );
+
+    if (vertical) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [circulo, SizedBox(height: tamanho * 0.15), nome],
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomPaint(
-          size: Size.square(tamanho),
-          painter: _LogoPainter(
-            circulo: cores.primary,
-            rio: Theme.of(context).scaffoldBackgroundColor,
-          ),
-        ),
-        SizedBox(width: tamanho * 0.28),
-        Text(
-          'fluxo',
-          style: TextStyle(
-            fontFamily: AppFontes.titulo,
-            fontSize: tamanho * 0.94,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.5,
-            color: cores.primary,
-          ),
-        ),
-      ],
+      children: [circulo, SizedBox(width: tamanho * 0.28), nome],
     );
   }
 }
