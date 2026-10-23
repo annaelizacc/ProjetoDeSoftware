@@ -6,13 +6,16 @@ import '../theme/app_theme.dart';
 ///
 /// - `destaque`: preenchido na cor principal (ex.: `INSCRITA`);
 /// - `alerta`: contorno e texto na cor de atenção (ex.: `ESGOTADA`);
-/// - `neutro`: contorno discreto (ex.: `48 VAGAS`).
-enum TipoSelo { destaque, alerta, neutro }
+/// - `neutro`: contorno discreto (ex.: `48 VAGAS`);
+/// - `organizacao`: preenchido na cor Areia, para os comunicados do
+///   organizador na aba Avisos (ex.: `ORGANIZAÇÃO`, F09).
+enum TipoSelo { destaque, alerta, neutro, organizacao }
 
 /// Componente compartilhado: selo (etiqueta) de situação.
 ///
 /// Etiqueta pequena em JetBrains Mono com a situação de uma palestra.
-/// Usado na Programação, nos Detalhes, na Agenda e nos Favoritos.
+/// Usado na Programação, nos Detalhes, na Agenda, nos Favoritos e nos
+/// Avisos.
 class Selo extends StatelessWidget {
   final String texto;
   final TipoSelo tipo;
@@ -29,6 +32,11 @@ class Selo extends StatelessWidget {
       TipoSelo.alerta => (Colors.transparent, cores.error, cores.error),
       TipoSelo.neutro =>
         (Colors.transparent, cores.onSurfaceVariant, cores.outline),
+      TipoSelo.organizacao => (
+          cores.secondaryContainer,
+          cores.onSecondaryContainer,
+          cores.secondaryContainer
+        ),
     };
 
     return Container(

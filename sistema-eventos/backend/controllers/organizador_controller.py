@@ -13,7 +13,10 @@ do Flutter:
 - `GET /api/organizador/palestras/<id_palestra>/inscritos`: quem está
   inscrito na palestra;
 - `DELETE /api/organizador/palestras/<id_palestra>/inscritos/<id_usuario>`:
-  remove a inscrição de uma pessoa, devolve a vaga e avisa a pessoa.
+  remove a inscrição de uma pessoa, devolve a vaga e avisa a pessoa;
+- `POST /api/organizador/eventos/<id_evento>/comunicados`: envia um
+  comunicado para todos os inscritos no evento ou, com `id_palestra` no
+  corpo, só para os inscritos dessa palestra (F09, RF18).
 
 Acesso (P01): todas as rotas são só para organizadores
 (`@somente_organizador`: 401 sem login, 403 para participantes). Por
@@ -27,7 +30,7 @@ palestra conferem também o dono (`verificar_dono_do_evento` e
 números dos próprios eventos; o administrador vê todos.
 """
 
-from flask import Blueprint, g, jsonify
+from flask import Blueprint, g, jsonify, request
 
 from backend.controllers.autenticacao import (
     somente_organizador,
@@ -35,6 +38,7 @@ from backend.controllers.autenticacao import (
     verificar_dono_do_evento,
 )
 from backend.controllers.utils import tratar_erros
+from backend.services.organizador.enviar_comunicado_service import EnviarComunicadoService
 from backend.services.organizador.listar_inscritos_service import ListarInscritosService
 from backend.services.organizador.listar_meus_eventos_service import ListarMeusEventosService
 from backend.services.organizador.obter_painel_service import ObterPainelService
@@ -72,6 +76,17 @@ class OrganizadorController:
         RemoverInscricaoService().execute(id_usuario, id_palestra)
         return jsonify({"mensagem": "Inscrição removida e vaga devolvida."})
 
+    @staticmethod
+    @tratar_erros
+    @somente_organizador
+    def enviar_comunicado(id_evento):
+        verificar_dono_do_evento(id_evento)
+        dados = request.get_json() or {}
+        total = EnviarComunicadoService().execute(
+            id_evento, dados.get("mensagem"), dados.get("id_palestra")
+        )
+        return jsonify({"mensagem": "Comunicado enviado.", "total_destinatarios": total}), 201
+
 
 organizador_bp = Blueprint("organizador", __name__, url_prefix="/api/organizador")
 organizador_bp.add_url_rule(
@@ -91,4 +106,9 @@ organizador_bp.add_url_rule(
     "/palestras/<int:id_palestra>/inscritos/<int:id_usuario>",
     view_func=OrganizadorController.remover_inscricao,
     methods=["DELETE"],
+)
+organizador_bp.add_url_rule(
+    "/eventos/<int:id_evento>/comunicados",
+    view_func=OrganizadorController.enviar_comunicado,
+    methods=["POST"],
 )

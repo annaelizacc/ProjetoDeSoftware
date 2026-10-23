@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/rotulo_secao.dart';
 import '../widgets/selo.dart';
+import 'organizador_comunicado_page.dart';
 import 'organizador_evento_page.dart';
 import 'organizador_inscricoes_page.dart';
 import 'organizador_locais_page.dart';
@@ -22,8 +23,8 @@ import 'organizador_patrocinadores_page.dart';
 ///   ocupação e média das avaliações);
 /// - o ranking das palestras, das mais procuradas para as menos procuradas.
 ///   Tocar numa palestra abre as inscrições dela;
-/// - o menu da área: "Inscrições" e os cadastros do evento (F14). O
-///   comunicado (F09) aparece como "Em breve" até ser feito.
+/// - o menu da área: "Inscrições", "Enviar comunicado" (F09) e os
+///   cadastros do evento (F14).
 ///
 /// "Novo evento" (e, para quem ainda não tem evento, "Criar meu primeiro
 /// evento") abre o formulário do evento (F14). Ao voltar, o painel busca
@@ -236,9 +237,16 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
                             : () => abrirInscricoes(
                                 palestras, palestras.first['id_palestra']),
                       ),
-                      const _ItemMenu(
+                      _ItemMenu(
                         nome: 'Enviar comunicado',
                         descricao: 'Aviso para todos os participantes',
+                        aoTocar: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrganizadorComunicadoPage(
+                                eventoId: eventoId!, palestras: palestras),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       const RotuloSecao('Cadastros do evento'),

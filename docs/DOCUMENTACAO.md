@@ -40,6 +40,7 @@ Decisão tomada em 20/10/2026 (D01 do `PENDENCIAS.md`).
 | `certificado.Atributo_1` | Campo sem nome | Não criado | O campo não tinha nome nem significado definido |
 | `tipo_usuario = 'palestrante'` | Palestrante como tipo de usuário | Removido | O palestrante não usa o app (não faz login). Seus dados ficam na tabela `palestrante` |
 | `evento.id_organizador` (F08, 22/10/2026) | Evento sem ligação com o organizador | Coluna obrigatória, chave estrangeira para `organizador` (`ON DELETE RESTRICT`) | Cada evento tem um só organizador responsável, que é quem o cria. Sem a ligação, qualquer organizador mexeria no evento de outro. O `RESTRICT` impede apagar um organizador que ainda tem eventos, para nenhum evento ficar sem responsável |
+| `notificacao.id_evento` (F09, 23/10/2026) | Notificação sem ligação com o evento | Coluna opcional, chave estrangeira para `evento` (`ON DELETE CASCADE`), preenchida só nos comunicados do organizador | O comunicado para todos os participantes não tem palestra, então sem esse campo não haveria como saber de qual evento ele veio. Com ele, a aba Avisos mostra o nome do evento (e o da palestra, quando o comunicado é só para os inscritos dela). O `CASCADE` apaga os comunicados junto com o evento, como já acontece com a palestra |
 
 ### 1.3 Limitação conhecida
 

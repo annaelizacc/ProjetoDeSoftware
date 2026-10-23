@@ -205,6 +205,9 @@ CREATE TABLE avaliacao (
 -- Notificações recebidas ("recebe") por um usuário. `id_palestra` é
 -- opcional (F19/D01): lembretes apontam para uma palestra, mas os
 -- comunicados gerais do organizador (F09) valem para o evento todo.
+-- `id_evento` (F09) guarda de qual evento veio o comunicado, para a aba
+-- Avisos mostrar o nome dele; os lembretes e os outros avisos o deixam
+-- vazio.
 -- =====================================================================
 CREATE TABLE notificacao (
     id_notificacao  INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,11 +216,15 @@ CREATE TABLE notificacao (
     tipo_notificacao VARCHAR(50),
     id_usuario      INT             NOT NULL,
     id_palestra     INT,
+    id_evento       INT,
     CONSTRAINT fk_notificacao_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
     CONSTRAINT fk_notificacao_palestra
         FOREIGN KEY (id_palestra) REFERENCES palestra(id_palestra)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_notificacao_evento
+        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
