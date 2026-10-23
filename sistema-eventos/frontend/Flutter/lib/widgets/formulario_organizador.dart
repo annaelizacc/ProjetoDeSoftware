@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
 import 'cabecalho_tela.dart';
 
 /// Componente compartilhado: o molde dos formulários do organizador (F14).
@@ -15,12 +16,15 @@ import 'cabecalho_tela.dart';
 ///   (assim um toque duplo não cria dois registros).
 ///
 /// Cada tela só monta a lista de campos e diz o que fazer ao salvar.
+/// Com `aoExcluir` (ao editar um registro), aparece no fim dos campos o
+/// botão "Excluir", na cor de atenção.
 class FormularioOrganizador extends StatelessWidget {
   final String titulo;
   final String textoBotao;
   final List<Widget> campos;
   final VoidCallback aoSalvar;
   final bool salvando;
+  final VoidCallback? aoExcluir;
 
   const FormularioOrganizador({
     super.key,
@@ -29,6 +33,7 @@ class FormularioOrganizador extends StatelessWidget {
     required this.campos,
     required this.aoSalvar,
     this.salvando = false,
+    this.aoExcluir,
   });
 
   @override
@@ -44,6 +49,16 @@ class FormularioOrganizador extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
               children: [
                 for (final campo in campos) ...[campo, const SizedBox(height: 14)],
+                if (aoExcluir != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: salvando ? null : aoExcluir,
+                      style: TextButton.styleFrom(foregroundColor: cores.error),
+                      icon: const Icon(Icons.delete_outline),
+                      label: const Text('Excluir'),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -136,3 +151,79 @@ void mostrarMensagem(BuildContext context, String texto) {
 
 /// Tira o "Exception: " que o Dart coloca antes da mensagem do backend.
 String textoDoErro(Object erro) => erro.toString().replaceFirst('Exception: ', '');
+
+/// Roda a ação de um formulário (salvar ou excluir) e fecha a tela
+/// devolvendo `true`, para a lista ser buscada de novo. Se o backend
+/// recusar, mostra a mensagem dele e a tela continua aberta.
+///
+/// `marcarSalvando` liga e desliga o carregamento do botão (o `setState`
+/// da tela).
+Future<void> executarEFechar(
+  BuildContext context,
+  void Function(bool) marcarSalvando,
+  Future<void> Function() acao,
+) async {
+  marcarSalvando(true);
+  try {
+    await acao();
+    if (context.mounted) Navigator.pop(context, true);
+  } catch (erro) {
+    if (context.mounted) {
+      mostrarMensagem(context, textoDoErro(erro));
+      marcarSalvando(false);
+    }
+  }
+}
+
+/// Campo que mostra um valor escolhido numa janela (data, horário) em
+/// JetBrains Mono, como datas e horários no canvas, e abre a janela ao
+/// ser tocado. `texto` nulo mostra o `vazio` (ex.: `dd/mm/aaaa`).
+class CampoEscolha extends StatelessWidget {
+  final String rotulo;
+  final String? texto;
+  final String vazio;
+  final IconData icone;
+  final VoidCallback aoTocar;
+
+  const CampoEscolha({
+    super.key,
+    required this.rotulo,
+    required this.texto,
+    required this.vazio,
+    required this.icone,
+    required this.aoTocar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return CampoFormulario(
+      rotulo: rotulo,
+      child: InkWell(
+        onTap: aoTocar,
+        borderRadius: BorderRadius.circular(10),
+        child: InputDecorator(
+          decoration: InputDecoration(suffixIcon: Icon(icone, size: 18)),
+          child: Text(
+            texto ?? vazio,
+            style: tema.textTheme.bodyLarge?.copyWith(
+              fontFamily: AppFontes.mono,
+              color: texto == null ? tema.colorScheme.onSurfaceVariant : null,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _doisDigitos(int numero) => numero.toString().padLeft(2, '0');
+
+/// Data no formato que o backend espera (`2026-10-22`).
+String dataIso(DateTime data) => '${data.year}-${_doisDigitos(data.month)}-${_doisDigitos(data.day)}';
+
+/// Data como se escreve no Brasil (`22/10/2026`).
+String dataBr(DateTime data) => '${_doisDigitos(data.day)}/${_doisDigitos(data.month)}/${data.year}';
+
+/// Horário com dois dígitos (`09:00`).
+String horaTexto(TimeOfDay hora) => '${_doisDigitos(hora.hour)}:${_doisDigitos(hora.minute)}';

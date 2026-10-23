@@ -8,6 +8,11 @@ palestrante não é um usuário do app: tem só os dados mostrados na tela de
 informações do palestrante. Cada Palestra aponta para o seu palestrante
 pelo campo `id_palestrante`.
 
+Desde a F14, o palestrante pertence a um Evento (`id_evento`): o
+organizador o cadastra uma vez no evento e o indica em algumas
+palestras. Assim a regra de dono do evento também vale para ele. `foto`
+guarda o nome do arquivo enviado por `POST /api/uploads`.
+
 Herda `db.Model` (tabela `palestrante`) e `CRUDMixin` (CRUD padrão).
 """
 
@@ -25,6 +30,7 @@ class Palestrante(db.Model, CRUDMixin):
     foto = db.Column(db.String(255))
     descricao = db.Column(db.Text)
     rede_social = db.Column(db.String(255))
+    id_evento = db.Column(db.Integer, db.ForeignKey("evento.id_evento"), nullable=False)
 
     def to_dict(self):
         """Serializa o palestrante para JSON."""
@@ -34,4 +40,5 @@ class Palestrante(db.Model, CRUDMixin):
             "foto": self.foto,
             "descricao": self.descricao,
             "rede_social": self.rede_social,
+            "id_evento": self.id_evento,
         }

@@ -336,4 +336,37 @@ class ApiService {
       body: {'imagem_mapa': imagem, 'descricao': descricao},
     );
   }
+
+  /// Locais de um evento, com o passo a passo da rota
+  /// (`GET /api/locais?id_evento=<id>`, F04).
+  static Future<List<dynamic>> locais(int eventoId) async =>
+      List<dynamic>.from(await request('/api/locais?id_evento=$eventoId'));
+
+  /// Palestrantes de um evento (`GET /api/palestrantes?id_evento=<id>`,
+  /// F05). Com `busca`, só os que têm o texto no nome (RF13).
+  static Future<List<dynamic>> palestrantes(int eventoId, {String? busca}) async {
+    final filtro = busca == null || busca.trim().isEmpty
+        ? ''
+        : '&busca=${Uri.encodeQueryComponent(busca.trim())}';
+    return List<dynamic>.from(await request('/api/palestrantes?id_evento=$eventoId$filtro'));
+  }
+
+  /// Cria, altera ou remove um registro de um cadastro do organizador
+  /// (F14). `recurso` é o caminho da API sem o `/api/` (ex.: `locais`,
+  /// `palestrantes`, `palestras`, `patrocinadores`), porque as quatro
+  /// rotas seguem o mesmo padrão:
+  /// - sem `id`: `POST /api/<recurso>` (cria);
+  /// - com `id`: `PUT /api/<recurso>/<id>` (altera).
+  static Future<void> salvarCadastro(String recurso, int? id, Map<String, dynamic> dados) async {
+    if (id == null) {
+      await request('/api/$recurso', method: 'POST', body: dados);
+    } else {
+      await request('/api/$recurso/$id', method: 'PUT', body: dados);
+    }
+  }
+
+  /// Remove um registro de um cadastro (`DELETE /api/<recurso>/<id>`).
+  static Future<void> removerCadastro(String recurso, int id) async {
+    await request('/api/$recurso/$id', method: 'DELETE');
+  }
 }

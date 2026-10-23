@@ -48,3 +48,10 @@ local.properties
 ephemeral/
 Generated.xcconfig
 flutter_export_environment.sh
+
+# --- Imagens enviadas pelo app (F14) -----------------------------------
+
+# Planta, fotos e logos enviados pelos organizadores ficam só no servidor.
+# O .gitkeep mantém a pasta vazia no repositório.
+sistema-eventos/backend/uploads/*
+!sistema-eventos/backend/uploads/.gitkeep

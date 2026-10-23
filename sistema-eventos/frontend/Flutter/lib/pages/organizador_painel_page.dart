@@ -8,6 +8,9 @@ import '../widgets/rotulo_secao.dart';
 import '../widgets/selo.dart';
 import 'organizador_evento_page.dart';
 import 'organizador_inscricoes_page.dart';
+import 'organizador_locais_page.dart';
+import 'organizador_palestrantes_page.dart';
+import 'organizador_palestras_page.dart';
 
 /// Tela "Área do organizador" (F08, RF17): o painel do evento.
 ///
@@ -237,16 +240,25 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
                         descricao: 'Nome, datas, local e imagem da planta',
                         aoTocar: () => abrirEvento(evento: evento),
                       ),
-                      const _ItemMenu(
-                          nome: 'Locais e rotas',
-                          descricao:
-                              'Salas com o passo a passo de como chegar'),
-                      const _ItemMenu(
-                          nome: 'Palestras',
-                          descricao: 'Horário, local, palestrante e vagas'),
-                      const _ItemMenu(
-                          nome: 'Palestrantes',
-                          descricao: 'Nome, foto, descrição e rede social'),
+                      // Locais e palestrantes vêm antes das palestras: a
+                      // palestra escolhe um local e um palestrante já
+                      // cadastrados.
+                      _ItemMenu(
+                        nome: 'Locais e rotas',
+                        descricao: 'Salas com o passo a passo de como chegar',
+                        aoTocar: () => abrirCadastro(OrganizadorLocaisPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Palestrantes',
+                        descricao: 'Nome, foto, descrição e rede social',
+                        aoTocar: () =>
+                            abrirCadastro(OrganizadorPalestrantesPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Palestras',
+                        descricao: 'Horário, local, palestrante e vagas',
+                        aoTocar: () => abrirCadastro(OrganizadorPalestrasPage(eventoId: eventoId!)),
+                      ),
                       const _ItemMenu(
                           nome: 'Patrocinadores',
                           descricao: 'Empresa, logo e site'),

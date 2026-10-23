@@ -33,7 +33,9 @@ def validar_local_e_palestrante(dados, id_evento):
     """Confere o local e o palestrante, quando informados.
 
     O local precisa existir e ser do mesmo evento da palestra (uma sala de
-    outro evento não aparece na planta nem nas rotas deste). Também usada
+    outro evento não aparece na planta nem nas rotas deste). Desde a F14,
+    o palestrante também precisa ser do mesmo evento: o organizador só
+    indica palestrantes que ele mesmo cadastrou no evento. Também usada
     pelo `AtualizarPalestraService`, para a regra ficar em um lugar só.
     """
     if dados.get("id_localizacao"):
@@ -42,8 +44,23 @@ def validar_local_e_palestrante(dados, id_evento):
             raise ValueError("Local não encontrado.")
         if local.id_evento != int(id_evento):
             raise ValueError("O local não pertence ao evento da palestra.")
-    if dados.get("id_palestrante") and not Palestrante.buscar_por_id(dados["id_palestrante"]):
-        raise ValueError("Palestrante não encontrado.")
+    if dados.get("id_palestrante"):
+        palestrante = Palestrante.buscar_por_id(dados["id_palestrante"])
+        if not palestrante:
+            raise ValueError("Palestrante não encontrado.")
+        if palestrante.id_evento != int(id_evento):
+            raise ValueError("O palestrante não pertence ao evento da palestra.")
+
+
+def validar_vagas(valor):
+    """Confere o total de vagas: um número inteiro de 1 para cima."""
+    try:
+        total = int(valor)
+    except (TypeError, ValueError):
+        raise ValueError("O total de vagas precisa ser um número.") from None
+    if total < 1:
+        raise ValueError("A palestra precisa ter pelo menos 1 vaga.")
+    return total
 
 
 class CriarPalestraService:
@@ -66,5 +83,5 @@ class CriarPalestraService:
             id_evento=dados["id_evento"],
             id_localizacao=dados.get("id_localizacao"),
             id_palestrante=dados.get("id_palestrante"),
-            vagas_total=dados.get("vagas_total", 50),
+            vagas_total=validar_vagas(dados.get("vagas_total", 50)),
         )

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import '../widgets/campo_imagem.dart';
 import '../widgets/formulario_organizador.dart';
 
@@ -194,17 +193,21 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: _CampoData(
+              child: CampoEscolha(
                 rotulo: 'Início',
-                data: inicio,
+                texto: inicio == null ? null : dataBr(inicio!),
+                vazio: 'dd/mm/aaaa',
+                icone: Icons.calendar_today_outlined,
                 aoTocar: () => escolherData(ehInicio: true),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _CampoData(
+              child: CampoEscolha(
                 rotulo: 'Fim',
-                data: fim,
+                texto: fim == null ? null : dataBr(fim!),
+                vazio: 'dd/mm/aaaa',
+                icone: Icons.calendar_today_outlined,
                 aoTocar: () => escolherData(ehInicio: false),
               ),
             ),
@@ -240,45 +243,5 @@ class _OrganizadorEventoPageState extends State<OrganizadorEventoPage> {
     local.dispose();
     descricaoPlanta.dispose();
     super.dispose();
-  }
-}
-
-/// Data no formato que o backend espera (`2026-10-22`).
-String dataIso(DateTime data) =>
-    '${data.year}-${data.month.toString().padLeft(2, '0')}-${data.day.toString().padLeft(2, '0')}';
-
-/// Data como se escreve no Brasil (`22/10/2026`).
-String dataBr(DateTime data) =>
-    '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
-
-/// Campo que mostra uma data em JetBrains Mono e abre o calendário ao
-/// ser tocado (no lugar de digitar a data).
-class _CampoData extends StatelessWidget {
-  final String rotulo;
-  final DateTime? data;
-  final VoidCallback aoTocar;
-
-  const _CampoData({required this.rotulo, required this.data, required this.aoTocar});
-
-  @override
-  Widget build(BuildContext context) {
-    final tema = Theme.of(context);
-    return CampoFormulario(
-      rotulo: rotulo,
-      child: InkWell(
-        onTap: aoTocar,
-        borderRadius: BorderRadius.circular(10),
-        child: InputDecorator(
-          decoration: const InputDecoration(suffixIcon: Icon(Icons.calendar_today_outlined, size: 18)),
-          child: Text(
-            data == null ? 'dd/mm/aaaa' : dataBr(data!),
-            style: tema.textTheme.bodyLarge?.copyWith(
-              fontFamily: AppFontes.mono,
-              color: data == null ? tema.colorScheme.onSurfaceVariant : null,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
