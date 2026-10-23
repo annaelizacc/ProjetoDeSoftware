@@ -182,8 +182,8 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF10 | Planta baixa do local | Parcial: só a tabela e a Model | F03 |
 | RF11 | Rotas até salas e auditórios | Pendente: só a tabela `localizacao` (nome e descrição) | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
-| RF13 | Pesquisar palestrantes pelo nome | Pendente: tabela `palestrante` criada na F19; faltam rota e tela | F05 |
-| RF14 | Informações dos palestrantes | Pendente | F05 |
+| RF13 | Pesquisar palestrantes pelo nome | Concluído | F05 |
+| RF14 | Informações dos palestrantes | Concluído | F05 |
 | RF15 | Comentários e feedbacks sobre palestras | Concluído | F06 |
 | RF16 | Avaliar palestras por estrelas | Concluído | F07 |
 | RF17 | Organizador gerencia inscrições | Concluído | F08 |
@@ -191,7 +191,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 15 concluídos, 2 parciais e 3 pendentes.
+**Resumo:** 17 concluídos, 2 parciais e 1 pendente.
 
 ## 1.2 Tarefas
 
@@ -206,7 +206,7 @@ o nome indicado, que aparece acima de cada tela.
 | F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
 | F03 | RF10 | 🔴 | Planta baixa do evento | Parcial |
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
-| F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Pendente |
+| F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Concluído |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Concluído |
@@ -343,6 +343,11 @@ o nome indicado, que aparece acima de cada tela.
   palestrante" do canvas. Falta nesta tarefa: a tela de palestrantes do
   participante, com a busca (RF13), que pode reaproveitar o
   `abrirPerfilPalestrante`.
+- **Concluído (23/10/2026):** tela "Palestrantes"
+  (`pages/palestrantes_page.dart`), aberta pelo atalho do Início. A
+  busca chama a API a cada letra digitada; o `FutureBuilder` mostra só
+  o resultado da busca mais recente. Tocar num palestrante abre o
+  perfil, e tocar numa palestra do perfil abre os detalhes dela.
 
 ### F06 Tela de comentários e feedbacks (RF15)
 
