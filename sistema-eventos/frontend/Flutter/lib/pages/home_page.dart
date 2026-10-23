@@ -400,7 +400,7 @@ class _RioDoCard extends CustomPainter {
   bool shouldRepaint(_RioDoCard antigo) => antigo.cor != cor;
 }
 
-/// Os quatro atalhos do evento, em duas colunas. Mapa do local (F03),
+/// Os quatro atalhos do evento, em duas colunas. Localização (F03),
 /// Palestrantes (F05) e Patrocínio (F10) já têm tela; "Onde comer"
 /// aparece como "Em breve" (F13).
 class _Atalhos extends StatelessWidget {
@@ -417,7 +417,7 @@ class _Atalhos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final atalhos = <(String, VoidCallback?)>[
-      ('Mapa do local', aoAbrirPlanta),
+      ('Localização', aoAbrirPlanta),
       ('Palestrantes', aoAbrirPalestrantes),
       ('Onde comer', null),
       ('Patrocínio', aoAbrirPatrocinio),

@@ -50,11 +50,12 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 18. Ver e pesquisar os palestrantes do evento pelo nome (Início →
     "Palestrantes"). Tocar num palestrante abre o perfil dele, e tocar
     numa palestra do perfil abre os detalhes dela.
-19. Ver a planta do evento (Início → "Mapa do local"): a imagem enviada
-    pelo organizador, com zoom, e a lista dos locais com o passo a passo
-    de como chegar.
+19. Ver a planta do lugar do evento (Início → "Localização", ou
+    Detalhes → **Ver planta**): o nome do lugar e quantas salas ele tem, a
+    imagem enviada pelo organizador, com zoom, e a lista das salas com o
+    caminho até cada uma e quantas palestras ela recebe.
 20. Ver como chegar até a sala de uma palestra (Detalhes → seção "Como
-    chegar"): o passo a passo a partir da entrada, escrito pelo
+    chegar", que começa fechada e abre ao tocar): o passo a passo a partir da entrada, escrito pelo
     organizador com um passo por linha. O botão **Ver planta**, na linha
     "Onde", abre a planta do evento.
 21. Aviso de choque de horário (F16): ao se inscrever numa palestra que
@@ -289,7 +290,7 @@ O app abre com a tela de abertura (logo, slogan e o rio da marca, por
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
 **Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (**Mapa do local**, **Palestrantes** e **Patrocínio** já
+o botão **Ver programação**, os atalhos (**Localização**, **Palestrantes** e **Patrocínio** já
 abrem; **Onde comer** aparece como "Em breve"), a descrição e a próxima palestra
 da agenda da pessoa nesse evento. Com mais de um evento, a lista
 **Trocar evento** acima do card troca o evento mostrado. Nos detalhes
