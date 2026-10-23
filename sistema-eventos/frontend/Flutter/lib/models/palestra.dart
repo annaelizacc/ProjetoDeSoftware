@@ -113,14 +113,9 @@ class Palestra {
     if (inicio == null) return 'Horário a definir';
     final data = DateTime.tryParse(inicio!);
     if (data == null) return inicio!;
-    final hora =
-        '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
-    if (fim == null) return hora;
+    if (fim == null) return horaCurta(data);
     final finalData = DateTime.tryParse(fim!);
-    final finalHora = finalData == null
-        ? ''
-        : ' - ${finalData.hour.toString().padLeft(2, '0')}:${finalData.minute.toString().padLeft(2, '0')}';
-    return '$hora$finalHora';
+    return finalData == null ? horaCurta(data) : '${horaCurta(data)} - ${horaCurta(finalData)}';
   }
 
   /// Início e fim como `DateTime` (ou `null`, se a API não mandou ou o
@@ -132,6 +127,23 @@ class Palestra {
   /// as telas que mostram os dois em linhas diferentes, como no canvas.
   String get horaInicio => dataInicio == null ? '--:--' : horaCurta(dataInicio!);
   String get horaFim => dataFim == null ? '' : horaCurta(dataFim!);
+
+  /// Fim da palestra; sem fim cadastrado, o próprio início.
+  DateTime? get fimOuInicio => dataFim ?? dataInicio;
+
+  /// Situação da palestra no tempo, a mesma regra para a Programação e a
+  /// Agenda: encerrada quando o fim já passou; em andamento quando já
+  /// começou e ainda não terminou. `agora` vem de quem chama, para a tela
+  /// inteira usar o mesmo instante.
+  bool encerradaEm(DateTime agora) {
+    final fim = fimOuInicio;
+    return fim != null && fim.isBefore(agora);
+  }
+
+  bool emAndamentoEm(DateTime agora) {
+    final comeco = dataInicio;
+    return comeco != null && !comeco.isAfter(agora) && !encerradaEm(agora);
+  }
 
   /// Dia da palestra no formato dos rótulos (ex.: `QUA 10`).
   String get diaCurtoTexto => dataInicio == null ? '' : diaCurto(dataInicio!);

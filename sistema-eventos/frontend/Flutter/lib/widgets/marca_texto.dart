@@ -29,7 +29,10 @@ class MarcaTexto extends StatelessWidget {
   /// atrás delas, mais legível.
   final int subir;
 
-  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true, this.cor, this.subir = 0});
+  const MarcaTexto(this.texto, {super.key, this.estilo, this.ativo = true, this.cor, this.subir = 0})
+      // A faixa ocupa 42 das 100 partes da altura; acima de 57, o espaço
+      // de cima (`58 - subir`) zeraria, e o `Spacer` não aceita isso.
+      : assert(subir >= 0 && subir < 58, 'subir deve ficar entre 0 e 57');
 
   @override
   Widget build(BuildContext context) {

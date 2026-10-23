@@ -28,6 +28,11 @@ class FavoritosPage extends StatefulWidget {
 class _FavoritosPageState extends State<FavoritosPage> {
   late Future<List<dynamic>> futuro;
 
+  /// Ids das palestras sendo removidas agora. Enquanto a API não responde,
+  /// a estrela fica desativada, para dois toques rápidos não mandarem dois
+  /// pedidos (o segundo daria erro, com a palestra já removida).
+  final removendo = <int>{};
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +51,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
   /// Tira a palestra dos favoritos e recarrega a lista. Se a API recusar,
   /// mostra o erro e a lista fica como estava.
   Future<void> remover(Palestra p) async {
+    if (removendo.contains(p.id)) return;
+    setState(() => removendo.add(p.id));
     try {
       await ApiService.alterarFavorito(widget.usuarioId, p.id, false);
       if (mounted) recarregar();
@@ -55,6 +62,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
           SnackBar(content: Text(erro.toString().replaceFirst('Exception: ', ''))),
         );
       }
+    } finally {
+      if (mounted) setState(() => removendo.remove(p.id));
     }
   }
 
@@ -102,11 +111,11 @@ class _FavoritosPageState extends State<FavoritosPage> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
-                    for (final item in lista)
+                    for (final item in lista.map((json) => Palestra.fromJson(Map<String, dynamic>.from(json))))
                       _ItemFavorito(
-                        palestra: Palestra.fromJson(Map<String, dynamic>.from(item)),
+                        palestra: item,
                         aoAbrir: abrir,
-                        aoRemover: remover,
+                        aoRemover: removendo.contains(item.id) ? null : remover,
                       ),
                   ],
                 );
@@ -124,7 +133,9 @@ class _FavoritosPageState extends State<FavoritosPage> {
 class _ItemFavorito extends StatelessWidget {
   final Palestra palestra;
   final ValueChanged<Palestra> aoAbrir;
-  final ValueChanged<Palestra> aoRemover;
+
+  /// `null` enquanto a remoção desta palestra está em andamento.
+  final ValueChanged<Palestra>? aoRemover;
 
   const _ItemFavorito({required this.palestra, required this.aoAbrir, required this.aoRemover});
 
@@ -168,7 +179,7 @@ class _ItemFavorito extends StatelessWidget {
         const SizedBox(width: 12),
         IconButton(
           tooltip: 'Remover ${p.titulo} dos favoritos',
-          onPressed: () => aoRemover(p),
+          onPressed: aoRemover == null ? null : () => aoRemover!(p),
           icon: Icon(Icons.star_rounded, color: cores.primary),
         ),
       ]),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
 import '../utils/datas.dart';
+import '../widgets/aviso_vazio.dart';
 import '../widgets/cabecalho_aba.dart';
 import '../widgets/estrelas.dart';
 import '../widgets/rotulo_secao.dart';
@@ -210,7 +211,11 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
       for (final p in dados.palestras)
         if (dia == null || (p.dataInicio != null && DateUtils.isSameDay(p.dataInicio, dia))) p,
     ];
-    final temas = {for (final p in doDia) if (p.tema != null && p.tema!.trim().isNotEmpty) p.tema!}.toList()..sort();
+    final temas = _temas(doDia);
+    // As cores vêm dos temas do evento inteiro (e não só do dia), para
+    // cada tema ter sempre a mesma cor em todos os dias.
+    final temasDoEvento = _temas(dados.palestras);
+    final agora = DateTime.now();
     final tema = temas.contains(temaEscolhido) ? temaEscolhido : null;
     final lista = [for (final p in doDia) if (tema == null || p.tema == tema) p];
 
@@ -236,7 +241,7 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
         // Lista vazia: a busca não achou nada, o evento ainda não tem
         // palestra cadastrada, ou só este dia está sem palestra.
         if (lista.isEmpty)
-          _AvisoVazio(
+          AvisoVazio(
             temaAtual.isNotEmpty
                 ? 'Nenhuma palestra encontrada para "$temaAtual" neste dia.'
                 : dados.palestras.isEmpty
@@ -249,9 +254,9 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
           _ItemPalestra(
             palestra: lista[i],
             inscrita: dados.inscritas.contains(lista[i].id),
-            corTema: _corDoTema(context, temas, lista[i].tema),
-            encerrada: _encerrada(lista[i]),
-            emAndamento: _emAndamento(lista[i]),
+            corTema: _corDoTema(context, temasDoEvento, lista[i].tema),
+            encerrada: lista[i].encerradaEm(agora),
+            emAndamento: lista[i].emAndamentoEm(agora),
             aoTocar: () => abrirDetalhes(lista[i]),
           ),
         ],
@@ -259,40 +264,30 @@ class _ProgramacaoPageState extends State<ProgramacaoPage> {
     );
   }
 
-  /// Todos os dias do evento, do início ao fim, em ordem. Se a API não
-  /// mandou as datas do evento, usa os dias que têm palestra.
-  /// `DateUtils.dateOnly` tira a hora, para comparar só o dia.
+  /// Todos os dias do evento, do início ao fim, mais qualquer dia que
+  /// tenha palestra fora dessas datas (o backend não impede esse
+  /// cadastro, e sem a aba a palestra sumiria da tela). O `Set` evita dia
+  /// repetido; `DateUtils.dateOnly` tira a hora, para comparar só o dia.
   List<DateTime> _diasDoEvento(List<Palestra> palestras) {
+    final dias = <DateTime>{
+      for (final p in palestras)
+        if (p.dataInicio != null) DateUtils.dateOnly(p.dataInicio!),
+    };
     final inicio = DateTime.tryParse(widget.inicioEvento ?? '');
     final fim = DateTime.tryParse(widget.fimEvento ?? '') ?? inicio;
-    if (inicio != null && fim != null && !fim.isBefore(inicio)) {
-      final dias = <DateTime>[];
+    if (inicio != null && fim != null) {
       // `DateTime(ano, mes, dia + 1)` avança um dia certinho, mesmo na
       // virada do mês.
       for (var d = DateUtils.dateOnly(inicio); !d.isAfter(fim); d = DateTime(d.year, d.month, d.day + 1)) {
         dias.add(d);
       }
-      return dias;
     }
-    return {
-      for (final p in palestras)
-        if (p.dataInicio != null) DateUtils.dateOnly(p.dataInicio!),
-    }.toList()
-      ..sort();
+    return dias.toList()..sort();
   }
 
-  /// A palestra já terminou? Usa o horário de fim (ou o de início, se não
-  /// houver fim). Uma palestra em andamento ainda não terminou.
-  bool _encerrada(Palestra p) {
-    final fim = p.dataFim ?? p.dataInicio;
-    return fim != null && fim.isBefore(DateTime.now());
-  }
-
-  /// A palestra já começou e ainda não terminou?
-  bool _emAndamento(Palestra p) {
-    final inicio = p.dataInicio;
-    return inicio != null && !inicio.isAfter(DateTime.now()) && !_encerrada(p);
-  }
+  /// Temas das palestras, sem repetir e em ordem alfabética.
+  List<String> _temas(List<Palestra> palestras) =>
+      {for (final p in palestras) if (p.tema != null && p.tema!.trim().isNotEmpty) p.tema!}.toList()..sort();
 
   @override
   void dispose() {
@@ -427,35 +422,6 @@ class _FiltroTemas extends StatelessWidget {
       child: Row(children: [
         botao('Todos', null),
         for (final t in temas) botao(t, t),
-      ]),
-    );
-  }
-}
-
-/// Aviso pequeno de lista vazia: ícone e texto secundário dentro de um
-/// bloco com linha fina, no lugar da lista.
-class _AvisoVazio extends StatelessWidget {
-  final String texto;
-
-  const _AvisoVazio(this.texto);
-
-  @override
-  Widget build(BuildContext context) {
-    final tema = Theme.of(context);
-    final cores = tema.colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: cores.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cores.outlineVariant),
-      ),
-      child: Row(children: [
-        Icon(Icons.event_busy_outlined, size: 18, color: cores.onSurfaceVariant),
-        const SizedBox(width: 10),
-        Expanded(child: Text(texto, style: tema.textTheme.bodySmall)),
       ]),
     );
   }

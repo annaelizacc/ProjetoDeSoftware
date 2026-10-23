@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
 import '../utils/datas.dart';
+import '../widgets/aviso_vazio.dart';
 import '../widgets/cabecalho_aba.dart';
 import '../widgets/selo.dart';
 import 'palestra_details_page.dart';
@@ -115,7 +116,7 @@ class _AgendaPageState extends State<AgendaPage> {
           CabecalhoAba(rotulo: 'Suas inscrições', titulo: 'Minha agenda'),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: _AvisoVazio('Você ainda não tem inscrições. Inscreva-se pela Programação.'),
+            child: AvisoVazio('Você ainda não tem inscrições. Inscreva-se pela Programação.'),
           ),
         ],
       );
@@ -133,6 +134,28 @@ class _AgendaPageState extends State<AgendaPage> {
 
     final agora = DateTime.now();
     final destaque = DateUtils.isSameDay(dia, agora) ? _escolherDestaque(doDia, agora) : null;
+
+    // Monta a linha do tempo: cada palestra e, quando sobra tempo antes da
+    // próxima, a pausa. `ocupadoAte` guarda o maior fim visto até ali: com
+    // palestras sobrepostas (ex.: de eventos diferentes), uma mais longa
+    // ainda pode estar acontecendo, e aí não há intervalo livre.
+    final paradas = <Widget>[];
+    DateTime? ocupadoAte;
+    for (var i = 0; i < doDia.length; i++) {
+      final p = doDia[i];
+      paradas.add(_ParadaPalestra(
+        palestra: p,
+        destaque: identical(p, destaque),
+        passada: p.encerradaEm(agora),
+        agora: agora,
+        aoTocar: () => abrirDetalhes(p),
+      ));
+      final fim = p.fimOuInicio!;
+      if (ocupadoAte == null || fim.isAfter(ocupadoAte)) ocupadoAte = fim;
+      if (i < doDia.length - 1 && doDia[i + 1].dataInicio!.isAfter(ocupadoAte)) {
+        paradas.add(_ParadaPausa(inicio: ocupadoAte, fim: doDia[i + 1].dataInicio!));
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -157,32 +180,17 @@ class _AgendaPageState extends State<AgendaPage> {
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-            children: [
-              for (var i = 0; i < doDia.length; i++) ...[
-                _ParadaPalestra(
-                  palestra: doDia[i],
-                  destaque: identical(doDia[i], destaque),
-                  passada: _fim(doDia[i]).isBefore(agora),
-                  agora: agora,
-                  aoTocar: () => abrirDetalhes(doDia[i]),
-                ),
-                if (i < doDia.length - 1 && doDia[i + 1].dataInicio!.isAfter(_fim(doDia[i])))
-                  _ParadaPausa(inicio: _fim(doDia[i]), fim: doDia[i + 1].dataInicio!),
-              ],
-            ],
+            children: paradas,
           ),
         ),
       ],
     );
   }
 
-  /// Fim da palestra; sem fim cadastrado, usa o início.
-  DateTime _fim(Palestra p) => p.dataFim ?? p.dataInicio!;
-
   /// A palestra acontecendo agora ou, se nenhuma estiver, a próxima do dia.
   Palestra? _escolherDestaque(List<Palestra> doDia, DateTime agora) {
     for (final p in doDia) {
-      if (!p.dataInicio!.isAfter(agora) && _fim(p).isAfter(agora)) return p;
+      if (p.emAndamentoEm(agora)) return p;
     }
     for (final p in doDia) {
       if (p.dataInicio!.isAfter(agora)) return p;
@@ -328,8 +336,10 @@ class _ParadaPalestra extends StatelessWidget {
 /// Uma pausa entre duas palestras: linha tracejada e ponto pequeno.
 ///
 /// Se a pausa passa pelo horário do almoço (entre 12:00 e 13:00) e tem
-/// pelo menos 30 min, vira "Almoço", com o link "ver onde comer". Esse
-/// link leva aos restaurantes da F13 e, até lá, só avisa "Em breve".
+/// pelo menos 30 min, ganha o link "ver onde comer"; se tem até 3 h, o
+/// texto é "Almoço", e se é maior continua "Intervalo livre de 8 h", para
+/// não esconder que a pessoa tem o dia livre. O link leva aos
+/// restaurantes da F13 e, até lá, só avisa "Em breve".
 class _ParadaPausa extends StatelessWidget {
   final DateTime inicio;
   final DateTime fim;
@@ -343,9 +353,12 @@ class _ParadaPausa extends StatelessWidget {
     final textos = tema.textTheme;
 
     final meioDia = DateTime(inicio.year, inicio.month, inicio.day, 12);
-    final almoco = inicio.isBefore(meioDia.add(const Duration(hours: 1))) &&
+    final duracao = fim.difference(inicio);
+    final passaPeloAlmoco = inicio.isBefore(meioDia.add(const Duration(hours: 1))) &&
         fim.isAfter(meioDia) &&
-        fim.difference(inicio).inMinutes >= 30;
+        duracao.inMinutes >= 30;
+    final texto = passaPeloAlmoco && duracao.inMinutes <= 180 ? 'Almoço' : 'Intervalo livre de ${_duracao(duracao)}';
+    final estilo = textos.bodySmall?.copyWith(fontSize: 14);
 
     return _LinhaDoTempo(
       hora: Padding(
@@ -366,23 +379,20 @@ class _ParadaPausa extends StatelessWidget {
       ),
       conteudo: Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 22),
-        child: almoco
-            ? Row(children: [
-                Text('Almoço · ', style: textos.bodySmall?.copyWith(fontSize: 14)),
+        child: passaPeloAlmoco
+            ? Wrap(children: [
+                Text('$texto · ', style: estilo),
                 GestureDetector(
                   onTap: () => ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(const SnackBar(content: Text('Em breve: onde comer perto do evento.'))),
                   child: Text(
                     'ver onde comer',
-                    style: textos.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: cores.primary),
+                    style: estilo?.copyWith(fontWeight: FontWeight.w600, color: cores.primary),
                   ),
                 ),
               ])
-            : Text(
-                'Intervalo livre de ${_duracao(fim.difference(inicio))}',
-                style: textos.bodySmall?.copyWith(fontSize: 14),
-              ),
+            : Text(texto, style: estilo),
       ),
     );
   }
@@ -470,32 +480,4 @@ class _Trilho extends CustomPainter {
       antigo.topoPonto != topoPonto ||
       antigo.corPonto != corPonto ||
       antigo.corBorda != corBorda;
-}
-
-/// Aviso pequeno de lista vazia, no mesmo estilo da Programação.
-class _AvisoVazio extends StatelessWidget {
-  final String texto;
-
-  const _AvisoVazio(this.texto);
-
-  @override
-  Widget build(BuildContext context) {
-    final tema = Theme.of(context);
-    final cores = tema.colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.only(top: 18),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: cores.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cores.outlineVariant),
-      ),
-      child: Row(children: [
-        Icon(Icons.event_busy_outlined, size: 18, color: cores.onSurfaceVariant),
-        const SizedBox(width: 10),
-        Expanded(child: Text(texto, style: tema.textTheme.bodySmall)),
-      ]),
-    );
-  }
 }
