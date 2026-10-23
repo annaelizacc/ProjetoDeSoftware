@@ -177,6 +177,8 @@ class _HomePageState extends State<HomePage> {
                       eventoId: evento['id_evento'],
                       nomeEvento: evento['nome'] ?? '',
                       usuarioId: widget.usuarioId,
+                      inicioEvento: evento['data_inicio'],
+                      fimEvento: evento['data_fim'],
                     )),
                   ),
                   const SizedBox(height: 20),

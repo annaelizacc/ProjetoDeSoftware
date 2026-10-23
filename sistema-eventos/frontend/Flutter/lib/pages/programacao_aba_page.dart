@@ -52,6 +52,8 @@ class _ProgramacaoAbaPageState extends State<ProgramacaoAbaPage> {
           eventoId: evento['id_evento'],
           nomeEvento: evento['nome'] ?? '',
           usuarioId: widget.usuarioId,
+          inicioEvento: evento['data_inicio'],
+          fimEvento: evento['data_fim'],
         );
       },
     );
