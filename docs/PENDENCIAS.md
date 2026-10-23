@@ -808,6 +808,22 @@ o nome indicado, que aparece acima de cada tela.
     do último commit). A `main` (com F03, F04 e F05 da Bianca) já foi
     trazida para a branch; antes do Pull Request, trazer de novo se
     houver novidades.
+  - **Céu suave e eventos, lugares e salas (aprovado em 23/10/2026,
+    noite):** a Manuela criou no canvas as páginas "Opção · fundo céu" e
+    "Proposta · eventos, lugares e salas" e escolheu o **céu suave** para
+    o app todo e as telas novas da proposta. Para não mudar a regra do
+    `CLAUDE.md` (a fonte oficial é a página refinada), a própria página
+    refinada foi atualizada: fundo céu suave `#E3F3FF` (linhas
+    `#BFDDF2`, bordas `#9CC8E6`, texto secundário `#3E5A73`, blocos
+    `#CFE9FB`, estrelas `#8A6420`; o modo escuro não muda), o Início com o
+    cartão "Você está no evento · Outros eventos (N)" no lugar da lista
+    **Trocar evento** (o resto do Início fica igual), a nova prancha
+    "Escolher evento" e a Planta do lugar com o nome do lugar e a lista
+    "Salas e como chegar". Como o PR #21 (commits 1 a 4) já entrou na
+    `main`, o restante da parte 2 segue na branch `f20-ceu-e-eventos`, um
+    commit por tela: tema (1), avisos (2), detalhes (3), planta do lugar
+    (4), escolher evento e cartão do Início (5), perfil (6), início (7) e
+    documentação (8).
   - **Plano da parte 2 (aprovado em 23/10/2026), um commit por tela,
     na branch `f20-telas-restantes`:** abertura (com o rio de espessura
     fixa, centralizado e sem deformar em telas largas), favoritos,

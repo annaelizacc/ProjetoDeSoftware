@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 /// FINALIDADE DESTE ARQUIVO:
 /// Concentrar em um só lugar as cores, as fontes e o estilo dos
 /// componentes do app, seguindo a identidade visual aprovada no canvas
-/// ("Telas do projeto · opção 1 refinada", F20). As telas nunca declaram
+/// ("Telas do projeto · opção 1 refinada", F20, com o fundo céu suave
+/// aprovado em 23/10/2026). As telas nunca declaram
 /// cores fixas: elas pedem a cor pela FUNÇÃO, por exemplo
 /// `Theme.of(context).colorScheme.primary`. Assim, quando o modo escuro é
 /// ligado (F11, RF20), todas as cores mudam juntas.
@@ -27,14 +28,18 @@ import 'package:flutter/material.dart';
 /// | error               | esgotada, atenção, contador       | Brasa      | #F08A5D    |
 /// | surface             | cards, campos, barra de navegação | Branco     | #0E2539    |
 /// | onSurface           | texto principal                   | Tinta      | #F3EDE4    |
-/// | onSurfaceVariant    | texto secundário e rótulos        | #6B5E50    | #B3C0CC    |
-/// | outline             | borda de campos e selos           | #CDBBA3    | #2A4A66    |
-/// | outlineVariant      | linhas finas de 1px               | #E4D8C8    | #1F3A54    |
-/// | surfaceContainer    | blocos de apoio (atalhos, abas)   | #EFE2D0    | #12304A    |
+/// | onSurfaceVariant    | texto secundário e rótulos        | #3E5A73    | #B3C0CC    |
+/// | outline             | borda de campos e selos           | #9CC8E6    | #2A4A66    |
+/// | outlineVariant      | linhas finas de 1px               | #BFDDF2    | #1F3A54    |
+/// | surfaceContainer    | blocos de apoio (atalhos, abas)   | #CFE9FB    | #12304A    |
 /// | secondaryContainer  | superfícies quentes (avatar)      | Areia      | #12304A    |
 ///
 /// O fundo das telas não está no `ColorScheme`: é o
-/// `scaffoldBackgroundColor` (Papel no claro, #071827 no escuro).
+/// `scaffoldBackgroundColor` (Céu suave no claro, #071827 no escuro).
+///
+/// O Papel deixou de ser o fundo em 23/10/2026, quando o canvas passou
+/// para o céu suave; ele continua como cor do texto sobre os botões
+/// Marinho (`onPrimary`).
 ///
 /// A Brasa original (#B4471A) fica com pouco contraste sobre o fundo
 /// escuro, por isso o modo escuro usa um tom mais claro dela.
@@ -43,7 +48,10 @@ class AppColors {
 
   // ---- Paleta da marca (modo claro) ----
 
-  /// Fundo das telas.
+  /// Fundo das telas (céu suave).
+  static const ceuSuave = Color(0xFFE3F3FF);
+
+  /// Texto sobre os botões Marinho.
   static const papel = Color(0xFFF6EEE3);
 
   /// Cards e campos de texto.
@@ -83,7 +91,7 @@ class AppColors {
   // (`widgets/estrelas.dart`), que escolhe uma ou outra pelo modo atual.
 
   /// Estrelas marcadas no modo claro (tom do canvas, prancha "Avaliar").
-  static const estrela = Color(0xFFB8862B);
+  static const estrela = Color(0xFF8A6420);
 
   /// Estrelas marcadas no modo escuro.
   static const estrelaEscura = Color(0xFFE9B949);
@@ -110,7 +118,7 @@ class AppTheme {
   // é usado, e reaproveitado em toda troca de tema.
   static final ThemeData claro = _montarTema(
         brilho: Brightness.light,
-        fundo: AppColors.papel,
+        fundo: AppColors.ceuSuave,
         corTitulo: AppColors.marinho,
         cores: const ColorScheme(
           brightness: Brightness.light,
@@ -124,10 +132,10 @@ class AppTheme {
           onError: AppColors.branco,
           surface: AppColors.branco,
           onSurface: AppColors.tinta,
-          onSurfaceVariant: Color(0xFF6B5E50),
-          outline: Color(0xFFCDBBA3),
-          outlineVariant: Color(0xFFE4D8C8),
-          surfaceContainer: Color(0xFFEFE2D0),
+          onSurfaceVariant: Color(0xFF3E5A73),
+          outline: Color(0xFF9CC8E6),
+          outlineVariant: Color(0xFFBFDDF2),
+          surfaceContainer: Color(0xFFCFE9FB),
           secondaryContainer: AppColors.areia,
           onSecondaryContainer: AppColors.marinho,
         ),
