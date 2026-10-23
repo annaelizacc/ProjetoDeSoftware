@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../models/avaliacao.dart';
 import '../models/palestra.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/aviso_choque_horario.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/estrelas.dart';
 import '../widgets/perfil_palestrante.dart';
+import '../widgets/picote.dart';
 import '../widgets/rotulo_secao.dart';
+import '../widgets/selo.dart';
 import 'avaliar_page.dart';
 import 'planta_page.dart';
 
@@ -33,11 +36,18 @@ typedef _DadosDetalhes = ({Palestra palestra, List<Avaliacao> avaliacoes});
 /// refletir o novo estado vindo do backend, em vez de tentar adivinhar o
 /// resultado no próprio Flutter.
 ///
-/// Visual da prancha "Detalhes da palestra" do canvas (F20): cabeçalho
-/// com o título, linhas de informação (quando, onde e palestrante),
-/// cartão de vagas, avaliações e uma barra fixa embaixo com favoritar,
-/// lembrete e inscrição. Tocar no palestrante ("Ver perfil") abre o
-/// perfil dele (`abrirPerfilPalestrante`).
+/// Visual da prancha "Detalhes da palestra" do canvas (F20): topo Céu com
+/// o rio, o selo do tema e o título grande (`_TopoDetalhes`), linhas de
+/// informação (quando, onde e palestrante), cartão de vagas, avaliações e
+/// uma barra fixa embaixo, separada pelo picote, com favoritar, lembrete e
+/// inscrição. Tocar no palestrante ("Ver perfil") abre o perfil dele
+/// (`abrirPerfilPalestrante`).
+///
+/// Palestra que já começou (em andamento ou encerrada) não aceita mais
+/// inscrição nem cancelamento (F16, bloqueado também no backend). Por
+/// isso o cartão de vagas e o lembrete somem; quem estava inscrito vê só
+/// favoritar e Avaliar (ou Editar avaliação), e quem não estava não vê a
+/// barra.
 ///
 /// Rotas (F04, RF11): a linha "Onde" tem o botão "Ver planta", que abre a
 /// planta do evento (`PlantaPage`, F03), e a seção "Como chegar" mostra o
@@ -189,61 +199,185 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
             ]);
           }
           final p = snapshot.data!.palestra;
+          final agora = DateTime.now();
+          final comecou = p.emAndamentoEm(agora) || p.encerradaEm(agora);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CabecalhoTela(titulo: p.titulo, secao: p.tema ?? 'Palestra'),
               Expanded(
+                // O topo fica dentro da lista e rola junto com o conteúdo;
+                // só a barra de ações fica fixa embaixo.
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                  padding: EdgeInsets.zero,
                   children: [
-                    _LinhaInfo(rotulo: 'Quando', valor: p.horario, mono: true),
-                    _LinhaInfo(
-                      rotulo: 'Onde',
-                      valor: p.sala ?? 'Local a definir',
-                      textoAcao: 'Ver planta',
-                      aoTocar: p.idEvento == null ? null : () => abrirPlanta(p),
-                    ),
-                    if (p.palestrante != null)
-                      _LinhaInfo(
-                        rotulo: 'Palestrante',
-                        valor: p.palestrante!,
-                        textoAcao: 'Ver perfil',
-                        aoTocar: p.idPalestrante == null || p.idEvento == null ? null : () => abrirPerfil(p),
+                    _TopoDetalhes(palestra: p),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _LinhaInfo(rotulo: 'Quando', valor: p.horario, mono: true),
+                          _LinhaInfo(
+                            rotulo: 'Onde',
+                            valor: p.sala ?? 'Local a definir',
+                            textoAcao: 'Ver planta',
+                            aoTocar: p.idEvento == null ? null : () => abrirPlanta(p),
+                          ),
+                          if (p.palestrante != null)
+                            _LinhaInfo(
+                              rotulo: 'Palestrante',
+                              valor: p.palestrante!,
+                              textoAcao: 'Ver perfil',
+                              aoTocar: p.idPalestrante == null || p.idEvento == null ? null : () => abrirPerfil(p),
+                            ),
+                          if (passosDaRota(p.comoChegar).isNotEmpty) ...[
+                            const SizedBox(height: 18),
+                            _ComoChegar(passos: passosDaRota(p.comoChegar)),
+                          ],
+                          const SizedBox(height: 18),
+                          const RotuloSecao('Sobre'),
+                          const SizedBox(height: 6),
+                          Text(p.resumo ?? 'Resumo não informado.', style: Theme.of(context).textTheme.bodyLarge),
+                          // Depois que a palestra começa, as vagas não importam
+                          // mais: ninguém entra nem sai.
+                          if (!comecou) ...[
+                            const SizedBox(height: 18),
+                            _CartaoVagas(palestra: p),
+                          ],
+                          const SizedBox(height: 22),
+                          _SecaoAvaliacoes(
+                            palestra: p,
+                            avaliacoes: snapshot.data!.avaliacoes,
+                            aoAvaliar: () => abrirAvaliar(p),
+                          ),
+                        ],
                       ),
-                    if (passosDaRota(p.comoChegar).isNotEmpty) ...[
-                      const SizedBox(height: 18),
-                      _ComoChegar(passos: passosDaRota(p.comoChegar)),
-                    ],
-                    const SizedBox(height: 18),
-                    const RotuloSecao('Sobre'),
-                    const SizedBox(height: 6),
-                    Text(p.resumo ?? 'Resumo não informado.', style: Theme.of(context).textTheme.bodyLarge),
-                    const SizedBox(height: 18),
-                    _CartaoVagas(palestra: p),
-                    const SizedBox(height: 22),
-                    _SecaoAvaliacoes(
-                      palestra: p,
-                      avaliacoes: snapshot.data!.avaliacoes,
-                      aoAvaliar: () => abrirAvaliar(p),
                     ),
                   ],
                 ),
               ),
-              _BarraAcoes(
-                palestra: p,
-                aoInscrever: () => executar(() => p.inscrito
-                    ? ApiService.cancelarInscricao(widget.usuarioId, p.id)
-                    : inscreverComAvisoDeChoque(p)),
-                aoFavoritar: () => executar(() => ApiService.alterarFavorito(widget.usuarioId, p.id, !p.favorita)),
-                aoLembrar: () => executar(() => ApiService.alterarLembrete(widget.usuarioId, p.id, !p.lembreteAtivo)),
-              ),
+              // Quem não estava inscrito numa palestra que já começou não
+              // tem o que fazer na barra, então ela não aparece.
+              if (!comecou || p.inscrito)
+                _BarraAcoes(
+                  palestra: p,
+                  comecou: comecou,
+                  aoInscrever: () => executar(() =>
+                      p.inscrito ? ApiService.cancelarInscricao(widget.usuarioId, p.id) : inscreverComAvisoDeChoque(p)),
+                  aoFavoritar: () => executar(() => ApiService.alterarFavorito(widget.usuarioId, p.id, !p.favorita)),
+                  aoLembrar: () => executar(() => ApiService.alterarLembrete(widget.usuarioId, p.id, !p.lembreteAtivo)),
+                  aoAvaliar: () => abrirAvaliar(p),
+                ),
             ],
           );
         },
       ),
     );
   }
+}
+
+/// Topo da prancha "Detalhes da palestra": fundo Céu, o rio descendo pela
+/// direita, o botão de voltar, o selo do tema e o título grande.
+///
+/// No modo escuro a prancha usa outro fundo (`surfaceContainer`) e o
+/// texto claro (`onSurface`). O selo é o `Selo` de destaque, que já troca
+/// sozinho (Marinho no claro, Céu no escuro).
+class _TopoDetalhes extends StatelessWidget {
+  final Palestra palestra;
+
+  const _TopoDetalhes({required this.palestra});
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    final cores = tema.colorScheme;
+    final escuro = tema.brightness == Brightness.dark;
+    final fundo = escuro ? cores.surfaceContainer : cores.tertiary;
+    final corTexto = escuro ? cores.onSurface : cores.onTertiary;
+    final tag = palestra.tema;
+
+    return Container(
+      color: fundo,
+      // `minHeight`: os 230px da prancha; um título longo faz o topo
+      // crescer em vez de cortar o texto.
+      constraints: const BoxConstraints(minHeight: 230),
+      child: CustomPaint(
+        painter: _RioDoTopo(escuro ? AppColors.rioTopoEscuro : AppColors.rioTopo),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 4, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  tooltip: 'Voltar',
+                  color: corTexto,
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+                const SizedBox(height: 56),
+                Padding(
+                  // 290px de largura, como na prancha: o título não passa
+                  // por cima do rio.
+                  padding: const EdgeInsets.only(left: 10, right: 60),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (tag != null && tag.isNotEmpty) ...[
+                        Selo(tag, tipo: TipoSelo.destaque),
+                        const SizedBox(height: 10),
+                      ],
+                      Text(
+                        palestra.titulo,
+                        style: tema.textTheme.headlineMedium?.copyWith(
+                          fontSize: 28,
+                          height: 1.12,
+                          letterSpacing: -0.3,
+                          color: corTexto,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Desenha o rio do topo: a mesma curva da prancha (390px de largura),
+/// presa à borda direita e com espessura fixa de 18px. Em telas largas o
+/// rio não estica, só fica mais longe do título.
+class _RioDoTopo extends CustomPainter {
+  final Color cor;
+
+  _RioDoTopo(this.cor);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Desloca a curva para que a borda direita da prancha (x = 390) fique
+    // na borda direita da tela.
+    final dx = size.width - 390;
+    final caminho = Path()
+      ..moveTo(334 + dx, -10)
+      ..cubicTo(282 + dx, 40, 292 + dx, 96, 336 + dx, 128)
+      ..cubicTo(378 + dx, 160, 370 + dx, 206, 330 + dx, size.height + 20);
+    canvas.drawPath(
+      caminho,
+      Paint()
+        ..color = cor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 18
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RioDoTopo antigo) => antigo.cor != cor;
 }
 
 /// Uma linha "rótulo · valor" com linha fina embaixo (ex.: QUANDO 09:00).
@@ -380,7 +514,8 @@ class _CartaoVagas extends StatelessWidget {
       ),
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('${p.vagas}/${p.total} VAGAS', style: rotulo?.copyWith(fontWeight: FontWeight.w700, color: cores.onSurface)),
+          Text('${p.vagas}/${p.total} VAGAS',
+              style: rotulo?.copyWith(fontWeight: FontWeight.w700, color: cores.onSurface)),
           Text(nota, style: lotada && !p.inscrito ? rotulo?.copyWith(color: cores.error) : rotulo),
         ]),
         const SizedBox(height: 10),
@@ -479,7 +614,8 @@ class _Comentario extends StatelessWidget {
       decoration: BoxDecoration(border: Border(top: BorderSide(color: tema.colorScheme.outlineVariant))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Flexible(child: Text(a.nomeUsuario ?? 'Participante', style: tema.textTheme.titleSmall?.copyWith(fontSize: 14))),
+          Flexible(
+              child: Text(a.nomeUsuario ?? 'Participante', style: tema.textTheme.titleSmall?.copyWith(fontSize: 14))),
           Text('${a.nota} ★ · ${a.dataCurta}', style: tema.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w500)),
         ]),
         if (temTexto) ...[
@@ -491,18 +627,26 @@ class _Comentario extends StatelessWidget {
   }
 }
 
-/// Barra fixa embaixo: favoritar, lembrete e o botão principal de inscrição.
+/// Barra fixa embaixo, separada do conteúdo pelo picote.
+///
+/// Antes de a palestra começar: favoritar, lembrete e o botão principal de
+/// inscrição. Depois (`comecou`), para quem estava inscrito: só favoritar
+/// e Avaliar (ou Editar avaliação), quando o backend permite.
 class _BarraAcoes extends StatelessWidget {
   final Palestra palestra;
+  final bool comecou;
   final VoidCallback aoInscrever;
   final VoidCallback aoFavoritar;
   final VoidCallback aoLembrar;
+  final VoidCallback aoAvaliar;
 
   const _BarraAcoes({
     required this.palestra,
+    required this.comecou,
     required this.aoInscrever,
     required this.aoFavoritar,
     required this.aoLembrar,
+    required this.aoAvaliar,
   });
 
   @override
@@ -535,38 +679,61 @@ class _BarraAcoes extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: cores.outline))),
-      child: SafeArea(
-        top: false,
-        child: Row(children: [
-          botaoIcone(
-            ligado: p.favorita,
-            icone: Icons.star_border_rounded,
-            iconeLigado: Icons.star_rounded,
-            dica: p.favorita ? 'Remover dos favoritos' : 'Favoritar',
-            aoTocar: aoFavoritar,
-          ),
-          const SizedBox(width: 10),
-          botaoIcone(
-            ligado: p.lembreteAtivo,
-            icone: Icons.notifications_none,
-            iconeLigado: Icons.notifications_active,
-            dica: p.lembreteAtivo ? 'Desativar lembrete' : 'Ativar lembrete',
-            aoTocar: aoLembrar,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: p.inscrito
-                ? OutlinedButton(onPressed: aoInscrever, child: const Text('Cancelar inscrição'))
-                : FilledButton(
-                    onPressed: p.vagas > 0 ? aoInscrever : null,
-                    child: Text(p.vagas > 0 ? 'Garantir vaga' : 'Palestra lotada'),
-                  ),
-          ),
-        ]),
-      ),
+    final favoritar = botaoIcone(
+      ligado: p.favorita,
+      icone: Icons.star_border_rounded,
+      iconeLigado: Icons.star_rounded,
+      dica: p.favorita ? 'Remover dos favoritos' : 'Favoritar',
+      aoTocar: aoFavoritar,
+    );
+
+    // A mesma regra da seção de avaliações: quem já avaliou edita; quem
+    // ainda não avaliou só vê o botão quando o backend deixa criar.
+    final jaAvaliou = p.minhaAvaliacao != null;
+
+    final List<Widget> botoes = comecou
+        ? [
+            favoritar,
+            if (jaAvaliou || p.podeAvaliar) ...[
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  onPressed: aoAvaliar,
+                  child: Text(jaAvaliou ? 'Editar avaliação' : 'Avaliar'),
+                ),
+              ),
+            ],
+          ]
+        : [
+            favoritar,
+            const SizedBox(width: 10),
+            botaoIcone(
+              ligado: p.lembreteAtivo,
+              icone: Icons.notifications_none,
+              iconeLigado: Icons.notifications_active,
+              dica: p.lembreteAtivo ? 'Desativar lembrete' : 'Ativar lembrete',
+              aoTocar: aoLembrar,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: p.inscrito
+                  ? OutlinedButton(onPressed: aoInscrever, child: const Text('Cancelar inscrição'))
+                  : FilledButton(
+                      onPressed: p.vagas > 0 ? aoInscrever : null,
+                      child: Text(p.vagas > 0 ? 'Garantir vaga' : 'Palestra lotada'),
+                    ),
+            ),
+          ];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Picote(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          child: SafeArea(top: false, child: Row(children: botoes)),
+        ),
+      ],
     );
   }
 }

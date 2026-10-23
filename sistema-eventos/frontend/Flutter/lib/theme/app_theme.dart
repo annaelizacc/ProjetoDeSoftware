@@ -95,6 +95,16 @@ class AppColors {
 
   /// Estrelas marcadas no modo escuro.
   static const estrelaEscura = Color(0xFFE9B949);
+
+  // ---- Rio do topo dos Detalhes (F20) ----
+  // Também fora do `ColorScheme`: é só a curva decorativa do topo da tela
+  // de detalhes, que escolhe uma ou outra pelo modo atual.
+
+  /// Rio sobre o topo Céu, no modo claro.
+  static const rioTopo = Color(0xFFC9EBFF);
+
+  /// Rio sobre o topo escuro.
+  static const rioTopoEscuro = Color(0xFF1F4B6E);
 }
 
 /// Nomes das fontes declaradas no `pubspec.yaml` (pasta `assets/fonts/`).
