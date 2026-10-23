@@ -441,45 +441,77 @@ List<String> passosDaRota(String? texto) {
 /// Seção "Como chegar · a partir da entrada" (F04, RF11), como na prancha
 /// "Detalhes da palestra" do canvas: cada passo com o número num
 /// quadradinho Marinho.
-class _ComoChegar extends StatelessWidget {
+///
+/// Começa recolhida (decisão da Manuela, 23/10/2026): aparece só o rótulo
+/// com uma seta, e tocar nele mostra ou esconde os passos. Assim a tela
+/// fica mais curta para quem não precisa do caminho.
+///
+/// É um `StatefulWidget` porque guarda uma informação que muda com o
+/// toque (`aberto`). O `setState` avisa o Flutter para redesenhar só esta
+/// seção, sem buscar nada de novo no servidor.
+class _ComoChegar extends StatefulWidget {
   final List<String> passos;
 
   const _ComoChegar({required this.passos});
 
   @override
+  State<_ComoChegar> createState() => _ComoChegarState();
+}
+
+class _ComoChegarState extends State<_ComoChegar> {
+  bool aberto = false;
+
+  @override
   Widget build(BuildContext context) {
     final cores = Theme.of(context).colorScheme;
     final textos = Theme.of(context).textTheme;
+    final passos = widget.passos;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const RotuloSecao('Como chegar · a partir da entrada'),
-        const SizedBox(height: 10),
-        for (var i = 0; i < passos.length; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: cores.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${i + 1}',
-                    style: textos.labelMedium?.copyWith(fontWeight: FontWeight.w700, color: cores.onPrimary),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(passos[i], style: textos.bodyLarge?.copyWith(height: 1.4))),
-              ],
-            ),
+        // A linha toda pode ser tocada (pelo menos 44px de altura, o
+        // tamanho mínimo de toque da identidade visual).
+        InkWell(
+          onTap: () => setState(() => aberto = !aberto),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Row(children: [
+              const Expanded(child: RotuloSecao('Como chegar · a partir da entrada')),
+              Icon(
+                aberto ? Icons.expand_less : Icons.expand_more,
+                color: cores.onSurfaceVariant,
+                semanticLabel: aberto ? 'Esconder o caminho' : 'Mostrar o caminho',
+              ),
+            ]),
           ),
+        ),
+        if (aberto) const SizedBox(height: 6),
+        if (aberto)
+          for (var i = 0; i < passos.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: cores.primary,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${i + 1}',
+                      style: textos.labelMedium?.copyWith(fontWeight: FontWeight.w700, color: cores.onPrimary),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(passos[i], style: textos.bodyLarge?.copyWith(height: 1.4))),
+                ],
+              ),
+            ),
       ],
     );
   }
