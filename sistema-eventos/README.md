@@ -47,6 +47,16 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     palestras (com local, palestrante e total de vagas) e os
     patrocinadores (com logo). As imagens aceitas são PNG, JPG ou WEBP
     de até 5 MB. Excluir um evento pede a senha de quem está logado.
+18. Ver e pesquisar os palestrantes do evento pelo nome (Início →
+    "Palestrantes"). Tocar num palestrante abre o perfil dele, e tocar
+    numa palestra do perfil abre os detalhes dela.
+19. Ver a planta do evento (Início → "Mapa do local"): a imagem enviada
+    pelo organizador, com zoom, e a lista dos locais com o passo a passo
+    de como chegar.
+20. Ver como chegar até a sala de uma palestra (Detalhes → seção "Como
+    chegar"): o passo a passo a partir da entrada, escrito pelo
+    organizador com um passo por linha. O botão **Ver planta**, na linha
+    "Onde", abre a planta do evento.
 
 Todas as funcionalidades principais percorrem:
 
@@ -92,7 +102,8 @@ demonstração. Em relação ao banco oficial, ele:
 Ao criar ou alterar uma palestra pela API, o local é informado por
 `id_localizacao` (e o palestrante por `id_palestrante`). O campo `sala`
 não é mais aceito na entrada, mas continua nas respostas, com o nome do
-local, para o app não precisar mudar.
+local, para o app não precisar mudar. As respostas trazem também
+`como_chegar`, com o passo a passo da entrada até a sala (F04).
 
 **Atenção:** o script começa com `DROP DATABASE`, ou seja, apaga e recria o
 banco inteiro. Quem já tinha o banco criado por uma versão anterior precisa
@@ -270,11 +281,13 @@ conta**, preenche o cadastro e entra direto no app.
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
 **Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (só o **Patrocínio** já abre;
-os outros aparecem como "Em breve"), a descrição e a próxima palestra
+o botão **Ver programação**, os atalhos (**Mapa do local**, **Palestrantes** e **Patrocínio** já
+abrem; **Onde comer** aparece como "Em breve"), a descrição e a próxima palestra
 da agenda da pessoa nesse evento. Com mais de um evento, a lista
 **Trocar evento** acima do card troca o evento mostrado. Nos detalhes
-da palestra, tocar no palestrante (**Ver perfil**) abre o perfil dele,
+da palestra, **Ver planta** (na linha "Onde") abre a planta do evento,
+a seção **Como chegar** mostra o caminho até a sala e tocar no
+palestrante (**Ver perfil**) abre o perfil dele,
 com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
 interruptor de **Modo escuro** e o botão **Sair**, que volta para o
 login. A escolha do tema é salva no próprio aparelho com o pacote

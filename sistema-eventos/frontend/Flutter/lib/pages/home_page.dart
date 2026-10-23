@@ -7,6 +7,8 @@ import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
 import '../widgets/rotulo_secao.dart';
 import 'palestra_details_page.dart';
+import 'palestrantes_page.dart';
+import 'planta_page.dart';
 import 'patrocinadores_page.dart';
 import 'programacao_page.dart';
 
@@ -183,6 +185,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 20),
                   _Atalhos(
+                    aoAbrirPlanta: () => abrir(PlantaPage(
+                      eventoId: evento['id_evento'],
+                      nomeEvento: evento['nome'] ?? '',
+                    )),
+                    aoAbrirPalestrantes: () => abrir(PalestrantesPage(
+                      eventoId: evento['id_evento'],
+                      nomeEvento: evento['nome'] ?? '',
+                      usuarioId: widget.usuarioId,
+                    )),
                     aoAbrirPatrocinio: () => abrir(PatrocinadoresPage(
                       eventoId: evento['id_evento'],
                       nomeEvento: evento['nome'] ?? '',
@@ -389,19 +400,25 @@ class _RioDoCard extends CustomPainter {
   bool shouldRepaint(_RioDoCard antigo) => antigo.cor != cor;
 }
 
-/// Os quatro atalhos do evento, em duas colunas. Só o Patrocínio (F10) já
-/// tem tela; os outros aparecem como "Em breve": o mapa é a F03, os
-/// palestrantes a F05 e os restaurantes a F13.
+/// Os quatro atalhos do evento, em duas colunas. Mapa do local (F03),
+/// Palestrantes (F05) e Patrocínio (F10) já têm tela; "Onde comer"
+/// aparece como "Em breve" (F13).
 class _Atalhos extends StatelessWidget {
+  final VoidCallback aoAbrirPlanta;
+  final VoidCallback aoAbrirPalestrantes;
   final VoidCallback aoAbrirPatrocinio;
 
-  const _Atalhos({required this.aoAbrirPatrocinio});
+  const _Atalhos({
+    required this.aoAbrirPlanta,
+    required this.aoAbrirPalestrantes,
+    required this.aoAbrirPatrocinio,
+  });
 
   @override
   Widget build(BuildContext context) {
     final atalhos = <(String, VoidCallback?)>[
-      ('Mapa do local', null),
-      ('Palestrantes', null),
+      ('Mapa do local', aoAbrirPlanta),
+      ('Palestrantes', aoAbrirPalestrantes),
       ('Onde comer', null),
       ('Patrocínio', aoAbrirPatrocinio),
     ];

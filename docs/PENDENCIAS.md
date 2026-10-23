@@ -99,6 +99,11 @@ branch própria.
   `main`, **recriar o banco local** com o script novo (passo 1.4 do
   `FLUXO_DE_TRABALHO.md`). O que testar com cada usuário está no
   README, em "Dados de demonstração (S05)".
+- **Mudança da F04 que afeta a Manuela (23/10/2026):** as descrições dos
+  locais de exemplo viraram um passo a passo de verdade (um passo por
+  linha). As tabelas não mudaram. Depois que a F04 entrar na `main`,
+  **recriar o banco local** com o script novo para ver os passos novos;
+  sem recriar, o app funciona com as descrições antigas.
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -154,6 +159,7 @@ mais rápidas, por último as maiores.
 | 15 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
 | 16 | F22 Perfil de administrador geral | 🟢 | Nenhum RF pede; tarefa de segurança, precisa de mais tempo |
 | 17 | F23 Área do palestrante | 🟢 | Nenhum RF pede; muda uma decisão da F05 (palestrante sem login) |
+| 18 | S09 Capa do evento e tela "Escolher evento" | 🟢 | Nenhum RF pede; muda o banco (`evento.imagem_capa`) e o Início. Incluída com autorização da Manuela (23/10/2026) |
 
 A P13 não entra na lista: ela se resolve quando F03, F04, F08 e F13
 forem feitas.
@@ -179,11 +185,11 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF07 | Favoritar palestras | Concluído | — |
 | RF08 | Agenda personalizada | Concluído | — |
 | RF09 | Notificações sobre o início das palestras | Parcial: o lembrete é só gravado, nada avisa o usuário | F02 |
-| RF10 | Planta baixa do local | Parcial: só a tabela e a Model | F03 |
-| RF11 | Rotas até salas e auditórios | Pendente: só a tabela `localizacao` (nome e descrição) | F04 |
+| RF10 | Planta baixa do local | Concluído | F03 |
+| RF11 | Rotas até salas e auditórios | Concluído | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
-| RF13 | Pesquisar palestrantes pelo nome | Pendente: tabela `palestrante` criada na F19; faltam rota e tela | F05 |
-| RF14 | Informações dos palestrantes | Pendente | F05 |
+| RF13 | Pesquisar palestrantes pelo nome | Concluído | F05 |
+| RF14 | Informações dos palestrantes | Concluído | F05 |
 | RF15 | Comentários e feedbacks sobre palestras | Concluído | F06 |
 | RF16 | Avaliar palestras por estrelas | Concluído | F07 |
 | RF17 | Organizador gerencia inscrições | Concluído | F08 |
@@ -191,7 +197,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 15 concluídos, 2 parciais e 3 pendentes.
+**Resumo:** 19 concluídos e 1 parcial (RF09, F02).
 
 ## 1.2 Tarefas
 
@@ -204,9 +210,9 @@ o nome indicado, que aparece acima de cada tela.
 |---|---|---|---|---|
 | F01 | RF01 | 🔴 | Tela de cadastro de usuário | Concluído |
 | F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
-| F03 | RF10 | 🔴 | Planta baixa do evento | Parcial |
-| F04 | RF11 | 🔴 | Rotas até salas e auditórios | Pendente |
-| F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Pendente |
+| F03 | RF10 | 🔴 | Planta baixa do evento | Concluído |
+| F04 | RF11 | 🔴 | Rotas até salas e auditórios | Concluído |
+| F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Concluído |
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Concluído |
@@ -288,6 +294,12 @@ o nome indicado, que aparece acima de cada tela.
 - **Mesma solução para:** a foto do palestrante (F05) e o logo do
   patrocinador (F10).
 - **Depende de:** F14 (telas de cadastro do organizador).
+- **Concluído (23/10/2026):** tela "Planta do local"
+  (`pages/planta_page.dart`), aberta pelo atalho "Mapa do local" do
+  Início. Mostra a imagem com zoom (`InteractiveViewer`, do próprio
+  Flutter), a descrição da planta e a lista de locais com o passo a
+  passo de como chegar. Sem imagem, avisa que o organizador ainda não
+  enviou a planta. A F04 reaproveita a tela no botão "Ver planta".
 
 ### F04 Rotas até salas e auditórios (RF11)
 
@@ -310,15 +322,14 @@ o nome indicado, que aparece acima de cada tela.
   para mapas externos (não funciona dentro de prédios). Marcar as salas
   na planta pode virar melhoria futura.
 - **Depende de:** F14 (telas de cadastro do organizador).
-- **Feita dentro da F20 (decidido pela Manuela em 23/10/2026):** por
-  exceção à regra de uma branch por tarefa, a F04 entra no commit dos
-  Detalhes da branch `f20-telas-restantes`, porque mexe na mesma tela e
-  é pequena. O cadastro do passo a passo já existe (tela Locais, F14).
-  Falta: a API da palestra devolver `como_chegar` (a `descricao` do
-  local) e, nos Detalhes, um botão "Como chegar" que abre uma janela que
-  sobe de baixo, com os passos numerados (cada linha do texto é um
-  passo). Sem instruções cadastradas, o botão não aparece. O "Ver
-  planta" continua na F03.
+- **Concluído (23/10/2026):** nos detalhes da palestra, a linha "Onde"
+  ganhou o botão "Ver planta" (abre a tela da F03) e a seção "Como
+  chegar · a partir da entrada" mostra o passo a passo numerado, como na
+  prancha do canvas. O backend devolve o texto do local em
+  `como_chegar` no JSON da palestra (assim o app não precisa de outra
+  chamada), e o app separa os passos pelas linhas, tirando a numeração
+  digitada pelo organizador. Os locais de exemplo do SQL ganharam um
+  passo a passo de verdade.
 
 ### F05 Palestrantes: busca e informações (RF13, RF14)
 
@@ -352,6 +363,11 @@ o nome indicado, que aparece acima de cada tela.
   palestrante" do canvas. Falta nesta tarefa: a tela de palestrantes do
   participante, com a busca (RF13), que pode reaproveitar o
   `abrirPerfilPalestrante`.
+- **Concluído (23/10/2026):** tela "Palestrantes"
+  (`pages/palestrantes_page.dart`), aberta pelo atalho do Início. A
+  busca chama a API a cada letra digitada; o `FutureBuilder` mostra só
+  o resultado da busca mais recente. Tocar num palestrante abre o
+  perfil, e tocar numa palestra do perfil abre os detalhes dela.
 
 ### F06 Tela de comentários e feedbacks (RF15)
 
@@ -771,12 +787,12 @@ o nome indicado, que aparece acima de cada tela.
     imagem saíram.
   - **Andamento da parte 2 (23/10/2026, fim do dia):** feitos e
     commitados abertura, favoritos, programação e agenda (commits 1 a
-    4). **Falta, nesta ordem:** avisos (5), detalhes com a F04 (6),
+    4). **Falta, nesta ordem:** avisos (5), detalhes (6),
     perfil (7), início (8) e documentação (9: README, este arquivo com a
-    F20 e a F04 concluídas, os próximos passos e o `/code-review` antes
-    do último commit). Antes do Pull Request, trazer a `main` para a
-    branch (ela já recebeu a F05 da Bianca; o teste de junção não deu
-    conflito).
+    F20 concluída, os próximos passos e o `/code-review` antes
+    do último commit). A `main` (com F03, F04 e F05 da Bianca) já foi
+    trazida para a branch; antes do Pull Request, trazer de novo se
+    houver novidades.
   - **Plano da parte 2 (aprovado em 23/10/2026), um commit por tela,
     na branch `f20-telas-restantes`:** abertura (com o rio de espessura
     fixa, centralizado e sem deformar em telas largas), favoritos,
@@ -807,8 +823,10 @@ o nome indicado, que aparece acima de cada tela.
     andamento ou encerrada: o cartão de vagas some; na barra, quem
     estava inscrito vê só favoritar (pequeno) e **Avaliar** (ou **Editar
     avaliação**), e quem não estava inscrito não vê nenhum botão; o
-    lembrete some. O bloqueio no backend é da F16. O mesmo commit inclui
-    a F04 (botão "Como chegar" com janela que sobe de baixo; ver F04).
+    lembrete some. O bloqueio no backend é da F16. O "Como chegar" e o
+    "Ver planta" já vieram prontos da F04 e da F03 (Bianca), em uma
+    seção na própria tela, como na prancha; o commit dos Detalhes parte
+    da versão dela.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
@@ -984,6 +1002,7 @@ Uma sugestão aprovada vira uma tarefa F; uma recusada é marcada como tal.
 | S06 | Nova proposta visual para o app ([canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | Corrige problemas do protótipo do Figma: contraste, fontes misturadas, menu duplicado, telas sem informações essenciais (vagas, botão de inscrição) e textos em inglês. Já inclui o modo escuro (RF20) | Aprovada: definida pela Manuela em outra conversa, aplicada na F20 |
 | S07 | Outros tipos de atividade além de palestra (workshop, mesa-redonda), com mais de um palestrante por atividade | Amplia o uso do app para eventos variados. Fica fora desta entrega porque nenhum RF pede e o diagrama não prevê | Melhoria futura: só registrar na documentação final |
 | S08 | Marcar avisos como lidos | Sem isso, o contador de avisos novos da barra de navegação (canvas) não tem o que contar | Aprovada: virou F21 |
+| S09 | Deixar claro que o app tem vários eventos, cada um em um lugar: imagem de capa do evento enviada pelo organizador (no card do Início e na lista de eventos) e tela "Escolher evento" no lugar da lista "Trocar evento" (página "Proposta · eventos, lugares e salas" do [canvas](https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt)) | No teste da F03, a equipe não percebeu que "Trocar evento" leva a outro evento, em outro lugar, com outra planta. Decidido pela equipe (23/10/2026): a legibilidade do texto sobre a imagem fica a critério do organizador, e o cadastro avisa que a imagem deve ser horizontal. Precisa de `evento.imagem_capa` (o banco muda) e mexe no Início e no formulário do evento (trilha da Manuela) | Aprovada para "se sobrar tempo": item 18 da seção 0.2 |
 
 ---
 

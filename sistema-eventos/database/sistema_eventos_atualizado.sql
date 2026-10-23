@@ -399,12 +399,12 @@ INSERT INTO palestrante (nome, foto, descricao, rede_social, id_evento) VALUES
 
 -- Os textos que antes ficavam em `palestra.sala` viraram locais (F04).
 INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
-('Auditório Principal', 'Local das palestras principais',  1),
-('Sala A1',             'Sala do bloco A, primeiro andar', 1),
-('Sala A2',             'Sala do bloco A, primeiro andar', 1),
-('Quadra principal',    'Estandes dos projetos',           2),
-('Sala de Exposições',  'Sala ao lado da quadra',          2),
-('Auditório da Escola', 'Bloco central, térreo',           3);
+('Auditório Principal', '1. Entre pelo hall principal e passe pelo credenciamento.\n2. Siga reto até o fim do hall.\n3. O auditório fica nas portas duplas à frente.', 1),
+('Sala A1',             '1. Entre pelo hall principal e passe pelo credenciamento.\n2. Suba a escada à direita até o 1º andar.\n3. A Sala A1 é a primeira porta à esquerda.', 1),
+('Sala A2',             '1. Entre pelo hall principal e passe pelo credenciamento.\n2. Suba a escada à direita até o 1º andar.\n3. A Sala A2 é a segunda porta à esquerda, depois da A1.', 1),
+('Quadra principal',    '1. Entre pelo portão principal do ginásio.\n2. Siga pelo corredor central.\n3. A quadra fica logo depois da arquibancada.', 2),
+('Sala de Exposições',  '1. Entre pelo portão principal do ginásio.\n2. Vire à esquerda antes da quadra.\n3. A sala fica ao lado dos banheiros.', 2),
+('Auditório da Escola', '1. Entre pelo portão da escola.\n2. Atravesse o pátio até o bloco central.\n3. O auditório fica no térreo, à direita.', 3);
 
 -- Cada palestra mostra uma situação do app (o id está no comentário):
 --  1 e 2: ontem, já aconteceram (dá para avaliar);

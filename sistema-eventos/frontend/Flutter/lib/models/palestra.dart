@@ -20,7 +20,10 @@ import 'avaliacao.dart';
 /// palestra ainda não tiver palestrante; `idPalestrante` abre o perfil
 /// dele, e `idEvento` lista as outras palestras dele no mesmo evento.
 ///
-/// `nomeEvento` só vem na agenda, que junta palestras de vários eventos.
+/// `comoChegar` é o passo a passo da entrada até a sala (F04, RF11), um
+/// passo por linha, e `nomeEvento` aparece na tela da planta, aberta pelo
+/// botão "Ver planta" dos detalhes, e nos cards da agenda, que junta
+/// palestras de vários eventos.
 class Palestra {
   final int id;
   final int? idEvento;
@@ -29,8 +32,9 @@ class Palestra {
   final String? resumo;
   final String? tema;
   final String? sala;
-  final String? palestrante;
+  final String? comoChegar;
   final String? nomeEvento;
+  final String? palestrante;
   final String? inicio;
   final String? fim;
   final int vagas;
@@ -51,8 +55,9 @@ class Palestra {
     this.resumo,
     this.tema,
     this.sala,
-    this.palestrante,
+    this.comoChegar,
     this.nomeEvento,
+    this.palestrante,
     this.inicio,
     this.fim,
     this.vagas = 0,
@@ -81,8 +86,9 @@ class Palestra {
       resumo: json['resumo'],
       tema: json['tema'],
       sala: json['sala'],
-      palestrante: json['palestrante'],
+      comoChegar: json['como_chegar'],
       nomeEvento: json['nome_evento'],
+      palestrante: json['palestrante'],
       inicio: json['horario_inicio'],
       fim: json['horario_fim'],
       vagas: json['vagas_disponiveis'] ?? 0,
