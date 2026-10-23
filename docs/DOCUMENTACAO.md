@@ -395,3 +395,81 @@ que o organizador gerencie as inscrições dos participantes.
 - **Banco precisa ser recriado:** quem tem o banco antigo não tem a coluna
   `evento.id_organizador`, e o backend novo não funciona com ele (passo
   1.4 do `FLUXO_DE_TRABALHO.md`).
+
+---
+
+## 8. F14: cadastros do organizador com envio de imagens
+
+Concluída em 23/10/2026. Antes, eventos, palestras, locais, palestrantes,
+patrocinadores e a planta só podiam ser cadastrados direto no banco ou
+por `curl`. Agora o organizador faz tudo pelo app, inclusive enviar a
+planta, as fotos e os logos.
+
+### 8.1 O que foi feito
+
+- **Envio de imagens em duas etapas**
+  (`services/upload/salvar_imagem_service.py`,
+  `controllers/upload_controller.py`): o app manda a imagem para
+  `POST /api/uploads` e recebe o nome com que ela foi salva; depois manda
+  esse nome no cadastro (`foto`, `logo`, `imagem_mapa`), como um texto
+  comum. `GET /uploads/<nome>` devolve a imagem para o app mostrar.
+- **Conferência do arquivo:** o tipo é descoberto pelos primeiros bytes
+  do arquivo (PNG, JPG ou WEBP), e não pela extensão do nome; o arquivo
+  ganha um nome aleatório (`uuid4`); o limite é de 5 MB
+  (`MAX_CONTENT_LENGTH`, com resposta 413 em JSON). Nos cadastros,
+  `validar_nome_imagem` só aceita um nome no formato gerado pela API e de
+  um arquivo que exista na pasta `backend/uploads/`.
+- **Planta** (`controllers/planta_controller.py`):
+  `GET` e `PUT /api/eventos/<id>/planta`. O `PUT` cria a planta na
+  primeira vez e depois só muda os campos enviados.
+- **Locais, palestrantes e patrocinadores:** rotas de criar, editar e
+  remover (`/api/locais`, `/api/palestrantes`, `/api/patrocinadores`),
+  cada uma conferindo se quem pede é dono do evento do registro
+  (`verificar_dono_pelo_evento`, em `controllers/autenticacao.py`).
+  A lista de palestrantes aceita `?id_evento=` e `&busca=` (pelo nome).
+- **Palestrante ligado ao evento** (`database/sistema_eventos_atualizado.sql`,
+  `models/palestrante.py`): a tabela `palestrante` ganhou `id_evento`. A
+  palestra só aceita local e palestrante do mesmo evento dela.
+- **Vagas editáveis** (`services/palestra/atualizar_palestra_service.py`):
+  ao mudar `vagas_total`, as vagas livres são recalculadas pela
+  contagem de inscrições. O total não pode ficar abaixo do número de
+  inscritos.
+- **Excluir evento com senha** (`services/evento/remover_evento_service.py`):
+  o `DELETE /api/eventos/<id>` pede a senha de quem está logado (dono do
+  evento ou administrador).
+- **Tamanho dos textos** (`services/validacoes_cadastro.py`): nomes,
+  links e descrições são conferidos antes de ir para o banco, com
+  mensagem clara em vez de erro 500.
+- **Telas** (`lib/pages/organizador_*_page.dart`): evento e planta,
+  locais, palestrantes, palestras e patrocinadores, abertas pelo menu do
+  painel. Os widgets `FormularioOrganizador`, `CampoImagem` e
+  `ListaCadastro` são usados por todas. O campo de imagem mostra os tipos
+  aceitos (`PNG, JPG OU WEBP · ATÉ 5 MB`). A tela de patrocinadores dos
+  participantes (F10) passou a mostrar o logo.
+
+### 8.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Envio da imagem separado do cadastro | O cadastro continua sendo um JSON simples, e a mesma rota de envio serve para planta, foto e logo. A alternativa (mandar a imagem junto, em `multipart`) obrigaria a mudar todas as rotas de cadastro |
+| Tipo do arquivo pelos primeiros bytes | O nome e o tipo informados pelo navegador podem ser trocados por quem envia. Os primeiros bytes de cada formato de imagem são fixos e mostram o que o arquivo realmente é |
+| Nome aleatório para o arquivo salvo | Evita que um nome enviado como `../app.py` saia da pasta de imagens e que dois arquivos com o mesmo nome se sobrescrevam |
+| Rota de exibição pública | As imagens aparecem para todos os participantes, e o `Image.network` do Flutter não manda o token. O nome aleatório não pode ser adivinhado |
+| Palestrante cadastrado por evento | O organizador cadastra a pessoa uma vez no evento e a indica nas palestras. Em eventos diferentes, a mesma pessoa tem um cadastro em cada um, e um organizador não mexe no palestrante do outro |
+| Senha para excluir o evento | Excluir apaga em cascata palestras, inscrições e avaliações. Pedir a senha evita uma exclusão por engano ou feita por quem pegou o celular desbloqueado |
+| Vagas livres recalculadas pela contagem de inscrições | Fazer uma conta com o saldo antigo poderia acumular erros. Contar as inscrições sempre dá o número certo, e a linha da palestra fica travada (`with_for_update`) enquanto a conta é feita |
+| Locais e palestrantes antes das palestras no menu | A palestra só escolhe entre o que já existe; cadastrar nessa ordem evita voltar telas |
+
+### 8.3 Limitações conhecidas
+
+- **Imagens sem uso ficam no servidor:** trocar ou remover uma imagem
+  não apaga o arquivo antigo da pasta `backend/uploads/` (melhoria
+  futura).
+- **Imagens fora do Git:** a pasta `backend/uploads/` é ignorada pelo
+  Git; cada computador tem só as imagens enviadas nele.
+- **Palestrante sem login:** o palestrante não tem área própria no app
+  (registrado como F23).
+- **Banco precisa ser recriado:** quem tem o banco antigo não tem a coluna
+  `palestrante.id_evento` (passo 1.4 do `FLUXO_DE_TRABALHO.md`).
+- Os dois itens da seção 7.3 sobre a palestra (capacidade e palestra
+  movida de evento) foram resolvidos nesta tarefa.
