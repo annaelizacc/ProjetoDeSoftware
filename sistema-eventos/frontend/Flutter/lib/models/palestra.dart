@@ -1,3 +1,5 @@
+import 'avaliacao.dart';
+
 /// Model (do lado do Flutter): Palestra.
 ///
 /// Representa os dados de uma palestra recebidos da API Flask
@@ -6,6 +8,12 @@
 /// calculadas para o usuário do token de login: `inscrito`, `favorita` e
 /// `lembreteAtivo` — usadas pela tela de detalhes para decidir o estado
 /// inicial dos botões de ação.
+///
+/// Desde a F06/F07, traz também a nota da palestra (`mediaEstrelas` e
+/// `totalAvaliacoes`, na listagem e nos detalhes) e, só nos detalhes, a
+/// avaliação do próprio usuário (`minhaAvaliacao`) e se ele já pode
+/// avaliar (`podeAvaliar`: inscrito e palestra já começada, regra
+/// decidida no backend).
 class Palestra {
   final int id;
   final String titulo;
@@ -19,6 +27,10 @@ class Palestra {
   final bool inscrito;
   final bool favorita;
   final bool lembreteAtivo;
+  final double? mediaEstrelas;
+  final int totalAvaliacoes;
+  final Avaliacao? minhaAvaliacao;
+  final bool podeAvaliar;
 
   Palestra({
     required this.id,
@@ -33,6 +45,10 @@ class Palestra {
     this.inscrito = false,
     this.favorita = false,
     this.lembreteAtivo = false,
+    this.mediaEstrelas,
+    this.totalAvaliacoes = 0,
+    this.minhaAvaliacao,
+    this.podeAvaliar = false,
   });
 
   /// Constrói uma Palestra a partir do JSON devolvido pela API.
@@ -55,6 +71,13 @@ class Palestra {
       inscrito: json['inscrito'] ?? false,
       favorita: json['favorita'] ?? false,
       lembreteAtivo: json['lembrete_ativo'] ?? false,
+      // `num` e não `double`: o JSON pode trazer `5` (int) em vez de `5.0`.
+      mediaEstrelas: (json['media_estrelas'] as num?)?.toDouble(),
+      totalAvaliacoes: json['total_avaliacoes'] ?? 0,
+      minhaAvaliacao: json['minha_avaliacao'] == null
+          ? null
+          : Avaliacao.fromJson(Map<String, dynamic>.from(json['minha_avaliacao'])),
+      podeAvaliar: json['pode_avaliar'] ?? false,
     );
   }
 
@@ -74,4 +97,8 @@ class Palestra {
         : ' - ${finalData.hour.toString().padLeft(2, '0')}:${finalData.minute.toString().padLeft(2, '0')}';
     return '$hora$finalHora';
   }
+
+  /// Média no formato brasileiro, com vírgula (ex.: `4,6`).
+  String get mediaTexto =>
+      mediaEstrelas == null ? '–' : mediaEstrelas!.toStringAsFixed(1).replaceAll('.', ',');
 }

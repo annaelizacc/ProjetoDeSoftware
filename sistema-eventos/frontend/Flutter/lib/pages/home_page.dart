@@ -34,7 +34,17 @@ class _HomePageState extends State<HomePage> {
 
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: () async => setState(() => futuroEventos = ApiService.eventos()),
+        // Começa a busca, troca a variável num `setState` com chaves (com a
+        // seta, ele devolveria o `Future` e o Flutter daria erro) e devolve
+        // a busca, para o círculo de "atualizando" sumir só quando ela
+        // terminar.
+        onRefresh: () {
+          final novaBusca = ApiService.eventos();
+          setState(() {
+            futuroEventos = novaBusca;
+          });
+          return novaBusca;
+        },
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [

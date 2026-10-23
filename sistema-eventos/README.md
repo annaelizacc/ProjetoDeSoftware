@@ -25,6 +25,11 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 12. Criar uma conta pelo app (Login → "Criar conta"): nome, e-mail e
     senha de 8 a 16 caracteres. Depois do cadastro, a pessoa já
     entra no app.
+13. Avaliar uma palestra com 1 a 5 estrelas e um comentário opcional
+    (Detalhes → "Avaliar"), além de editar ou excluir a própria
+    avaliação. Só quem está inscrito pode avaliar, e só depois que a
+    palestra começa. A média aparece nos cards da Programação e nos
+    Detalhes, com a lista de comentários.
 
 Todas as funcionalidades principais percorrem:
 
@@ -327,8 +332,8 @@ Acesso: **pública** (sem token), **login** (qualquer usuário logado),
 | PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento | organizador |
 | GET | `/api/eventos/<id>/programacao` | Programação do evento | login |
 | GET | `/api/eventos/<id_usuario>/agenda` | Agenda personalizada | própria |
-| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa | login |
-| GET | `/api/palestras/<id>` | Detalhes e status (inscrito, favorita, lembrete) do usuário do token | login |
+| GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa, com `media_estrelas` e `total_avaliacoes` | login |
+| GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
 | POST | `/api/palestras` | Cria palestra | organizador |
 | PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | organizador |
 | POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
@@ -340,7 +345,7 @@ Acesso: **pública** (sem token), **login** (qualquer usuário logado),
 | POST | `/api/lembretes` | Ativar lembrete (corpo: `id_palestra`) | login |
 | DELETE | `/api/lembretes` | Desativar lembrete (corpo: `id_palestra`) | login |
 | GET | `/api/avaliacoes/palestra/<id>` | Avaliações de uma palestra | login |
-| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional) | login |
+| POST | `/api/avaliacoes` | Avaliar palestra (1 a 5 estrelas e comentário opcional; só inscritos, depois do início da palestra) | login |
 | PUT/PATCH | `/api/avaliacoes/<id>` | Alterar nota ou comentário | só o autor |
 | DELETE | `/api/avaliacoes/<id>` | Remover avaliação | autor ou organizador |
 
@@ -396,6 +401,16 @@ Pesquisa de tema -> GET /api/palestras?tema=Tecnologia -> MySQL -> resultados
 ```text
 Login -> Criar conta -> POST /api/usuarios -> POST /api/auth/login -> Início
 ```
+
+### Fluxo 9 — avaliação
+
+```text
+Detalhes (inscrito, palestra já começou) -> Avaliar -> POST /api/avaliacoes
+  -> média nos Detalhes e na Programação
+```
+
+Para testar com os dados de exemplo, a palestra precisa já ter começado
+(`horario_inicio` no passado) e a pessoa precisa estar inscrita nela.
 
 ## 9. Tratamento de erros
 

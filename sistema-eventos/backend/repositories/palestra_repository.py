@@ -18,6 +18,11 @@ Desde a F19, o local da palestra fica em `localizacao`. As duas consultas
 fazem um LEFT JOIN com essa tabela e devolvem o nome do local com o
 apelido `sala`, como antes, para o Flutter não precisar mudar. O LEFT
 JOIN (e não JOIN) mantém na lista as palestras que ainda não têm local.
+
+Desde a F07, `listar` também devolve a média de estrelas
+(`media_estrelas`) e o total de avaliações (`total_avaliacoes`) de cada
+palestra, para os cards da Programação mostrarem a nota sem uma
+requisição extra por palestra.
 """
 
 from sqlalchemy import text
@@ -31,6 +36,13 @@ class PalestraRepository:
     @staticmethod
     def listar(id_evento=None, tema=None):
         """Lista palestras, filtrando por evento e/ou por termo de busca.
+
+        A média das avaliações vem de uma subconsulta: ela agrupa a tabela
+        `avaliacao` por palestra (`GROUP BY`) e calcula, para cada grupo,
+        a média (`AVG`) e a quantidade (`COUNT`). O LEFT JOIN com ela
+        mantém as palestras sem avaliação, que ficam com
+        `media_estrelas` nula e `total_avaliacoes` 0 (o `COALESCE` troca
+        o nulo por 0).
 
         O filtro de tema é aplicado tanto sobre `tema` quanto sobre
         `titulo`, pois é comum o usuário buscar por uma palavra que está
@@ -54,9 +66,18 @@ class PalestraRepository:
             SELECT p.id_palestra, p.titulo, p.resumo, p.tema,
                    l.nome_local AS sala, p.id_localizacao, p.id_palestrante,
                    p.horario_inicio, p.horario_fim, p.id_evento,
-                   p.vagas_total, p.vagas_disponiveis
+                   p.vagas_total, p.vagas_disponiveis,
+                   av.media_estrelas,
+                   COALESCE(av.total_avaliacoes, 0) AS total_avaliacoes
             FROM palestra p
             LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
+            LEFT JOIN (
+                SELECT id_palestra,
+                       ROUND(AVG(nota_estrelas), 1) AS media_estrelas,
+                       COUNT(*) AS total_avaliacoes
+                FROM avaliacao
+                GROUP BY id_palestra
+            ) av ON av.id_palestra = p.id_palestra
             {filtro_sql}
             ORDER BY p.horario_inicio ASC
             """

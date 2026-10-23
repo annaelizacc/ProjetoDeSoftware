@@ -11,6 +11,8 @@ Consultas sobre a tabela `avaliacao` (antiga `comentario`, F19/D01):
    detalhes da palestra.
 2. `buscar`: procura a avaliação de um usuário sobre uma palestra, usada
    para impedir que a mesma pessoa avalie a mesma palestra duas vezes.
+3. `media_por_palestra`: calcula a média de estrelas e o total de
+   avaliações de uma palestra (F07), mostrados na tela de detalhes.
 """
 
 from sqlalchemy import text
@@ -51,4 +53,23 @@ class AvaliacaoRepository:
         resultado = db.session.execute(
             sql, {"id_usuario": id_usuario, "id_palestra": id_palestra}
         )
+        return resultado.mappings().first()
+
+    @staticmethod
+    def media_por_palestra(id_palestra):
+        """Retorna a média (arredondada em 1 casa) e o total de avaliações da palestra.
+
+        `AVG` e `COUNT` são funções de agregação: juntam todas as linhas
+        da palestra e devolvem um único valor. Sem avaliações, `AVG`
+        devolve nulo e `COUNT` devolve 0.
+        """
+        sql = text(
+            """
+            SELECT ROUND(AVG(nota_estrelas), 1) AS media_estrelas,
+                   COUNT(*) AS total_avaliacoes
+            FROM avaliacao
+            WHERE id_palestra = :id_palestra
+            """
+        )
+        resultado = db.session.execute(sql, {"id_palestra": id_palestra})
         return resultado.mappings().first()

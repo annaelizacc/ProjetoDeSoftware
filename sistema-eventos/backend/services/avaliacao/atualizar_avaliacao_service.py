@@ -5,7 +5,12 @@ CAMADA: Services (regra de negócio do caso de uso "Atualizar Avaliação").
 
 Só `nota_estrelas` e `comentario` podem ser alterados: quem avaliou e qual
 palestra foi avaliada não mudam. Os outros campos recebidos são ignorados.
-A nota passa pela mesma validação da criação (inteiro de 1 a 5).
+A nota e o comentário passam pelas mesmas validações da criação (nota
+inteira de 1 a 5, comentário de até 500 caracteres).
+
+A inscrição e o horário não são conferidos de novo: só o autor edita, e
+ele já passou por essas regras ao criar. Assim, quem avaliou e depois
+cancelou a inscrição ainda pode corrigir ou excluir a própria avaliação.
 
 Quem pode editar (P01): só o autor da avaliação. Nem o organizador muda
 a nota de outra pessoa; outra pessoa recebe PermissionError (403).
@@ -15,7 +20,10 @@ Método principal:
 """
 
 from backend.models.avaliacao import Avaliacao
-from backend.services.avaliacao.criar_avaliacao_service import validar_estrelas
+from backend.services.avaliacao.criar_avaliacao_service import (
+    validar_comentario,
+    validar_estrelas,
+)
 
 CAMPOS_EDITAVEIS = ("nota_estrelas", "comentario")
 
@@ -33,5 +41,7 @@ class AtualizarAvaliacaoService:
         alteracoes = {campo: dados[campo] for campo in CAMPOS_EDITAVEIS if campo in dados}
         if "nota_estrelas" in alteracoes:
             alteracoes["nota_estrelas"] = validar_estrelas(alteracoes["nota_estrelas"])
+        if "comentario" in alteracoes:
+            alteracoes["comentario"] = validar_comentario(alteracoes["comentario"])
 
         return Avaliacao.atualizar(id_avaliacao, **alteracoes)
