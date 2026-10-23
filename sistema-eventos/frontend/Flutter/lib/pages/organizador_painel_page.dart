@@ -6,7 +6,12 @@ import '../theme/app_theme.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/rotulo_secao.dart';
 import '../widgets/selo.dart';
+import 'organizador_evento_page.dart';
 import 'organizador_inscricoes_page.dart';
+import 'organizador_locais_page.dart';
+import 'organizador_palestrantes_page.dart';
+import 'organizador_palestras_page.dart';
+import 'organizador_patrocinadores_page.dart';
 
 /// Tela "Área do organizador" (F08, RF17): o painel do evento.
 ///
@@ -17,8 +22,12 @@ import 'organizador_inscricoes_page.dart';
 ///   ocupação e média das avaliações);
 /// - o ranking das palestras, das mais procuradas para as menos procuradas.
 ///   Tocar numa palestra abre as inscrições dela;
-/// - o menu da área. "Inscrições" já funciona; o comunicado (F09) e os
-///   cadastros do evento (F14) aparecem como "Em breve" até serem feitos.
+/// - o menu da área: "Inscrições" e os cadastros do evento (F14). O
+///   comunicado (F09) aparece como "Em breve" até ser feito.
+///
+/// "Novo evento" (e, para quem ainda não tem evento, "Criar meu primeiro
+/// evento") abre o formulário do evento (F14). Ao voltar, o painel busca
+/// de novo a lista de eventos e mostra o evento criado.
 ///
 /// Mostra só os eventos que a pessoa gerencia (`GET /api/organizador/eventos`):
 /// os ligados a ela, ou todos, para o administrador. Começa pelo primeiro;
@@ -52,7 +61,10 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
     if (meusEventos == null) {
       final eventos = await ApiService.meusEventos();
       meusEventos = eventos;
-      if (eventos.isNotEmpty) eventoId = eventos.first['id_evento'];
+      // Mantém o evento escolhido (ex.: o que acabou de ser criado), a não
+      // ser que ele não exista mais (ex.: acabou de ser excluído).
+      final aindaExiste = eventos.any((e) => e['id_evento'] == eventoId);
+      if (!aindaExiste) eventoId = eventos.isEmpty ? null : eventos.first['id_evento'];
     }
     if (eventoId == null) return null;
     return ApiService.painelOrganizador(eventoId!);
@@ -64,10 +76,17 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
     recarregar();
   }
 
-  /// Recarrega o painel (puxar a tela para baixo ou voltar das inscrições,
-  /// que podem ter mudado os números).
+  /// Recarrega o painel (puxar a tela para baixo, trocar de evento ou
+  /// voltar das inscrições, que podem ter mudado os números).
+  ///
+  /// O `setState` usa chaves: com a seta, a função devolveria o `Future`
+  /// e o Flutter daria o erro "setState() callback argument returned a
+  /// Future" sem redesenhar a tela (o título não mudava ao trocar de
+  /// evento).
   Future<void> recarregar() async {
-    setState(() => futuro = carregar());
+    setState(() {
+      futuro = carregar();
+    });
     await futuro;
   }
 
@@ -81,6 +100,28 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
         ),
       ),
     );
+    if (mounted) recarregar();
+  }
+
+  /// Abre o formulário do evento: sem `evento`, para criar um novo; com
+  /// ele, para editar. Se algo mudou, busca de novo a lista de eventos
+  /// (o nome pode ter mudado, ou o evento pode ter sido criado ou
+  /// excluído).
+  Future<void> abrirEvento({Map<String, dynamic>? evento}) async {
+    final resultado = await Navigator.push<ResultadoEvento>(
+      context,
+      MaterialPageRoute(builder: (_) => OrganizadorEventoPage(evento: evento)),
+    );
+    if (resultado == null || !mounted) return;
+    meusEventos = null;
+    if (resultado == ResultadoEvento.removido) eventoId = null;
+    recarregar();
+  }
+
+  /// Abre a lista de um cadastro do evento (locais, palestras etc.) e
+  /// recarrega o painel ao voltar, porque os números podem ter mudado.
+  Future<void> abrirCadastro(Widget tela) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => tela));
     if (mounted) recarregar();
   }
 
@@ -120,7 +161,14 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
                           TextButton(
                             onPressed: recarregar,
                             child: const Text('Tentar de novo'),
+                          )
+                        else ...[
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: () => abrirEvento(),
+                            child: const Text('Criar meu primeiro evento'),
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -195,22 +243,41 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
                       const SizedBox(height: 24),
                       const RotuloSecao('Cadastros do evento'),
                       const SizedBox(height: 4),
-                      const _ItemMenu(
-                          nome: 'Evento e planta',
-                          descricao: 'Nome, datas, local e imagem da planta'),
-                      const _ItemMenu(
-                          nome: 'Locais e rotas',
-                          descricao:
-                              'Salas com o passo a passo de como chegar'),
-                      const _ItemMenu(
-                          nome: 'Palestras',
-                          descricao: 'Horário, local, palestrante e vagas'),
-                      const _ItemMenu(
-                          nome: 'Palestrantes',
-                          descricao: 'Nome, foto, descrição e rede social'),
-                      const _ItemMenu(
-                          nome: 'Patrocinadores',
-                          descricao: 'Empresa, logo e site'),
+                      _ItemMenu(
+                        nome: 'Evento e planta',
+                        descricao: 'Nome, datas, local e imagem da planta',
+                        aoTocar: () => abrirEvento(evento: evento),
+                      ),
+                      // Locais e palestrantes vêm antes das palestras: a
+                      // palestra escolhe um local e um palestrante já
+                      // cadastrados.
+                      _ItemMenu(
+                        nome: 'Locais e rotas',
+                        descricao: 'Salas com o passo a passo de como chegar',
+                        aoTocar: () => abrirCadastro(OrganizadorLocaisPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Palestrantes',
+                        descricao: 'Nome, foto, descrição e rede social',
+                        aoTocar: () =>
+                            abrirCadastro(OrganizadorPalestrantesPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Palestras',
+                        descricao: 'Horário, local, palestrante e vagas',
+                        aoTocar: () => abrirCadastro(OrganizadorPalestrasPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Patrocinadores',
+                        descricao: 'Empresa, logo e site',
+                        aoTocar: () =>
+                            abrirCadastro(OrganizadorPatrocinadoresPage(eventoId: eventoId!)),
+                      ),
+                      _ItemMenu(
+                        nome: 'Novo evento',
+                        descricao: 'Cadastrar outro evento',
+                        aoTocar: () => abrirEvento(),
+                      ),
                     ],
                   ),
                 ),

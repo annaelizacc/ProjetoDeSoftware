@@ -9,7 +9,8 @@ programação e agenda que já existiam no projeto original.
 Acesso (P01): consultar exige login; criar, atualizar e remover são só
 para organizadores; a agenda só pode ser vista pela própria pessoa.
 Desde a F08, o evento criado fica ligado a quem o criou, e só esse
-organizador (ou um administrador) altera ou remove o evento.
+organizador (ou um administrador) altera ou remove o evento. Desde a
+F14, remover pede também a senha da pessoa logada.
 """
 
 from flask import Blueprint, g, jsonify, request
@@ -67,7 +68,10 @@ class EventoController:
     @somente_organizador
     def remover(id_evento):
         verificar_dono_do_evento(id_evento)
-        RemoverEventoService().execute(id_evento)
+        # A senha vai no corpo da requisição (F14): confirma que é a
+        # própria pessoa que está apagando o evento.
+        senha = (request.get_json(silent=True) or {}).get("senha")
+        RemoverEventoService().execute(id_evento, g.usuario, senha)
         return jsonify({"mensagem": "Evento removido."})
 
     @staticmethod

@@ -7,8 +7,9 @@ Representa um local de interesse dentro de um Evento (ex.: auditório,
 sala, estande). Herda `db.Model` (tabela `localizacao`) e `CRUDMixin`.
 
 Desde a F19, cada Palestra aponta para o local onde acontece
-(`palestra.id_localizacao`). Ainda sem endpoints próprios na API: a tela
-de rotas até as salas vem na F04.
+(`palestra.id_localizacao`). A `descricao` guarda o passo a passo de como
+chegar ao local a partir da entrada do evento (a "rota" da F04),
+cadastrado pelo organizador (F14, rotas em `/api/locais`).
 """
 
 from backend.extensions import db

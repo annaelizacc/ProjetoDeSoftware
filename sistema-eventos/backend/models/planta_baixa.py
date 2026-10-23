@@ -6,7 +6,9 @@ CAMADA: Models (entidade de domínio + persistência).
 Representa o mapa/planta baixa de um Evento (imagem + descrição). Herda
 `db.Model` (tabela `planta_baixa`) e `CRUDMixin`.
 
-Ainda sem endpoints próprios na API — ver observação em `Organizador`.
+`imagem_mapa` guarda o nome do arquivo enviado por `POST /api/uploads`.
+Cada evento tem no máximo uma planta, acessada por
+`/api/eventos/<id_evento>/planta` (F14).
 """
 
 from backend.extensions import db

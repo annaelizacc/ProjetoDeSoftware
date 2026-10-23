@@ -39,11 +39,23 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int aba = 0;
 
+  /// Evento escolhido no Início ("Trocar evento"), usado também pela aba
+  /// Programação. Fica aqui porque as telas são montadas de novo a cada
+  /// troca de aba.
+  int? eventoInicio;
+
   @override
   Widget build(BuildContext context) {
     final telas = [
-      HomePage(usuarioId: widget.usuarioId, nomeUsuario: widget.nomeUsuario),
-      ProgramacaoAbaPage(usuarioId: widget.usuarioId),
+      HomePage(
+        usuarioId: widget.usuarioId,
+        nomeUsuario: widget.nomeUsuario,
+        // "Ver agenda" do Início troca para a aba Agenda (índice 2).
+        aoVerAgenda: () => setState(() => aba = 2),
+        eventoId: eventoInicio,
+        aoTrocarEvento: (id) => setState(() => eventoInicio = id),
+      ),
+      ProgramacaoAbaPage(usuarioId: widget.usuarioId, eventoId: eventoInicio),
       AgendaPage(usuarioId: widget.usuarioId),
       NotificacoesPage(usuarioId: widget.usuarioId),
       PerfilPage(

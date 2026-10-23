@@ -28,8 +28,8 @@ class Patrocinador {
     );
   }
 
-  /// Iniciais mostradas no lugar do logo, enquanto a F14 não traz o envio
-  /// de imagem: a primeira letra das duas primeiras palavras ("Nuvem
+  /// Iniciais mostradas quando o patrocinador ainda não tem logo
+  /// cadastrado pelo organizador (F14): a primeira letra das duas primeiras palavras ("Nuvem
   /// Azul" → "NA") ou, com uma palavra só, as duas primeiras letras
   /// ("TechNova" → "TE").
   String get iniciais {

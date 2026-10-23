@@ -80,6 +80,12 @@ branch própria.
   `Senha@123`. Antes da próxima tarefa, **recriar o banco local** com o
   script novo (passo 1.4 do `FLUXO_DE_TRABALHO.md`); sem isso, o login
   com `hash123` deixa de funcionar.
+- **Mudança da F14 que afeta a Bianca (22/10/2026):** a tabela
+  `palestrante` ganhou `id_evento` (o palestrante é cadastrado por
+  evento). Depois que a F14 entrar na `main`, **recriar o banco local**
+  com o script novo (passo 1.4 do `FLUXO_DE_TRABALHO.md`). A lista de
+  palestrantes da F05 deve filtrar pelo evento
+  (`GET /api/palestrantes?id_evento=`).
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -131,6 +137,7 @@ mais rápidas, por último as maiores.
 | 14 | P12 Testes automatizados | 🟢 | Maior, mas protege as regras principais |
 | 15 | F18 Entrar com Google | 🟢 | A mais trabalhosa (OAuth e Google Cloud) |
 | 16 | F22 Perfil de administrador geral | 🟢 | Nenhum RF pede; tarefa de segurança, precisa de mais tempo |
+| 17 | F23 Área do palestrante | 🟢 | Nenhum RF pede; muda uma decisão da F05 (palestrante sem login) |
 
 A P13 não entra na lista: ela se resolve quando F03, F04, F08 e F13
 forem feitas.
@@ -192,7 +199,7 @@ o nome indicado, que aparece acima de cada tela.
 | F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Pendente |
 | F12 | — (diagrama) | 🟢 | Certificado de participação | Pendente |
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
-| F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Pendente |
+| F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Concluído |
 | F15 | RF09, RF18 | 🟢 | Aviso de alteração de palestra na aba Avisos | Pendente |
 | F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Pendente |
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
@@ -201,6 +208,7 @@ o nome indicado, que aparece acima de cada tela.
 | F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Em andamento |
 | F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
 | F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
+| F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -309,6 +317,15 @@ o nome indicado, que aparece acima de cada tela.
   Souza, hoje palestrante, precisa ser ajustada no SQL.
 - **Decidido:** a foto é enviada pelo organizador e salva no backend,
   com a mesma solução da F03.
+- **Feito na F14 (23/10/2026):** as rotas de palestrantes por evento
+  (`GET /api/palestrantes?id_evento=&busca=`, `GET /api/palestrantes/<id>`)
+  e o nome do palestrante (`palestrante`) no JSON das palestras (lista,
+  detalhes e agenda). Os detalhes da palestra já mostram a linha
+  **Palestrante**, e tocar nela ("Ver perfil") abre o perfil
+  (`widgets/perfil_palestrante.dart`, RF14), como a prancha "Perfil do
+  palestrante" do canvas. Falta nesta tarefa: a tela de palestrantes do
+  participante, com a busca (RF13), que pode reaproveitar o
+  `abrirPerfilPalestrante`.
 
 ### F06 Tela de comentários e feedbacks (RF15)
 
@@ -489,6 +506,26 @@ o nome indicado, que aparece acima de cada tela.
   novas desta tarefa (locais, planta, palestrantes, patrocinadores)
   devem usar `verificar_dono_do_evento` (em
   `controllers/autenticacao.py`) do mesmo jeito.
+- **Decidido (22/10/2026), com a Manuela:**
+  - **fluxo das telas:** o painel do organizador ganha "Novo evento" e,
+    em "Cadastros do evento", uma lista com formulário para cada item,
+    nesta ordem: Evento e planta, Locais e rotas, Palestrantes, Palestras
+    e Patrocinadores (a palestra escolhe um local e um palestrante já
+    cadastrados);
+  - **palestrante é do evento:** a tabela `palestrante` ganha
+    `id_evento`. O organizador cadastra o palestrante uma vez no evento e
+    o indica em algumas palestras. A mesma pessoa só tem dois cadastros
+    se falar em eventos diferentes. A palestra só aceita palestrante do
+    próprio evento;
+  - **upload:** a imagem vai primeiro para `POST /api/uploads`, que
+    devolve o nome do arquivo; o cadastro grava esse nome. Aceita PNG,
+    JPG e WEBP de até 5 MB, salvo com nome aleatório. O formulário mostra
+    um aviso pequeno com os tipos aceitos;
+  - **excluir evento:** o dono do evento ou o administrador, sempre
+    digitando a própria senha do app para confirmar, porque apaga também
+    as palestras e as inscrições;
+  - **imagem trocada:** o arquivo antigo continua na pasta `uploads/`.
+    Apagar os arquivos sem uso fica como melhoria futura.
 - **Depende de:** P01 e F08.
 
 ### F15 Aviso de alteração de palestra na aba Avisos
@@ -631,6 +668,18 @@ o nome indicado, que aparece acima de cada tela.
   nenhuma outra tarefa alterou (por exemplo, splash, home, programação,
   agenda e favoritos). As cores dessas telas já foram trocadas pelas do
   tema na parte 1 (o modo escuro funciona nelas); falta o layout.
+  - **Início: feito na branch da F14 (23/10/2026).** Nos testes da F14,
+    a participante não tinha onde ver as informações principais do
+    evento. O Início passou a seguir a prancha do canvas: o card do
+    evento (datas, nome, local e **Ver programação**), os atalhos (os
+    sem tela aparecem como "Em breve"), a descrição e a próxima palestra
+    da agenda. Começa pelo próximo evento; com mais de um, a lista
+    **Trocar evento** acima do card troca o evento.
+  - **Aba Programação no evento do Início (sugestão aprovada em
+    23/10/2026):** a aba abria sempre o primeiro evento. Agora abre o
+    escolhido em "Trocar evento" ou, sem escolha, o próximo evento
+    (`escolherEvento`, em `home_page.dart`). Feito na branch da F14.
+  - **Falta:** splash, programação, agenda e favoritos.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
@@ -671,6 +720,18 @@ o nome indicado, que aparece acima de cada tela.
 - **Sugestão (22/10/2026):** uma visão consolidada só para o
   administrador, com os números de todos os eventos somados (total de
   inscrições do sistema, eventos mais procurados).
+
+### F23 Área do palestrante
+
+- **Origem:** pedido da Manuela durante o planejamento da F14
+  (22/10/2026), para fazer se sobrar tempo.
+- **O que é:** o palestrante entra no app com login próprio e vê as
+  palestras em que foi indicado (e, depois, as avaliações delas).
+- **Atenção:** muda duas decisões da F05: o palestrante hoje não tem
+  login e o tipo `'palestrante'` saiu de `usuario`. Antes de começar,
+  decidir como ligar a conta (`usuario`) ao cadastro do palestrante, que
+  desde a F14 é feito por evento.
+- **Depende de:** F14 e F05.
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 

@@ -18,6 +18,8 @@ Desde a F19, o local da palestra fica em `localizacao`. As duas consultas
 fazem um LEFT JOIN com essa tabela e devolvem o nome do local com o
 apelido `sala`, como antes, para o Flutter não precisar mudar. O LEFT
 JOIN (e não JOIN) mantém na lista as palestras que ainda não têm local.
+Da mesma forma, desde a F14, um LEFT JOIN com `palestrante` devolve o
+nome de quem apresenta (`palestrante`), nulo se ainda não houver.
 
 Desde a F07, `listar` também devolve a média de estrelas
 (`media_estrelas`) e o total de avaliações (`total_avaliacoes`) de cada
@@ -65,12 +67,14 @@ class PalestraRepository:
             f"""
             SELECT p.id_palestra, p.titulo, p.resumo, p.tema,
                    l.nome_local AS sala, p.id_localizacao, p.id_palestrante,
+                   pe.nome AS palestrante,
                    p.horario_inicio, p.horario_fim, p.id_evento,
                    p.vagas_total, p.vagas_disponiveis,
                    av.media_estrelas,
                    COALESCE(av.total_avaliacoes, 0) AS total_avaliacoes
             FROM palestra p
             LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
+            LEFT JOIN palestrante pe ON pe.id_palestrante = p.id_palestrante
             LEFT JOIN (
                 SELECT id_palestra,
                        ROUND(AVG(nota_estrelas), 1) AS media_estrelas,
@@ -100,6 +104,7 @@ class AgendaRepository:
             """
             SELECT p.id_palestra, p.titulo, p.resumo, p.tema,
                    l.nome_local AS sala, p.id_localizacao, p.id_palestrante,
+                   pe.nome AS palestrante,
                    p.horario_inicio, p.horario_fim, p.id_evento,
                    p.vagas_total, p.vagas_disponiveis,
                    e.nome AS nome_evento
@@ -107,6 +112,7 @@ class AgendaRepository:
             JOIN palestra p ON p.id_palestra = pa.id_palestra
             JOIN evento e ON e.id_evento = p.id_evento
             LEFT JOIN localizacao l ON l.id_localizacao = p.id_localizacao
+            LEFT JOIN palestrante pe ON pe.id_palestrante = p.id_palestrante
             WHERE pa.id_usuario = :id_usuario
             ORDER BY p.horario_inicio ASC
             """

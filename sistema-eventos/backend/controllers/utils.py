@@ -11,6 +11,8 @@ mesmo bloco try/except em cada método. Ele traduz:
   resposta HTTP 400, com a mensagem exata do erro;
 - `PermissionError` (a pessoa está logada, mas não pode fazer aquilo,
   como editar a avaliação de outra pessoa) em uma resposta HTTP 403;
+- erros HTTP do próprio Flask (ex.: 413, envio maior que 5 MB) seguem
+  para os tratadores registrados em `app.py`, com o status certo;
 - qualquer outra exceção não prevista em uma resposta HTTP 500 genérica,
   sem vazar detalhes internos (stack trace, erro de SQL, etc.) para quem
   chamou a API.
@@ -19,6 +21,7 @@ mesmo bloco try/except em cada método. Ele traduz:
 from functools import wraps
 
 from flask import jsonify
+from werkzeug.exceptions import HTTPException
 
 
 def tratar_erros(func):
@@ -32,6 +35,8 @@ def tratar_erros(func):
             return jsonify({"erro": str(erro)}), 400
         except PermissionError as erro:
             return jsonify({"erro": str(erro)}), 403
+        except HTTPException:
+            raise
         except Exception:
             # Não expõe detalhes internos da conexão ou do banco ao usuário.
             return jsonify({"erro": "Erro interno no servidor."}), 500

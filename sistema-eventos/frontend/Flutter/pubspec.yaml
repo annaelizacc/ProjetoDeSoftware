@@ -13,6 +13,9 @@ dependencies:
   http: ^1.2.2
   # Guarda pequenos valores no próprio celular (ex.: modo escuro ligado).
   shared_preferences: ^2.3.2
+  # Escolhe uma imagem da galeria (ou do computador, na web) para o
+  # organizador enviar a planta, a foto do palestrante e o logo (F14).
+  image_picker: ^1.2.4
 
 dev_dependencies:
   flutter_test:

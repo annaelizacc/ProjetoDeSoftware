@@ -62,13 +62,21 @@ CREATE TABLE restaurante (
 -- 4. TABELA: palestrante (F19/D01, usada na F05)
 -- Quem apresenta as palestras. Não é um usuário do app: tem só os dados
 -- mostrados na tela de informações do palestrante.
+-- Desde a F14, o palestrante pertence a um evento: o organizador o
+-- cadastra uma vez no evento e o indica nas palestras. A mesma pessoa só
+-- tem dois cadastros se falar em eventos diferentes. `foto` guarda o nome
+-- do arquivo enviado (pasta `backend/uploads/`).
 -- =====================================================================
 CREATE TABLE palestrante (
     id_palestrante  INT AUTO_INCREMENT PRIMARY KEY,
     nome            VARCHAR(150)    NOT NULL,
     foto            VARCHAR(255),
     descricao       TEXT,
-    rede_social     VARCHAR(255)
+    rede_social     VARCHAR(255),
+    id_evento       INT             NOT NULL,
+    CONSTRAINT fk_palestrante_evento
+        FOREIGN KEY (id_evento) REFERENCES evento(id_evento)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- =====================================================================
@@ -339,9 +347,9 @@ INSERT INTO restaurante_evento (id_restaurante, id_evento) VALUES
 
 -- Os palestrantes de exemplo (F05). Carla Souza era uma usuária do tipo
 -- 'palestrante'; agora é palestrante aqui e participante em `usuario`.
-INSERT INTO palestrante (nome, foto, descricao, rede_social) VALUES
-('Carla Souza',   NULL, 'Pesquisadora em Inteligência Artificial.', 'https://www.linkedin.com/in/carla-souza'),
-('Diego Martins', NULL, 'Administrador de banco de dados.',         'https://www.linkedin.com/in/diego-martins');
+INSERT INTO palestrante (nome, foto, descricao, rede_social, id_evento) VALUES
+('Carla Souza',   NULL, 'Pesquisadora em Inteligência Artificial.', 'https://www.linkedin.com/in/carla-souza',  1),
+('Diego Martins', NULL, 'Administrador de banco de dados.',         'https://www.linkedin.com/in/diego-martins', 1);
 
 -- Os textos que antes ficavam em `palestra.sala` viraram locais (F04).
 INSERT INTO localizacao (nome_local, descricao, id_evento) VALUES
@@ -374,8 +382,9 @@ INSERT INTO avaliacao (nota_estrelas, comentario, id_usuario, id_palestra) VALUE
 INSERT INTO notificacao (mensagem, tipo_notificacao, id_usuario, id_palestra) VALUES
 ('A palestra "Introdução à Inteligência Artificial" começa em 30 minutos.', 'lembrete', 1, 1);
 
+-- Sem imagem: a imagem da planta é enviada pelo organizador no app (F14).
 INSERT INTO planta_baixa (imagem_mapa, descricao, id_evento) VALUES
-('/mapas/semana_tecnologia.png', 'Mapa do centro de convenções', 1);
+(NULL, 'Mapa do centro de convenções', 1);
 
 INSERT INTO patrocinador (nome_empresa, logo, site, descricao, id_evento) VALUES
 ('TechNova', NULL, 'https://www.technova.com.br', 'Empresa de software e serviços em nuvem.', 1);

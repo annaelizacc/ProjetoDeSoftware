@@ -39,8 +39,14 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     administrador vê todos.
 15. Sair da conta (Perfil → Sair).
 16. Ver os patrocinadores do evento (Programação → "Patrocinadores"):
-    nome, descrição e site de cada empresa. Por enquanto, o logo
-    aparece como as iniciais da empresa.
+    logo, nome, descrição e site de cada empresa. Sem logo cadastrado,
+    aparecem as iniciais da empresa.
+17. Cadastros do organizador (Área do organizador → "Cadastros do
+    evento"): criar e editar o evento com a imagem da planta, os locais
+    com o passo a passo de como chegar, os palestrantes (com foto), as
+    palestras (com local, palestrante e total de vagas) e os
+    patrocinadores (com logo). As imagens aceitas são PNG, JPG ou WEBP
+    de até 5 MB. Excluir um evento pede a senha de quem está logado.
 
 Todas as funcionalidades principais percorrem:
 
@@ -79,7 +85,9 @@ demonstração. Em relação ao banco oficial, ele:
   `patrocinador` e `certificado`, e liga cada palestra ao seu local
   (`palestra.id_localizacao`, no lugar do texto `sala`);
 - deixa `usuario` preparado para o login com Google (`senha` opcional e
-  `google_id`), ainda não implementado.
+  `google_id`), ainda não implementado;
+- liga cada palestrante a um evento (`palestrante.id_evento`, F14): o
+  organizador cadastra o palestrante no evento e o indica nas palestras.
 
 Ao criar ou alterar uma palestra pela API, o local é informado por
 `id_localizacao` (e o palestrante por `id_palestrante`). O campo `sala`
@@ -169,6 +177,14 @@ Resposta esperada:
 {"status": "ok"}
 ```
 
+### Imagens enviadas pelo app
+
+A planta, as fotos dos palestrantes e os logos enviados pelos
+organizadores ficam na pasta `backend/uploads/`, e o banco guarda só o
+nome do arquivo. A pasta fica fora do Git (`.gitignore`): cada
+computador tem as próprias imagens. Ao recriar o banco com o script, as
+imagens antigas continuam na pasta, mas deixam de ser usadas.
+
 ## 5. Executar o Flutter
 
 Em outro terminal, também a partir da raiz do repositório:
@@ -204,8 +220,14 @@ A primeira tela é o login. Quem ainda não tem conta toca em **Criar
 conta**, preenche o cadastro e entra direto no app.
 
 Depois do login, a barra de baixo tem cinco abas: **Início**,
-**Programação** (do primeiro evento cadastrado), **Agenda**, **Avisos** e
-**Perfil**. Os **Favoritos** ficam dentro do Perfil, junto com o
+**Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
+**Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
+o botão **Ver programação**, os atalhos (só o **Patrocínio** já abre;
+os outros aparecem como "Em breve"), a descrição e a próxima palestra
+da agenda da pessoa nesse evento. Com mais de um evento, a lista
+**Trocar evento** acima do card troca o evento mostrado. Nos detalhes
+da palestra, tocar no palestrante (**Ver perfil**) abre o perfil dele,
+com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
 interruptor de **Modo escuro** e o botão **Sair**, que volta para o
 login. A escolha do tema é salva no próprio aparelho com o pacote
 `shared_preferences` (não vai para o banco).
@@ -214,9 +236,15 @@ Quem entra como organizador (ex.: `elisa.prado@email.com`) vê também a
 **Área do organizador** no Perfil. Ela abre o painel do evento dessa
 pessoa (o administrador, `bruno.costa@email.com`, vê todos, com o
 seletor **Trocar evento**); tocar numa palestra (ou em **Inscrições**)
-abre a lista de inscritos, com busca e o botão **Remover**. Os outros
-itens do painel (comunicado e cadastros do evento) aparecem como "Em
-breve".
+abre a lista de inscritos, com busca e o botão **Remover**.
+
+Em **Cadastros do evento**, o organizador abre, nesta ordem: **Evento e
+planta**, **Locais e rotas**, **Palestrantes**, **Palestras** e
+**Patrocinadores** (cada um com a lista e o formulário), além de **Novo
+evento**. Quem ainda não tem evento vê o botão **Criar meu primeiro
+evento**. A imagem é escolhida com o pacote `image_picker` (galeria no
+celular, janela de arquivos na web). O **Enviar comunicado** ainda
+aparece como "Em breve" (F09).
 
 O visual segue a identidade do projeto (ver `CLAUDE.md`, na raiz do
 repositório):
@@ -227,7 +255,8 @@ repositório):
 - controle do tema (ler e salvar a escolha): `lib/theme/controle_tema.dart`;
 - componentes usados em mais de uma tela: `lib/widgets/` (barra de
   navegação, marca-texto, rótulo de seção, selo, cabeçalho, avatar com
-  iniciais e o fundo das telas de login e cadastro);
+  iniciais, o fundo das telas de login e cadastro e, na área do
+  organizador, o formulário, a lista e o campo de imagem dos cadastros);
 - fontes (Bricolage Grotesque, Figtree e JetBrains Mono): arquivos em
   `assets/fonts/`, já incluídos no app, então não precisam de internet.
 
@@ -358,13 +387,16 @@ administrador; os outros recebem 403).
 | GET | `/api/eventos` | Lista eventos | login |
 | GET | `/api/eventos/<id>` | Detalhes do evento | login |
 | POST | `/api/eventos` | Cria evento (fica ligado a quem criou; `id_organizador` no corpo é ignorado) | organizador |
-| PUT/PATCH, DELETE | `/api/eventos/<id>` | Altera ou remove evento (o responsável não muda) | dono do evento |
+| PUT/PATCH | `/api/eventos/<id>` | Altera evento (o responsável não muda) | dono do evento |
+| DELETE | `/api/eventos/<id>` | Remove o evento com tudo o que é dele (corpo: `senha` de quem está logado) | dono do evento |
+| GET | `/api/eventos/<id>/planta` | Planta do evento (`null` se ainda não tem) | login |
+| PUT | `/api/eventos/<id>/planta` | Cria ou atualiza a planta (`imagem_mapa`, `descricao`) | dono do evento |
 | GET | `/api/eventos/<id>/programacao` | Programação do evento | login |
 | GET | `/api/eventos/<id_usuario>/agenda` | Agenda personalizada | própria |
 | GET | `/api/palestras?id_evento=&tema=` | Lista e pesquisa, com `media_estrelas` e `total_avaliacoes` | login |
 | GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
 | POST | `/api/palestras` | Cria palestra | dono do evento |
-| PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra | dono do evento |
+| PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra (um novo `vagas_total` recalcula as vagas livres e não pode ser menor que o número de inscritos) | dono do evento |
 | POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra`) | login |
 | DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`) | login |
 | GET | `/api/favoritos/usuario/<id_usuario>` | Meus favoritos | própria |
@@ -382,6 +414,22 @@ administrador; os outros recebem 403).
 | GET | `/api/organizador/palestras/<id>/inscritos` | Inscritos de uma palestra (nome e e-mail) | dono do evento |
 | DELETE | `/api/organizador/palestras/<id>/inscritos/<id_usuario>` | Remove a inscrição, devolve a vaga e avisa a pessoa | dono do evento |
 | GET | `/api/patrocinadores?id_evento=` | Patrocinadores do evento, em ordem alfabética | login |
+| POST | `/api/patrocinadores` | Cria patrocinador (`id_evento`, `nome_empresa`, `logo`, `site`, `descricao`) | dono do evento |
+| PUT/PATCH, DELETE | `/api/patrocinadores/<id>` | Altera ou remove patrocinador | dono do evento |
+| GET | `/api/locais?id_evento=` | Locais do evento, com o passo a passo da rota em `descricao` | login |
+| POST | `/api/locais` | Cria local (`id_evento`, `nome_local`, `descricao`) | dono do evento |
+| PUT/PATCH, DELETE | `/api/locais/<id>` | Altera ou remove local (as palestras dele ficam sem local) | dono do evento |
+| GET | `/api/palestrantes?id_evento=&busca=` | Palestrantes do evento, com busca opcional por nome | login |
+| GET | `/api/palestrantes/<id>` | Dados de um palestrante | login |
+| POST | `/api/palestrantes` | Cria palestrante (`id_evento`, `nome`, `foto`, `descricao`, `rede_social`) | dono do evento |
+| PUT/PATCH, DELETE | `/api/palestrantes/<id>` | Altera ou remove palestrante (as palestras dele ficam sem palestrante) | dono do evento |
+| POST | `/api/uploads` | Envia uma imagem (multipart, campo `imagem`; PNG, JPG ou WEBP de até 5 MB) e devolve o nome do arquivo | organizador |
+| GET | `/uploads/<nome>` | Mostra uma imagem enviada | pública |
+
+Nos cadastros, `imagem_mapa`, `foto` e `logo` recebem o nome devolvido
+por `POST /api/uploads`. Qualquer outro valor (um caminho ou o endereço
+de outro site) é recusado. A palestra só aceita local e palestrante do
+mesmo evento.
 
 Nas rotas de inscrição, favorito, lembrete e avaliação, o usuário é
 sempre o do token: um `id_usuario` enviado no corpo é ignorado. Só nas
@@ -393,7 +441,8 @@ escolhe de quem remover a inscrição.
 ### Fluxo 1 — programação
 
 ```text
-Login -> Início -> evento -> programação -> detalhes da palestra
+Login -> Início (Trocar evento, se houver mais de um) -> Ver programação
+  -> detalhes da palestra
 ```
 
 ### Fluxo 2 — inscrição
@@ -459,6 +508,24 @@ Login (organizador) -> Perfil -> Área do organizador -> palestra
 
 ```text
 Programação -> Patrocinadores -> GET /api/patrocinadores?id_evento=1 -> cards
+```
+
+### Fluxo 12 — cadastros do organizador
+
+```text
+Login (organizador) -> Perfil -> Área do organizador -> Novo evento
+  -> Evento e planta (envia a imagem) -> Locais e rotas -> Palestrantes
+  -> Palestras (escolhe local e palestrante) -> Patrocinadores
+  -> Login (participante) -> Início -> Trocar evento (o novo) -> Ver programação
+```
+
+Exemplo do envio de imagem com `curl` (troque `<TOKEN>` pelo token de
+um organizador):
+
+```bash
+curl -H "Authorization: Bearer <TOKEN>" -F imagem=@planta.png \
+  http://127.0.0.1:5000/api/uploads
+# {"arquivo": "3f2a...e9.png"}
 ```
 
 ## 9. Tratamento de erros
