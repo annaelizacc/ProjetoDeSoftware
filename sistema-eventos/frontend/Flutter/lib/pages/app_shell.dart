@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/lembrete_service.dart';
 import '../widgets/barra_navegacao.dart';
 import 'agenda_page.dart';
 import 'home_page.dart';
@@ -43,6 +44,14 @@ class _AppShellState extends State<AppShell> {
   /// Programação. Fica aqui porque as telas são montadas de novo a cada
   /// troca de aba.
   int? eventoInicio;
+
+  /// Logo depois do login, refaz os avisos de início das palestras no
+  /// celular a partir dos lembretes ativos (F02).
+  @override
+  void initState() {
+    super.initState();
+    LembreteService.sincronizar(widget.usuarioId);
+  }
 
   @override
   Widget build(BuildContext context) {

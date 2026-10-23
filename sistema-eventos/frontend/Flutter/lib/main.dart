@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'pages/splash_page.dart';
+import 'services/lembrete_service.dart';
 import 'theme/app_theme.dart';
 import 'theme/controle_tema.dart';
 
@@ -8,7 +9,8 @@ import 'theme/controle_tema.dart';
 ///
 /// Antes de desenhar o app, lê no celular se o modo escuro estava ligado
 /// (`ControleTema.carregar`). Isso evita que o app abra no claro e "pisque"
-/// para o escuro logo depois.
+/// para o escuro logo depois. Também prepara os avisos de início das
+/// palestras no celular (`LembreteService`, F02).
 Future<void> main() async {
   // Necessário antes de usar plugins (como o `shared_preferences`) ainda
   // dentro do `main`, antes do `runApp`: prepara a ligação entre o Flutter
@@ -19,6 +21,11 @@ Future<void> main() async {
   } catch (_) {
     // Se o celular não conseguir ler a preferência, o app abre no tema
     // claro em vez de travar: o tema é só visual, não impede o uso.
+  }
+  try {
+    await LembreteService.iniciar();
+  } catch (_) {
+    // Sem os avisos no celular, o resto do app funciona normalmente.
   }
   runApp(const FluxoApp());
 }
@@ -37,6 +44,9 @@ class FluxoApp extends StatelessWidget {
       valueListenable: ControleTema.modo,
       builder: (context, modo, _) => MaterialApp(
         title: 'Fluxo Eventos',
+        // Deixa o `LembreteService` abrir os detalhes da palestra quando
+        // a pessoa toca no aviso do celular (F02).
+        navigatorKey: LembreteService.navegador,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.claro,
         darkTheme: AppTheme.escuro,
