@@ -351,6 +351,12 @@ class ApiService {
     return List<dynamic>.from(await request('/api/palestrantes?id_evento=$eventoId$filtro'));
   }
 
+  /// Dados de um palestrante (`GET /api/palestrantes/<id>`, RF14): nome,
+  /// foto, descrição e rede social. Usado no perfil aberto pelos detalhes
+  /// da palestra.
+  static Future<Map<String, dynamic>> palestrante(int id) async =>
+      Map<String, dynamic>.from(await request('/api/palestrantes/$id'));
+
   /// Cria, altera ou remove um registro de um cadastro do organizador
   /// (F14). `recurso` é o caminho da API sem o `/api/` (ex.: `locais`,
   /// `palestrantes`, `palestras`, `patrocinadores`), porque as quatro

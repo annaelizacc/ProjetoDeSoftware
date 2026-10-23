@@ -61,7 +61,12 @@ class _ListaCadastroState extends State<ListaCadastro> {
 
   Future<void> abrir(Map<String, dynamic>? registro) async {
     final mudou = await widget.abrirFormulario(registro);
-    if (mudou == true && mounted) setState(() => futuro = widget.carregar());
+    if (mudou != true || !mounted) return;
+    // Chaves no `setState`: com a seta, ele devolveria o `Future` e o
+    // Flutter não redesenharia a lista.
+    setState(() {
+      futuro = widget.carregar();
+    });
   }
 
   @override

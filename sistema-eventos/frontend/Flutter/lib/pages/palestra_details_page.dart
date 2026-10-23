@@ -5,6 +5,7 @@ import '../models/palestra.dart';
 import '../services/api_service.dart';
 import '../widgets/cabecalho_tela.dart';
 import '../widgets/estrelas.dart';
+import '../widgets/perfil_palestrante.dart';
 import '../widgets/rotulo_secao.dart';
 import 'avaliar_page.dart';
 
@@ -31,8 +32,10 @@ typedef _DadosDetalhes = ({Palestra palestra, List<Avaliacao> avaliacoes});
 /// resultado no próprio Flutter.
 ///
 /// Visual da prancha "Detalhes da palestra" do canvas (F20): cabeçalho
-/// com o título, linhas de informação, cartão de vagas, avaliações e uma
-/// barra fixa embaixo com favoritar, lembrete e inscrição.
+/// com o título, linhas de informação (quando, onde e palestrante),
+/// cartão de vagas, avaliações e uma barra fixa embaixo com favoritar,
+/// lembrete e inscrição. Tocar no palestrante ("Ver perfil") abre o
+/// perfil dele (`abrirPerfilPalestrante`).
 class PalestraDetailsPage extends StatefulWidget {
   final int usuarioId;
   final int palestraId;
@@ -101,6 +104,26 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
     }
   }
 
+  /// Abre o perfil do palestrante. Tocar numa palestra do perfil fecha a
+  /// janela e, se for outra palestra, abre os detalhes dela.
+  void abrirPerfil(Palestra p) {
+    abrirPerfilPalestrante(
+      context,
+      idPalestrante: p.idPalestrante!,
+      idEvento: p.idEvento!,
+      aoAbrirPalestra: (outra) {
+        Navigator.pop(context);
+        if (outra.id == p.id) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PalestraDetailsPage(usuarioId: widget.usuarioId, palestraId: outra.id),
+          ),
+        );
+      },
+    );
+  }
+
   /// Abre a tela Avaliar e, se algo mudou (ela devolve `true`), recarrega
   /// a média e os comentários.
   Future<void> abrirAvaliar(Palestra p) async {
@@ -141,6 +164,13 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
                   children: [
                     _LinhaInfo(rotulo: 'Quando', valor: p.horario, mono: true),
                     _LinhaInfo(rotulo: 'Onde', valor: p.sala ?? 'Local a definir'),
+                    if (p.palestrante != null)
+                      _LinhaInfo(
+                        rotulo: 'Palestrante',
+                        valor: p.palestrante!,
+                        textoAcao: 'Ver perfil',
+                        aoTocar: p.idPalestrante == null || p.idEvento == null ? null : () => abrirPerfil(p),
+                      ),
                     const SizedBox(height: 18),
                     const RotuloSecao('Sobre'),
                     const SizedBox(height: 6),
@@ -173,20 +203,32 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
 }
 
 /// Uma linha "rótulo · valor" com linha fina embaixo (ex.: QUANDO 09:00).
+///
+/// Com `aoTocar`, a linha toda pode ser tocada e mostra `textoAcao` à
+/// direita (ex.: PALESTRANTE Carla Souza · Ver perfil).
 class _LinhaInfo extends StatelessWidget {
   final String rotulo;
   final String valor;
   final bool mono;
+  final String? textoAcao;
+  final VoidCallback? aoTocar;
 
-  const _LinhaInfo({required this.rotulo, required this.valor, this.mono = false});
+  const _LinhaInfo({
+    required this.rotulo,
+    required this.valor,
+    this.mono = false,
+    this.textoAcao,
+    this.aoTocar,
+  });
 
   @override
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
-    return Container(
+    final cores = Theme.of(context).colorScheme;
+    final linha = Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+        border: Border(bottom: BorderSide(color: cores.outlineVariant)),
       ),
       child: Row(children: [
         SizedBox(width: 112, child: Text(rotulo.toUpperCase(), style: textos.labelMedium)),
@@ -194,12 +236,15 @@ class _LinhaInfo extends StatelessWidget {
           child: Text(
             valor,
             style: mono
-                ? textos.labelMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)
+                ? textos.labelMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: cores.onSurface)
                 : textos.titleSmall?.copyWith(fontWeight: FontWeight.w500),
           ),
         ),
+        if (aoTocar != null && textoAcao != null)
+          Text(textoAcao!, style: textos.labelLarge?.copyWith(fontSize: 13, color: cores.primary)),
       ]),
     );
+    return aoTocar == null ? linha : InkWell(onTap: aoTocar, child: linha);
   }
 }
 

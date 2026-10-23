@@ -220,8 +220,14 @@ A primeira tela é o login. Quem ainda não tem conta toca em **Criar
 conta**, preenche o cadastro e entra direto no app.
 
 Depois do login, a barra de baixo tem cinco abas: **Início**,
-**Programação** (do primeiro evento cadastrado), **Agenda**, **Avisos** e
-**Perfil**. Os **Favoritos** ficam dentro do Perfil, junto com o
+**Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
+**Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
+o botão **Ver programação**, os atalhos (só o **Patrocínio** já abre;
+os outros aparecem como "Em breve"), a descrição e a próxima palestra
+da agenda da pessoa nesse evento. Com mais de um evento, a lista
+**Trocar evento** acima do card troca o evento mostrado. Nos detalhes
+da palestra, tocar no palestrante (**Ver perfil**) abre o perfil dele,
+com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
 interruptor de **Modo escuro** e o botão **Sair**, que volta para o
 login. A escolha do tema é salva no próprio aparelho com o pacote
 `shared_preferences` (não vai para o banco).
@@ -435,7 +441,8 @@ escolhe de quem remover a inscrição.
 ### Fluxo 1 — programação
 
 ```text
-Login -> Início -> evento -> programação -> detalhes da palestra
+Login -> Início (Trocar evento, se houver mais de um) -> Ver programação
+  -> detalhes da palestra
 ```
 
 ### Fluxo 2 — inscrição
@@ -509,7 +516,7 @@ Programação -> Patrocinadores -> GET /api/patrocinadores?id_evento=1 -> cards
 Login (organizador) -> Perfil -> Área do organizador -> Novo evento
   -> Evento e planta (envia a imagem) -> Locais e rotas -> Palestrantes
   -> Palestras (escolhe local e palestrante) -> Patrocinadores
-  -> Login (participante) -> Início -> card do evento novo -> programação
+  -> Login (participante) -> Início -> Trocar evento (o novo) -> Ver programação
 ```
 
 Exemplo do envio de imagem com `curl` (troque `<TOKEN>` pelo token de

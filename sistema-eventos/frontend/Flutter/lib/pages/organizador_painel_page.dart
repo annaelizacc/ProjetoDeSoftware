@@ -76,10 +76,17 @@ class _OrganizadorPainelPageState extends State<OrganizadorPainelPage> {
     recarregar();
   }
 
-  /// Recarrega o painel (puxar a tela para baixo ou voltar das inscrições,
-  /// que podem ter mudado os números).
+  /// Recarrega o painel (puxar a tela para baixo, trocar de evento ou
+  /// voltar das inscrições, que podem ter mudado os números).
+  ///
+  /// O `setState` usa chaves: com a seta, a função devolveria o `Future`
+  /// e o Flutter daria o erro "setState() callback argument returned a
+  /// Future" sem redesenhar a tela (o título não mudava ao trocar de
+  /// evento).
   Future<void> recarregar() async {
-    setState(() => futuro = carregar());
+    setState(() {
+      futuro = carregar();
+    });
     await futuro;
   }
 

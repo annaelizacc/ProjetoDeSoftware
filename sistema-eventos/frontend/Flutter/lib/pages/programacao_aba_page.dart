@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
+import 'home_page.dart';
 import 'programacao_page.dart';
 
 /// Aba Programação da barra de navegação.
@@ -9,11 +10,15 @@ import 'programacao_page.dart';
 /// qual. Como o app é pensado para um evento por vez (canvas,
 /// "Programação"), esta aba busca a lista de eventos
 /// (`GET /api/eventos`, `ApiService.eventos`) e abre a programação do
-/// primeiro. Os outros eventos continuam acessíveis pela lista do Início.
+/// mesmo evento do Início: o escolhido em "Trocar evento" ou, sem
+/// escolha, o próximo evento (`escolherEvento`, em `home_page.dart`).
 class ProgramacaoAbaPage extends StatefulWidget {
   final int usuarioId;
 
-  const ProgramacaoAbaPage({super.key, required this.usuarioId});
+  /// Evento escolhido no Início (guardado no `AppShell`), ou `null`.
+  final int? eventoId;
+
+  const ProgramacaoAbaPage({super.key, required this.usuarioId, required this.eventoId});
 
   @override
   State<ProgramacaoAbaPage> createState() => _ProgramacaoAbaPageState();
@@ -39,11 +44,10 @@ class _ProgramacaoAbaPageState extends State<ProgramacaoAbaPage> {
         if (snapshot.hasError) {
           return Center(child: Text('Erro: ${snapshot.error}'));
         }
-        final eventos = snapshot.data ?? [];
-        if (eventos.isEmpty) {
+        final evento = escolherEvento(snapshot.data ?? [], widget.eventoId);
+        if (evento == null) {
           return const Center(child: Text('Nenhum evento encontrado.'));
         }
-        final evento = eventos.first;
         return ProgramacaoPage(
           eventoId: evento['id_evento'],
           nomeEvento: evento['nome'] ?? '',

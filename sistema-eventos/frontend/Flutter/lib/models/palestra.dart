@@ -14,12 +14,19 @@ import 'avaliacao.dart';
 /// avaliação do próprio usuário (`minhaAvaliacao`) e se ele já pode
 /// avaliar (`podeAvaliar`: inscrito e palestra já começada, regra
 /// decidida no backend).
+///
+/// `palestrante` é o nome de quem apresenta (F14), ou `null` se a
+/// palestra ainda não tiver palestrante; `idPalestrante` abre o perfil
+/// dele, e `idEvento` lista as outras palestras dele no mesmo evento.
 class Palestra {
   final int id;
+  final int? idEvento;
+  final int? idPalestrante;
   final String titulo;
   final String? resumo;
   final String? tema;
   final String? sala;
+  final String? palestrante;
   final String? inicio;
   final String? fim;
   final int vagas;
@@ -34,10 +41,13 @@ class Palestra {
 
   Palestra({
     required this.id,
+    this.idEvento,
+    this.idPalestrante,
     required this.titulo,
     this.resumo,
     this.tema,
     this.sala,
+    this.palestrante,
     this.inicio,
     this.fim,
     this.vagas = 0,
@@ -60,10 +70,13 @@ class Palestra {
   factory Palestra.fromJson(Map<String, dynamic> json) {
     return Palestra(
       id: json['id_palestra'] as int,
+      idEvento: json['id_evento'],
+      idPalestrante: json['id_palestrante'],
       titulo: json['titulo'] ?? '',
       resumo: json['resumo'],
       tema: json['tema'],
       sala: json['sala'],
+      palestrante: json['palestrante'],
       inicio: json['horario_inicio'],
       fim: json['horario_fim'],
       vagas: json['vagas_disponiveis'] ?? 0,

@@ -317,6 +317,15 @@ o nome indicado, que aparece acima de cada tela.
   Souza, hoje palestrante, precisa ser ajustada no SQL.
 - **Decidido:** a foto é enviada pelo organizador e salva no backend,
   com a mesma solução da F03.
+- **Feito na F14 (23/10/2026):** as rotas de palestrantes por evento
+  (`GET /api/palestrantes?id_evento=&busca=`, `GET /api/palestrantes/<id>`)
+  e o nome do palestrante (`palestrante`) no JSON das palestras (lista,
+  detalhes e agenda). Os detalhes da palestra já mostram a linha
+  **Palestrante**, e tocar nela ("Ver perfil") abre o perfil
+  (`widgets/perfil_palestrante.dart`, RF14), como a prancha "Perfil do
+  palestrante" do canvas. Falta nesta tarefa: a tela de palestrantes do
+  participante, com a busca (RF13), que pode reaproveitar o
+  `abrirPerfilPalestrante`.
 
 ### F06 Tela de comentários e feedbacks (RF15)
 
@@ -659,6 +668,18 @@ o nome indicado, que aparece acima de cada tela.
   nenhuma outra tarefa alterou (por exemplo, splash, home, programação,
   agenda e favoritos). As cores dessas telas já foram trocadas pelas do
   tema na parte 1 (o modo escuro funciona nelas); falta o layout.
+  - **Início: feito na branch da F14 (23/10/2026).** Nos testes da F14,
+    a participante não tinha onde ver as informações principais do
+    evento. O Início passou a seguir a prancha do canvas: o card do
+    evento (datas, nome, local e **Ver programação**), os atalhos (os
+    sem tela aparecem como "Em breve"), a descrição e a próxima palestra
+    da agenda. Começa pelo próximo evento; com mais de um, a lista
+    **Trocar evento** acima do card troca o evento.
+  - **Aba Programação no evento do Início (sugestão aprovada em
+    23/10/2026):** a aba abria sempre o primeiro evento. Agora abre o
+    escolhido em "Trocar evento" ou, sem escolha, o próximo evento
+    (`escolherEvento`, em `home_page.dart`). Feito na branch da F14.
+  - **Falta:** splash, programação, agenda e favoritos.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
