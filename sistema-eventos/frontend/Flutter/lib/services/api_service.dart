@@ -3,6 +3,25 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
+/// Aviso de choque de horário (F16) devolvido pela inscrição (HTTP 409).
+///
+/// Não é um erro comum: a pessoa já tem inscrição em uma palestra no mesmo
+/// horário, e o app precisa perguntar se ela quer se inscrever mesmo
+/// assim. Por isso é uma exceção própria, separada da `Exception` comum:
+/// a tela reconhece o tipo (`on ChoqueDeHorarioException`) e mostra o
+/// aviso, em vez de só um SnackBar com a mensagem.
+class ChoqueDeHorarioException implements Exception {
+  final String mensagem;
+
+  /// A palestra em que a pessoa já está inscrita (JSON da API).
+  final Map<String, dynamic> palestraConflitante;
+
+  ChoqueDeHorarioException(this.mensagem, this.palestraConflitante);
+
+  @override
+  String toString() => mensagem;
+}
+
 /// Centraliza todas as chamadas HTTP para a API Flask.
 ///
 /// A URL base pode ser alterada sem editar o código:
@@ -67,6 +86,12 @@ class ApiService {
       data = jsonDecode(response.body);
     } catch (_) {
       data = {};
+    }
+    if (response.statusCode == 409 && data is Map && data['choque_horario'] == true) {
+      throw ChoqueDeHorarioException(
+        data['erro'].toString(),
+        Map<String, dynamic>.from(data['palestra_conflitante']),
+      );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(data is Map && data['erro'] != null
@@ -149,11 +174,20 @@ class ApiService {
       );
 
   /// Inscreve o usuário em uma palestra (`POST /api/inscricoes`).
-  static Future<void> inscrever(int usuarioId, int palestraId) async {
+  ///
+  /// Se a pessoa já tem inscrição em outra palestra no mesmo horário, a
+  /// API responde 409 e este método lança `ChoqueDeHorarioException`
+  /// (F16). Depois que a pessoa confirma no aviso, a tela chama de novo
+  /// com `confirmarChoque: true`, e a inscrição é feita.
+  static Future<void> inscrever(int usuarioId, int palestraId, {bool confirmarChoque = false}) async {
     await request(
       '/api/inscricoes',
       method: 'POST',
-      body: {'id_usuario': usuarioId, 'id_palestra': palestraId},
+      body: {
+        'id_usuario': usuarioId,
+        'id_palestra': palestraId,
+        if (confirmarChoque) 'confirmar_choque': true,
+      },
     );
   }
 

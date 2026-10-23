@@ -223,7 +223,7 @@ o nome indicado, que aparece acima de cada tela.
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
 | F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Concluído |
 | F15 | RF09, RF18 | 🟢 | Aviso de alteração de palestra na aba Avisos | Pendente |
-| F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Pendente |
+| F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Em andamento |
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
@@ -368,6 +368,7 @@ o nome indicado, que aparece acima de cada tela.
   busca chama a API a cada letra digitada; o `FutureBuilder` mostra só
   o resultado da busca mais recente. Tocar num palestrante abre o
   perfil, e tocar numa palestra do perfil abre os detalhes dela.
+  Registro em `DOCUMENTACAO.md`, seção 10.
 
 ### F06 Tela de comentários e feedbacks (RF15)
 
@@ -645,8 +646,22 @@ o nome indicado, que aparece acima de cada tela.
     recriar o banco antes de testar.
 - **Onde:** no Service que cria a inscrição (`CriarInscricaoService`) e
   na tela de detalhes da palestra.
-- **Decisão necessária (ao planejar):** como o app informa ao backend
-  que a pessoa já confirmou o choque de horário.
+- **Decidido (23/10/2026):** o app informa a confirmação com
+  `confirmar_choque: true` no corpo de `POST /api/inscricoes`. Sem ela, o
+  backend responde 409 com `choque_horario: true` e a palestra que bate
+  no horário, e o app mostra o aviso.
+- **Decidido (23/10/2026):** "Ver avaliações" abre uma tela com as
+  palestras do evento, a média e o total de avaliações de cada uma (da
+  maior para a menor média); tocar numa palestra abre os detalhes, com
+  os comentários.
+- **Feito (23/10/2026):** choque de horário completo (backend, aviso no
+  app como a prancha do canvas, README) e a estrutura da tela
+  "Avaliações do evento" (`pages/avaliacoes_evento_page.dart`), ainda
+  sem botão que a abra.
+- **Falta:** bloquear a inscrição em palestra já iniciada ou encerrada
+  (backend e botão), a tag "Encerrada" e o visual acinzentado, e o card
+  do evento no Início (tag de situação e o botão "Ver avaliações", que
+  abre a tela acima).
 
 ### F17 Logout e login lembrado (S03)
 
