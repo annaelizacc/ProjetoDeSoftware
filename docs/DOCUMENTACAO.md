@@ -324,3 +324,74 @@ e-mail e a senha de um usuário de exemplo já preenchidos.
   já tem conta.
 - **Sem limite de tentativas de login:** não há bloqueio depois de várias
   senhas erradas.
+
+---
+
+## 7. F08: área do organizador e organizador responsável pelo evento (RF17)
+
+Concluída em 22/10/2026. Antes, o organizador não tinha nenhuma tela no
+app, e qualquer organizador podia mexer em qualquer evento. O RF17 pede
+que o organizador gerencie as inscrições dos participantes.
+
+### 7.1 O que foi feito
+
+- **Organizador responsável** (`database/sistema_eventos_atualizado.sql`,
+  `models/evento.py`): a tabela `evento` ganhou a coluna obrigatória
+  `id_organizador`. Quem cria o evento (`POST /api/eventos`) vira o
+  responsável, e o responsável não muda por atualização.
+- **Dois níveis de acesso** (`models/organizador.py`): o `organizador`
+  gerencia só os próprios eventos; o `administrador` gerencia todos. A
+  regra fica num lugar só (`Organizador.usuario_pode_gerenciar`).
+- **Autorização por dono** (`controllers/autenticacao.py`):
+  `verificar_dono_do_evento` e `verificar_dono_da_palestra` são usadas
+  nas rotas de evento, palestra e da área do organizador, e na moderação
+  de avaliações. `verificar_administrador` protege as funções do sistema
+  todo (listar, ver e remover contas de outras pessoas).
+- **Rotas novas** (`controllers/organizador_controller.py`):
+  `GET /api/organizador/eventos` (meus eventos),
+  `GET /api/organizador/eventos/<id>/painel` (números e ranking),
+  `GET /api/organizador/palestras/<id>/inscritos` e
+  `DELETE /api/organizador/palestras/<id>/inscritos/<id_usuario>`.
+- **Remover inscrição** (`services/organizador/remover_inscricao_service.py`):
+  reaproveita o `CancelarInscricaoService` do participante (a vaga
+  volta) e grava um aviso do tipo `atencao` para a pessoa, na mesma
+  transação.
+- **Telas** (`lib/pages/organizador_painel_page.dart` e
+  `organizador_inscricoes_page.dart`): o painel com palestras,
+  inscrições, esgotadas, ocupação das vagas e média das avaliações, o
+  ranking das palestras e o seletor "Trocar evento"; a tela de inscrições
+  com busca e o botão Remover, com confirmação. A entrada "Área do
+  organizador" aparece no Perfil só para organizadores.
+- **Sair** (parte da F17): botão no Perfil que apaga o token e volta para
+  o login.
+- **Campos permitidos:** a atualização de evento e de palestra passou a
+  aceitar só uma lista de campos (avanço na P03).
+
+### 7.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Um só organizador por evento | Deixa claro quem responde pelo evento. Uma equipe por evento exigiria uma tabela de ligação a mais e não é pedida pelos RFs |
+| Administrador vê tudo, organizador só os próprios eventos | O fluxo previsto é: o administrador cria o organizador (F22) e o organizador cria o evento, que já fica ligado a ele |
+| Conferir o dono na API, e não só esconder na tela | Esconder a opção no app não protege nada: qualquer pessoa pode chamar a rota direto. A API responde 403 para quem não é o dono |
+| Remover inscrição com o mesmo Service do cancelamento | A regra da vaga fica escrita num lugar só. A diferença é quem escolhe a inscrição: o organizador (pela URL) ou a própria pessoa (pelo token) |
+| Remoção e aviso numa transação só | Uma transação é um "tudo ou nada": ou a inscrição sai e o aviso entra, ou nada muda |
+| Média geral pela soma das notas, e não pela média das médias | Uma palestra com 1 avaliação pesaria igual a uma com 10. Somando as notas e dividindo pelo total, cada avaliação conta igual |
+| `ON DELETE RESTRICT` no responsável e mensagem clara ao remover a conta | Nenhum evento fica sem responsável. O Service avisa antes, em vez de deixar o banco dar erro 500 |
+| Sair feito na branch da F08 | Era pequeno e mexia no mesmo `perfil_page.dart`. Em branches separadas, daria conflito no Git |
+
+### 7.3 Limitações conhecidas
+
+- **Organizadores ainda são criados pelo banco:** a tela para o
+  administrador criar organizadores é a F22.
+- **Sem troca de responsável:** não há rota para passar um evento para
+  outro organizador. Para remover a conta de um organizador, é preciso
+  remover os eventos dele antes.
+- **Capacidade da palestra:** as vagas não podem ser alteradas pela API.
+  Mudar a capacidade exige recalcular o saldo e fica para a F14.
+- **Palestra movida de evento:** se o `id_evento` mudar sem informar o
+  local, a palestra continua com a sala do evento antigo (a corrigir na
+  F14).
+- **Banco precisa ser recriado:** quem tem o banco antigo não tem a coluna
+  `evento.id_organizador`, e o backend novo não funciona com ele (passo
+  1.4 do `FLUXO_DE_TRABALHO.md`).
