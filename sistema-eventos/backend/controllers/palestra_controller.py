@@ -10,11 +10,21 @@ Acesso (P01): consultar exige login; criar, atualizar e remover são só
 para organizadores. Os detalhes mostram se a pessoa logada está inscrita
 e se favoritou, usando o usuário do token (o `?id_usuario=` da URL é
 ignorado).
+
+Desde a F08, criar, atualizar e remover conferem também se o evento da
+palestra é do organizador logado (ou se ele é administrador). Ao
+atualizar, se o `id_evento` mudar, o evento de destino também precisa
+ser dele: ninguém "move" uma palestra para o evento de outra pessoa.
 """
 
 from flask import Blueprint, g, jsonify, request
 
-from backend.controllers.autenticacao import login_obrigatorio, somente_organizador
+from backend.controllers.autenticacao import (
+    login_obrigatorio,
+    somente_organizador,
+    verificar_dono_da_palestra,
+    verificar_dono_do_evento,
+)
 from backend.controllers.utils import tratar_erros
 from backend.services.palestra.listar_palestras_service import ListarPalestrasService
 from backend.services.palestra.buscar_palestra_service import BuscarPalestraService
@@ -51,20 +61,31 @@ class PalestraController:
     @tratar_erros
     @somente_organizador
     def criar():
-        palestra = CriarPalestraService().execute(request.get_json() or {})
+        dados = request.get_json() or {}
+        # Sem `id_evento`, o Service responde que o campo é obrigatório.
+        if dados.get("id_evento"):
+            verificar_dono_do_evento(dados["id_evento"])
+        palestra = CriarPalestraService().execute(dados)
         return jsonify(palestra.to_dict()), 201
 
     @staticmethod
     @tratar_erros
     @somente_organizador
     def atualizar(id_palestra):
-        palestra = AtualizarPalestraService().execute(id_palestra, request.get_json() or {})
+        verificar_dono_da_palestra(id_palestra)
+        dados = request.get_json() or {}
+        # `in`, e não `dados.get(...)`: um id "vazio" (0, null) também
+        # passa pela conferência, que responde "Evento não encontrado."
+        if "id_evento" in dados:
+            verificar_dono_do_evento(dados["id_evento"])
+        palestra = AtualizarPalestraService().execute(id_palestra, dados)
         return jsonify(palestra.to_dict())
 
     @staticmethod
     @tratar_erros
     @somente_organizador
     def remover(id_palestra):
+        verificar_dono_da_palestra(id_palestra)
         RemoverPalestraService().execute(id_palestra)
         return jsonify({"mensagem": "Palestra removida."})
 

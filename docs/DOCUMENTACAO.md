@@ -39,6 +39,7 @@ Decisão tomada em 20/10/2026 (D01 do `PENDENCIAS.md`).
 | `usuario.senha` e `usuario.google_id` | Senha obrigatória; sem `google_id` | Senha opcional e `google_id` único | Preparo para o login com Google (F18): quem entra pelo Google não tem senha no sistema. O login por e-mail e senha recusa esses usuários |
 | `certificado.Atributo_1` | Campo sem nome | Não criado | O campo não tinha nome nem significado definido |
 | `tipo_usuario = 'palestrante'` | Palestrante como tipo de usuário | Removido | O palestrante não usa o app (não faz login). Seus dados ficam na tabela `palestrante` |
+| `evento.id_organizador` (F08, 22/10/2026) | Evento sem ligação com o organizador | Coluna obrigatória, chave estrangeira para `organizador` (`ON DELETE RESTRICT`) | Cada evento tem um só organizador responsável, que é quem o cria. Sem a ligação, qualquer organizador mexeria no evento de outro. O `RESTRICT` impede apagar um organizador que ainda tem eventos, para nenhum evento ficar sem responsável |
 
 ### 1.3 Limitação conhecida
 
@@ -138,7 +139,8 @@ parte 2) refaz o layout das telas antigas.
 - As telas antigas (Login, Início, Programação, Detalhes, Agenda, Avisos
   e Favoritos) já usam as cores do tema, mas o layout delas só fica
   igual ao canvas na F20 parte 2.
-- O botão "Sair" do Perfil entra na F17.
+- O botão "Sair" do Perfil entra na F17 (feito em 22/10/2026, na branch
+  da F08).
 
 ---
 
@@ -165,10 +167,15 @@ participante e organizador.
   própria pessoa.
 - **Rotas:** só login, logout e cadastro são públicos. Criar, alterar e
   remover eventos e palestras e listar usuários é só para organizadores.
-  Inscrição, favorito, lembrete e avaliação usam sempre o usuário do
-  token, e um `id_usuario` no corpo é ignorado.
+  Desde a F08, só o organizador responsável pelo evento (ou um
+  administrador) mexe no evento e nas palestras dele
+  (`verificar_dono_do_evento`), e listar, ver ou remover contas de outras
+  pessoas passou a ser só do administrador (`verificar_administrador`). Inscrição, favorito, lembrete e
+  avaliação usam sempre o usuário do token, e um `id_usuario` no corpo é
+  ignorado.
 - **Avaliações:** editar, só o autor; remover, o autor ou um organizador
-  (para moderar comentários ofensivos).
+  (para moderar comentários ofensivos). Desde a F08, só o organizador do
+  evento da palestra (ou um administrador).
 - **Perfis:** o cadastro cria sempre um participante, e a atualização de
   usuário aceita só `nome`, `email` e `senha`. Organizadores são criados
   direto no banco.
@@ -189,7 +196,7 @@ participante e organizador.
 | Login exigido em todas as rotas, menos login, logout e cadastro | O app só é usado depois do login, então não há motivo para a API mostrar dados sem ele |
 | Validade de 8 horas, sem renovação automática | Cobre um dia de evento. A renovação seria mais complexa e não faz falta neste projeto |
 | URLs com `<id_usuario>` mantidas, comparadas com o usuário do token | Trocar por rotas como `/api/eu/agenda` mudaria o app e as telas em desenvolvimento. Comparar o `id` protege do mesmo jeito |
-| Cadastro sempre como participante, e organizador criado pelo banco | O cadastro é público. Se aceitasse o tipo enviado, qualquer pessoa viraria organizadora. O evento tem uma equipe organizadora pequena e conhecida de antemão |
+| Cadastro sempre como participante, e organizador criado pelo banco | O cadastro é público. Se aceitasse o tipo enviado, qualquer pessoa viraria organizadora. O evento tem uma equipe organizadora pequena e conhecida de antemão. **Atualizado na F08 (22/10/2026):** cada evento passou a ter um só organizador responsável, e cada organizador gerencia só os próprios eventos; o administrador gerencia todos (seção 1.2). Criar organizadores pelo app é a F22 |
 | Atualização de usuário com lista de campos permitidos (`nome`, `email`, `senha`) | Uma lista do que é proibido deixava passar campos como o próprio `id_usuario`. Com a lista de permitidos, uma coluna nova já nasce protegida |
 | Só a própria pessoa altera a conta, nem o organizador | Se um organizador pudesse trocar a senha de outra pessoa, poderia entrar na conta dela |
 | Remover avaliação permitido também ao organizador; editar, só ao autor | O organizador precisa moderar comentários, mas não deve mudar a nota de outra pessoa |
@@ -209,7 +216,8 @@ participante e organizador.
 - **Dois registros de organizador:** quem é organizador fica em
   `usuario.tipo_usuario`, que a API confere, e na tabela `organizador`.
   Ao criar um organizador pelo banco, os dois precisam ser atualizados
-  (README, seção 7).
+  (README, seção 7). Desde a F08, sem o registro na tabela `organizador`
+  a pessoa não cria nem gerencia nenhum evento.
 
 ---
 

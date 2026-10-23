@@ -12,6 +12,10 @@ Acesso (P01): o cadastro (`POST`) é público, porque é feito antes do
 login. Listar todos é só para organizadores. Ver e remover uma conta: a
 própria pessoa ou um organizador. Atualizar: só a própria pessoa (se um
 organizador pudesse trocar a senha de outra conta, poderia entrar nela).
+
+Desde a F08, as funções que valem para o sistema todo (listar todas as
+contas, ver ou remover a conta de outra pessoa) são só do administrador:
+um organizador comum gerencia só os próprios eventos.
 """
 
 from flask import Blueprint, jsonify, request
@@ -20,6 +24,7 @@ from backend.controllers.autenticacao import (
     login_obrigatorio,
     somente_organizador,
     verificar_acesso_ao_usuario,
+    verificar_administrador,
 )
 from backend.controllers.utils import tratar_erros
 from backend.services.usuario.listar_usuarios_service import ListarUsuariosService
@@ -36,6 +41,7 @@ class UsuarioController:
     @tratar_erros
     @somente_organizador
     def listar():
+        verificar_administrador()
         usuarios = ListarUsuariosService().execute()
         return jsonify([usuario.to_dict() for usuario in usuarios])
 
@@ -43,7 +49,7 @@ class UsuarioController:
     @tratar_erros
     @login_obrigatorio
     def buscar(id_usuario):
-        verificar_acesso_ao_usuario(id_usuario, organizador_pode=True)
+        verificar_acesso_ao_usuario(id_usuario, administrador_pode=True)
         usuario = BuscarUsuarioService().execute(id_usuario)
         return jsonify(usuario.to_dict())
 
@@ -65,7 +71,7 @@ class UsuarioController:
     @tratar_erros
     @login_obrigatorio
     def remover(id_usuario):
-        verificar_acesso_ao_usuario(id_usuario, organizador_pode=True)
+        verificar_acesso_ao_usuario(id_usuario, administrador_pode=True)
         RemoverUsuarioService().execute(id_usuario)
         return jsonify({"mensagem": "Usuário removido."})
 

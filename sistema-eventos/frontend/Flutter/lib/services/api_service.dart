@@ -40,11 +40,14 @@ class ApiService {
 
     try {
       if (method == 'POST') {
-        response = await http.post(uri, headers: headers, body: jsonEncode(body));
+        response =
+            await http.post(uri, headers: headers, body: jsonEncode(body));
       } else if (method == 'DELETE') {
-        response = await http.delete(uri, headers: headers, body: jsonEncode(body));
+        response =
+            await http.delete(uri, headers: headers, body: jsonEncode(body));
       } else if (method == 'PUT') {
-        response = await http.put(uri, headers: headers, body: jsonEncode(body));
+        response =
+            await http.put(uri, headers: headers, body: jsonEncode(body));
       } else {
         response = await http.get(uri, headers: headers);
       }
@@ -182,6 +185,41 @@ class ApiService {
       '/api/lembretes',
       method: ativar ? 'POST' : 'DELETE',
       body: {'id_usuario': usuarioId, 'id_palestra': palestraId},
+    );
+  }
+
+  /// Encerra a sessão (F17): apaga o token da memória. Não chama a API
+  /// porque ela não guarda os tokens (o `POST /api/auth/logout` não faz
+  /// nada no servidor): quem "sai" é o app. Limitação conhecida (P01): um
+  /// token copiado antes continua valendo até vencer, em 8 horas.
+  static void sair() => token = null;
+
+  /// Eventos que o organizador logado gerencia (F08): os ligados a ele,
+  /// ou todos, para o administrador (`GET /api/organizador/eventos`).
+  static Future<List<dynamic>> meusEventos() async =>
+      List<dynamic>.from(await request('/api/organizador/eventos'));
+
+  /// Painel do organizador (F08): o evento, o resumo (palestras,
+  /// inscrições, esgotadas, ocupação e média das avaliações) e o ranking
+  /// das palestras (`GET /api/organizador/eventos/<id>/painel`).
+  static Future<Map<String, dynamic>> painelOrganizador(int eventoId) async =>
+      Map<String, dynamic>.from(
+        await request('/api/organizador/eventos/$eventoId/painel'),
+      );
+
+  /// Lista quem está inscrito numa palestra, com nome e e-mail
+  /// (`GET /api/organizador/palestras/<id>/inscritos`, só organizador).
+  static Future<List<dynamic>> inscritosDaPalestra(int palestraId) async =>
+      List<dynamic>.from(
+        await request('/api/organizador/palestras/$palestraId/inscritos'),
+      );
+
+  /// O organizador remove a inscrição de uma pessoa, devolvendo a vaga
+  /// (`DELETE /api/organizador/palestras/<id>/inscritos/<id_usuario>`).
+  static Future<void> removerInscricao(int palestraId, int usuarioId) async {
+    await request(
+      '/api/organizador/palestras/$palestraId/inscritos/$usuarioId',
+      method: 'DELETE',
     );
   }
 
