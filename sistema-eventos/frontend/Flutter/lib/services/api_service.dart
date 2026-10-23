@@ -230,6 +230,19 @@ class ApiService {
     );
   }
 
+  /// Envia um comunicado (F09,
+  /// `POST /api/organizador/eventos/<id>/comunicados`): sem `palestraId`,
+  /// para todos os inscritos no evento; com ele, só para os inscritos
+  /// dessa palestra. Devolve quantas pessoas receberam.
+  static Future<int> enviarComunicado(int eventoId, String mensagem, {int? palestraId}) async {
+    final resposta = await request(
+      '/api/organizador/eventos/$eventoId/comunicados',
+      method: 'POST',
+      body: {'mensagem': mensagem, 'id_palestra': palestraId},
+    );
+    return resposta['total_destinatarios'] as int;
+  }
+
   /// Lista as avaliações de uma palestra, da mais recente para a mais
   /// antiga, já com o nome de quem avaliou
   /// (`GET /api/avaliacoes/palestra/<id>`, F06).

@@ -15,6 +15,8 @@ precisam e que não são um CRUD simples:
    e-mail (JOIN entre `participacao` e `usuario`).
 3. `listar_eventos`: os eventos de um organizador (ou todos, para o
    administrador), do mais próximo para o mais distante.
+4. `listar_participantes_do_evento`: quem está inscrito em pelo menos
+   uma palestra do evento, usado no envio de comunicados (F09).
 
 Por que subconsultas, e não um único JOIN com `GROUP BY`: se a mesma
 consulta juntasse `participacao` e `avaliacao` à palestra, cada inscrição
@@ -92,3 +94,21 @@ class OrganizadorRepository:
         )
         resultado = db.session.execute(sql, {"id_organizador": id_organizador})
         return resultado.mappings().all()
+
+    @staticmethod
+    def listar_participantes_do_evento(id_evento):
+        """Lista os ids de quem está inscrito em alguma palestra do evento.
+
+        `DISTINCT` tira as repetições: quem está inscrito em três palestras
+        do evento aparece uma vez só (e recebe uma cópia do comunicado).
+        """
+        sql = text(
+            """
+            SELECT DISTINCT pa.id_usuario
+            FROM participacao pa
+            JOIN palestra p ON p.id_palestra = pa.id_palestra
+            WHERE p.id_evento = :id_evento
+            """
+        )
+        resultado = db.session.execute(sql, {"id_evento": id_evento})
+        return [linha.id_usuario for linha in resultado]

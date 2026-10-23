@@ -243,8 +243,14 @@ planta**, **Locais e rotas**, **Palestrantes**, **Palestras** e
 **Patrocinadores** (cada um com a lista e o formulário), além de **Novo
 evento**. Quem ainda não tem evento vê o botão **Criar meu primeiro
 evento**. A imagem é escolhida com o pacote `image_picker` (galeria no
-celular, janela de arquivos na web). O **Enviar comunicado** ainda
-aparece como "Em breve" (F09).
+celular, janela de arquivos na web).
+
+Em **Participantes**, o **Enviar comunicado** (F09) manda um aviso para
+todos os inscritos em pelo menos uma palestra do evento ou, escolhendo
+uma palestra na lista **Para**, só para os inscritos nela (até 500
+caracteres, com confirmação antes de enviar). O comunicado aparece na
+aba **Avisos** de cada pessoa com o selo **ORGANIZAÇÃO** e, embaixo, o
+nome do evento (e o da palestra, quando foi para uma palestra).
 
 O visual segue a identidade do projeto (ver `CLAUDE.md`, na raiz do
 repositório):
@@ -283,7 +289,9 @@ Os Services estão em `backend/services/` e contêm as regras:
 - `PalestraService`: detalha e pesquisa palestras;
 - `InscricaoService`: valida usuário, duplicidade, vagas e cancelamento;
 - `FavoritoService`: valida e gerencia favoritos;
-- `NotificacaoService`: ativa, desativa e lista lembretes.
+- `NotificacaoService`: ativa, desativa e lista lembretes;
+- `EnviarComunicadoService`: valida o comunicado e grava uma cópia para
+  cada participante do evento (F09).
 
 ### Models
 
@@ -326,6 +334,14 @@ Ativar lembrete cria um registro em `notificacao` com
 `tipo_notificacao = 'lembrete'`. Desativar remove esse registro. Ao abrir
 Avisos, o Flutter consulta a API; portanto o conteúdo não é uma lista fixa
 dentro do aplicativo.
+
+Os comunicados do organizador (F09) também ficam em `notificacao`, com
+`tipo_notificacao = 'comunicado'` e o `id_evento` preenchido (e o
+`id_palestra`, quando o comunicado é só para os inscritos de uma
+palestra): cada destinatário recebe uma cópia. A lista de avisos traz
+`nome_evento` e `titulo_palestra` para a tela mostrar de onde veio. Na aba Avisos, o selo muda conforme o tipo
+(`ORGANIZAÇÃO`, `ATENÇÃO`, `LEMBRETE` ou `INFO`), e puxar a lista para
+baixo busca de novo.
 
 ## 7. Rotas principais
 
@@ -413,6 +429,7 @@ administrador; os outros recebem 403).
 | GET | `/api/organizador/eventos/<id>/painel` | Números do evento e ranking das palestras | dono do evento |
 | GET | `/api/organizador/palestras/<id>/inscritos` | Inscritos de uma palestra (nome e e-mail) | dono do evento |
 | DELETE | `/api/organizador/palestras/<id>/inscritos/<id_usuario>` | Remove a inscrição, devolve a vaga e avisa a pessoa | dono do evento |
+| POST | `/api/organizador/eventos/<id>/comunicados` | Envia um comunicado a todos os inscritos no evento ou, com `id_palestra`, só aos inscritos dessa palestra (corpo: `mensagem`, até 500 caracteres, e `id_palestra` opcional); devolve `total_destinatarios` | dono do evento |
 | GET | `/api/patrocinadores?id_evento=` | Patrocinadores do evento, em ordem alfabética | login |
 | POST | `/api/patrocinadores` | Cria patrocinador (`id_evento`, `nome_empresa`, `logo`, `site`, `descricao`) | dono do evento |
 | PUT/PATCH, DELETE | `/api/patrocinadores/<id>` | Altera ou remove patrocinador | dono do evento |
@@ -528,6 +545,22 @@ curl -H "Authorization: Bearer <TOKEN>" -F imagem=@planta.png \
 # {"arquivo": "3f2a...e9.png"}
 ```
 
+### Fluxo 13 — comunicado do organizador
+
+```text
+Login (organizador) -> Perfil -> Área do organizador -> Enviar comunicado
+  -> Para (todos ou uma palestra) -> mensagem -> Enviar -> confirmar
+  -> Login (participante inscrito) -> Avisos -> selo ORGANIZAÇÃO + evento
+```
+
+```bash
+curl -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" \
+  -d '{"mensagem": "Credenciamento aberto no hall principal até as 10h."}' \
+  http://127.0.0.1:5000/api/organizador/eventos/1/comunicados
+# {"mensagem": "Comunicado enviado.", "total_destinatarios": 1}
+# Só para os inscritos da palestra 1: acrescente "id_palestra": 1 no corpo.
+```
+
 ## 9. Tratamento de erros
 
 O backend retorna mensagens simples para:
@@ -538,6 +571,8 @@ O backend retorna mensagens simples para:
 - inscrição inexistente;
 - favorito duplicado ou inexistente;
 - lembrete duplicado ou inexistente;
+- comunicado vazio, longo demais, para um evento ou palestra sem
+  inscritos, ou para uma palestra de outro evento;
 - servidor indisponível;
 - requisição sem login ou com login vencido (401);
 - usuário sem permissão para a ação (403).

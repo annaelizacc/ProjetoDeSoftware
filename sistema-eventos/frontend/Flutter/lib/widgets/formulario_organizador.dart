@@ -17,7 +17,8 @@ import 'cabecalho_tela.dart';
 ///
 /// Cada tela só monta a lista de campos e diz o que fazer ao salvar.
 /// Com `aoExcluir` (ao editar um registro), aparece no fim dos campos o
-/// botão "Excluir", na cor de atenção.
+/// botão "Excluir", na cor de atenção. `secao` troca o rótulo do topo
+/// (ex.: `Organizador · participantes`, no envio de comunicado).
 class FormularioOrganizador extends StatelessWidget {
   final String titulo;
   final String textoBotao;
@@ -25,6 +26,7 @@ class FormularioOrganizador extends StatelessWidget {
   final VoidCallback aoSalvar;
   final bool salvando;
   final VoidCallback? aoExcluir;
+  final String secao;
 
   const FormularioOrganizador({
     super.key,
@@ -34,6 +36,7 @@ class FormularioOrganizador extends StatelessWidget {
     required this.aoSalvar,
     this.salvando = false,
     this.aoExcluir,
+    this.secao = 'Organizador · cadastro',
   });
 
   @override
@@ -43,7 +46,7 @@ class FormularioOrganizador extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          CabecalhoTela(titulo: titulo, secao: 'Organizador · cadastro'),
+          CabecalhoTela(titulo: titulo, secao: secao),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),

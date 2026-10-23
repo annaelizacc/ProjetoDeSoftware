@@ -86,6 +86,12 @@ branch própria.
   com o script novo (passo 1.4 do `FLUXO_DE_TRABALHO.md`). A lista de
   palestrantes da F05 deve filtrar pelo evento
   (`GET /api/palestrantes?id_evento=`).
+- **Mudança da F09 que afeta a Bianca (23/10/2026):** a tabela
+  `notificacao` ganhou `id_evento`. Depois que a F09 entrar na `main`,
+  **recriar o banco local** com o script novo (passo 1.4 do
+  `FLUXO_DE_TRABALHO.md`). Para não perder os dados locais, dá para só
+  acrescentar a coluna:
+  `ALTER TABLE notificacao ADD COLUMN id_evento INT NULL, ADD CONSTRAINT fk_notificacao_evento FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE;`
 - **Por que essa ordem:** a Pessoa A faz as tarefas que as outras usam
   como base (banco, visual, autenticação, área do organizador). A Pessoa
   B começa pelo que não depende de nada.
@@ -171,11 +177,11 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF15 | Comentários e feedbacks sobre palestras | Concluído | F06 |
 | RF16 | Avaliar palestras por estrelas | Concluído | F07 |
 | RF17 | Organizador gerencia inscrições | Concluído | F08 |
-| RF18 | Organizador envia comunicados gerais | Pendente | F09 |
+| RF18 | Organizador envia comunicados gerais | Concluído | F09 |
 | RF19 | Patrocinadores do evento | Concluído | F10 |
-| RF20 | Modo claro e modo escuro | Pendente: o app só tem o tema claro | F11 |
+| RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 12 concluídos, 2 parciais e 6 pendentes.
+**Resumo:** 15 concluídos, 2 parciais e 3 pendentes.
 
 ## 1.2 Tarefas
 
@@ -194,9 +200,9 @@ o nome indicado, que aparece acima de cada tela.
 | F06 | RF15 | 🔴 | Tela de comentários e feedbacks | Concluído |
 | F07 | RF16 | 🔴 | Avaliação por estrelas | Concluído |
 | F08 | RF17 | 🔴 | Área do organizador: gerenciar inscrições | Concluído |
-| F09 | RF18 | 🔴 | Comunicados gerais do organizador | Pendente |
+| F09 | RF18 | 🔴 | Comunicados gerais do organizador | Concluído |
 | F10 | RF19 | 🔴 | Patrocinadores do evento | Concluído |
-| F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Pendente |
+| F11 | RF20 | 🔴 | Modo claro e escuro (feita dentro da F20) | Concluído |
 | F12 | — (diagrama) | 🟢 | Certificado de participação | Pendente |
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
 | F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Concluído |
@@ -424,6 +430,29 @@ o nome indicado, que aparece acima de cada tela.
   O comunicado usa a tabela `notificacao`, adaptada para aceitar
   notificações sem palestra (`id_palestra` opcional).
 - **Depende de:** F08 e P01.
+- **Concluído (23/10/2026):**
+  - **Decidido:** o comunicado vai para quem está inscrito em pelo menos
+    uma palestra do evento, e cada pessoa recebe uma cópia em
+    `notificacao` (`tipo_notificacao = 'comunicado'`). Quem está inscrito
+    em várias palestras recebe uma só (`SELECT DISTINCT`).
+  - **Decidido (pedido da Manuela):** no campo **Para**, uma lista
+    suspensa deixa escolher, em vez de todos, **uma** palestra do evento
+    (uma por vez); só os inscritos nela recebem. Palestras sem inscritos
+    aparecem desativadas. O backend confere se a palestra é do evento.
+  - **Decidido:** na aba Avisos, o comunicado mostra o nome do evento e,
+    quando foi para uma palestra, também o título dela. Para isso, a
+    tabela `notificacao` ganhou o campo **`id_evento`** (opcional,
+    preenchido só nos comunicados). Sem ele, o comunicado para todos não
+    teria como saber de qual evento veio.
+  - Rota `POST /api/organizador/eventos/<id>/comunicados` (só o dono do
+    evento), com mensagem obrigatória de até 500 caracteres e
+    `id_palestra` opcional; sem nenhum inscrito, dá erro 400. As cópias
+    são gravadas numa transação só.
+  - Tela "Enviar comunicado", aberta pelo painel, com confirmação antes
+    de enviar. A aba Avisos passou para o visual do canvas (ver F20).
+  - **Fora desta tarefa:** o cartão "Começa em 10 min" do canvas
+    (próximo lembrete) depende da F02; o contador de novos depende da
+    F21.
 
 ### F10 Patrocinadores do evento (RF19)
 
@@ -459,6 +488,11 @@ o nome indicado, que aparece acima de cada tela.
   a splash e a tela de detalhes), e elas precisarão ser revistas.
 - **Decidido (D01):** sem o campo `tema_preferido` no banco. A escolha
   do tema fica guardada no próprio celular.
+- **Concluído (F20 parte 1):** tema escuro em `app_theme.dart` e o
+  interruptor "Modo escuro" no Perfil, com a escolha salva no celular
+  (`lib/theme/controle_tema.dart`). Registro em `DOCUMENTACAO.md`,
+  seção 3. As telas que ainda faltam no visual novo (F20 parte 2) já
+  usam as cores do tema, então também mudam no modo escuro.
 
 ### F12 Certificado de participação (diagrama do relatório)
 
@@ -679,6 +713,11 @@ o nome indicado, que aparece acima de cada tela.
     23/10/2026):** a aba abria sempre o primeiro evento. Agora abre o
     escolhido em "Trocar evento" ou, sem escolha, o próximo evento
     (`escolherEvento`, em `home_page.dart`). Feito na branch da F14.
+  - **Avisos: feito na branch da F09 (23/10/2026).** Cabeçalho do
+    canvas, lista com o horário em JetBrains Mono (hora para hoje,
+    `ONTEM`, ou a data), selo por tipo (`ORGANIZAÇÃO` na cor Areia,
+    `ATENÇÃO`, `LEMBRETE`, `INFO`) e puxar para recarregar. Os ícones em
+    imagem saíram.
   - **Falta:** splash, programação, agenda e favoritos.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
@@ -982,6 +1021,11 @@ qualquer alteração.
   3 horas no Brasil).
 - **Por que importa:** ordenações e horários exibidos ficam errados.
   `datetime.utcnow` também está obsoleto no Python 3.12.
+- **Contorno na F09 (23/10/2026):** a aba Avisos lê `data_envio` como
+  UTC e converte para a hora do celular (`toLocal()`), então os avisos
+  criados pela API aparecem na hora certa. O lembrete de exemplo do
+  script SQL (gravado na hora local) aparece 3 horas atrasado. A
+  correção de vez continua sendo desta tarefa.
 
 ### P07 🟢 Uso de método obsoleto do SQLAlchemy
 
