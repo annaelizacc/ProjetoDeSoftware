@@ -50,7 +50,7 @@ class HomePage extends StatefulWidget {
   /// aba é o `AppShell`.
   final VoidCallback aoVerAgenda;
 
-  /// Evento escolhido em "Trocar evento" (`null`: o próximo evento). Fica
+  /// Evento escolhido em Escolher evento (`null`: o próximo evento). Fica
   /// guardado no `AppShell`, e não nesta tela, porque o `AppShell` monta a
   /// tela de novo a cada troca de aba e a escolha se perderia.
   final int? eventoId;
@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
     return novaBusca;
   }
 
-  /// O evento mostrado: o escolhido em "Trocar evento" ou o próximo.
+  /// O evento mostrado: o escolhido em Escolher evento ou o próximo.
   Map<String, dynamic>? eventoMostrado(List<dynamic> eventos) => escolherEvento(eventos, widget.eventoId);
 
   /// A próxima palestra da agenda neste evento (a primeira que ainda não
@@ -245,7 +245,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 /// Escolhe o evento que o Início e a aba Programação mostram: o de
-/// `eventoId` (escolhido em "Trocar evento"), se ele existir; senão, o
+/// `eventoId` (escolhido em Escolher evento), se ele existir; senão, o
 /// próximo evento, o primeiro (por data de início) que ainda não
 /// terminou; se todos já terminaram, o primeiro deles. `null` sem eventos.
 Map<String, dynamic>? escolherEvento(List<dynamic> eventos, int? eventoId) {
@@ -373,7 +373,9 @@ class _CardEvento extends StatelessWidget {
   /// `Centro de Convenções UFMG · 6 palestras em 3 salas`. Sem palestras,
   /// só o local.
   String localEContagem() {
-    final local = evento['local'] ?? 'Local a definir';
+    // Local vazio ('') também conta como não informado.
+    final texto = (evento['local'] ?? '').toString().trim();
+    final local = texto.isEmpty ? 'Local a definir' : texto;
     if (programacao.isEmpty) return local;
     // Um `Set` guarda cada valor uma vez só: o tamanho dele é o número de
     // salas diferentes.

@@ -48,7 +48,7 @@ typedef _DadosDetalhes = ({Palestra palestra, List<Avaliacao> avaliacoes});
 /// inscrição nem cancelamento (F16, bloqueado também no backend). Por
 /// isso o cartão de vagas e o lembrete somem; quem estava inscrito vê só
 /// favoritar e Avaliar (ou Editar avaliação), e quem não estava não vê a
-/// barra.
+/// barra (ou vê só o favoritar, se a palestra estiver nos favoritos).
 ///
 /// Rotas (F04, RF11): a linha "Onde" tem o botão "Ver planta", que abre a
 /// planta do evento (`PlantaPage`, F03), e a seção "Como chegar" mostra o
@@ -280,8 +280,10 @@ class _PalestraDetailsPageState extends State<PalestraDetailsPage> {
                 ),
               ),
               // Quem não estava inscrito numa palestra que já começou não
-              // tem o que fazer na barra, então ela não aparece.
-              if (!comecou || p.inscrito)
+              // tem o que fazer na barra, então ela não aparece. A exceção é
+              // a palestra favorita: a barra fica só com o favoritar, para
+              // dar para tirar dos favoritos.
+              if (!comecou || p.inscrito || p.favorita)
                 _BarraAcoes(
                   palestra: p,
                   comecou: comecou,

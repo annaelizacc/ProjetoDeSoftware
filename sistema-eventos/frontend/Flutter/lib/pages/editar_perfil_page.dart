@@ -16,8 +16,8 @@ import '../widgets/formulario_organizador.dart';
 /// conta, que hoje volta como erro genérico (F26, junto da P03). Trocar a
 /// senha também fica para a F26.
 ///
-/// Ao salvar, chama `aoSalvar` com os valores novos (o `AppShell` troca o
-/// nome e o e-mail no app inteiro) e fecha a tela.
+/// Ao salvar, chama `aoSalvar` com o nome e o e-mail que o backend devolveu
+/// (o `AppShell` troca os dois no app inteiro) e fecha a tela.
 class EditarPerfilPage extends StatefulWidget {
   final int usuarioId;
   final String nome;
@@ -49,11 +49,9 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
   }
 
   void salvar() {
-    final novoNome = nome.text.trim();
-    final novoEmail = email.text.trim();
     executarEFechar(context, (valor) => setState(() => salvando = valor), () async {
-      await ApiService.atualizarPerfil(widget.usuarioId, novoNome, novoEmail);
-      widget.aoSalvar(novoNome, novoEmail);
+      final usuario = await ApiService.atualizarPerfil(widget.usuarioId, nome.text.trim(), email.text.trim());
+      widget.aoSalvar(usuario['nome'] ?? '', usuario['email'] ?? '');
     });
   }
 

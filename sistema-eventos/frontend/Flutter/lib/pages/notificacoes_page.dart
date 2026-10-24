@@ -76,10 +76,12 @@ class _NotificacoesPageState extends State<NotificacoesPage> {
     await futuro;
   }
 
-  /// Rótulo acima do título: `CARREGANDO…` durante a busca e, depois,
+  /// Rótulo acima do título: `CARREGANDO…` durante a busca, `SEM CONEXÃO`
+  /// se ela falhou (para a hora antiga não parecer atualizada) e, depois,
   /// a hora da última busca que deu certo.
-  String rotulo(bool carregando) {
+  String rotulo(bool carregando, bool falhou) {
     if (carregando) return 'Carregando…';
+    if (falhou) return 'Sem conexão';
     final hora = atualizadoEm;
     return hora == null ? 'Seus avisos' : 'Atualizado ${horaCurta(hora)}';
   }
@@ -95,7 +97,7 @@ class _NotificacoesPageState extends State<NotificacoesPage> {
           final carregando = snapshot.connectionState == ConnectionState.waiting;
           return Column(
             children: [
-              CabecalhoAba(rotulo: rotulo(carregando), titulo: 'Avisos'),
+              CabecalhoAba(rotulo: rotulo(carregando, snapshot.hasError), titulo: 'Avisos'),
               const SizedBox(height: 8),
               Expanded(child: conteudo(snapshot, carregando)),
             ],
