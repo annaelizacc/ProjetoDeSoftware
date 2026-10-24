@@ -7,10 +7,10 @@ import '../widgets/estrelas.dart';
 import '../widgets/rotulo_secao.dart';
 import 'palestra_details_page.dart';
 
-/// Tela "Avaliações do evento" (F16): estrutura inicial.
+/// Tela "Avaliações do evento" (F16).
 ///
-/// Será aberta pelo botão "Ver avaliações" do card de um evento encerrado
-/// no Início (parte da F16 ainda não feita). Mostra as palestras do
+/// Aberta pelo botão "Ver avaliações" do card de um evento encerrado no
+/// Início (no lugar de "Ver programação"). Mostra as palestras do
 /// evento com a média de estrelas e o total de avaliações, da maior média
 /// para a menor; tocar numa palestra abre os detalhes, onde ficam os
 /// comentários.

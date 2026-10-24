@@ -223,7 +223,7 @@ o nome indicado, que aparece acima de cada tela.
 | F13 | — (Seção 1 e diagrama) | 🟢 | Restaurantes próximos (opcional para o organizador) | Pendente |
 | F14 | — (S04) | 🔴 | Telas do organizador para cadastrar eventos e palestras | Concluído |
 | F15 | RF09, RF18 | 🟢 | Aviso de alteração de palestra na aba Avisos | Pendente |
-| F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Em andamento |
+| F16 | — (S01, S02) | 🟡 | Regras de inscrição: choque de horário e palestra já iniciada | Concluído |
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
@@ -683,10 +683,15 @@ o nome indicado, que aparece acima de cada tela.
   app como a prancha do canvas, README) e a estrutura da tela
   "Avaliações do evento" (`pages/avaliacoes_evento_page.dart`), ainda
   sem botão que a abra.
-- **Falta:** bloquear a inscrição em palestra já iniciada ou encerrada
-  (backend e botão), a tag "Encerrada" e o visual acinzentado, e o card
-  do evento no Início (tag de situação e o botão "Ver avaliações", que
-  abre a tela acima).
+- **Concluído (23/10/2026, parte 2):** o backend recusa a inscrição e o
+  cancelamento depois do início da palestra (`horario_inicio <= agora`,
+  o mesmo critério da avaliação, F07), com erro 400. O card do evento no
+  Início mostra a tag de situação (ACONTECENDO AGORA, EM N DIAS, AMANHÃ
+  ou ENCERRADO, contada por dia, porque o evento só tem a data); o
+  evento encerrado fica cinza e o botão vira "Ver avaliações", que abre
+  `pages/avaliacoes_evento_page.dart`. A tag "Encerrada" da Programação
+  e a barra dos Detalhes de palestra começada ficaram na F20
+  (Manuela).
 
 ### F17 Logout e login lembrado (S03)
 
