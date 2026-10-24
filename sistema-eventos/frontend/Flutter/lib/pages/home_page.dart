@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
 import '../widgets/rotulo_secao.dart';
+import 'avaliacoes_evento_page.dart';
 import 'palestra_details_page.dart';
 import 'palestrantes_page.dart';
 import 'planta_page.dart';
@@ -175,6 +176,11 @@ class _HomePageState extends State<HomePage> {
                   ],
                   _CardEvento(
                     evento: evento,
+                    aoVerAvaliacoes: () => abrir(AvaliacoesEventoPage(
+                      eventoId: evento['id_evento'],
+                      nomeEvento: evento['nome'] ?? '',
+                      usuarioId: widget.usuarioId,
+                    )),
                     aoVerProgramacao: () => abrir(ProgramacaoPage(
                       eventoId: evento['id_evento'],
                       nomeEvento: evento['nome'] ?? '',
@@ -305,23 +311,50 @@ String _periodo(String? inicioTexto, String? fimTexto) {
   return '$comeco—${dia(fim)} $mesFim ${fim.year}';
 }
 
+/// Situação do evento no tempo (F16), para a tag do card: antes do
+/// início, quantos dias faltam ("EM 14 DIAS"); entre o início e o fim,
+/// "ACONTECENDO AGORA"; depois do fim, "ENCERRADO". O evento só tem a
+/// data (sem hora), então a conta é feita por dia.
+({String texto, bool encerrado}) _situacaoEvento(Map<String, dynamic> evento, DateTime agora) {
+  final inicio = DateTime.tryParse(evento['data_inicio'] ?? '');
+  final fim = DateTime.tryParse(evento['data_fim'] ?? '') ?? inicio;
+  final hoje = DateUtils.dateOnly(agora);
+  if (inicio == null || fim == null) return (texto: 'DATA A DEFINIR', encerrado: false);
+  if (hoje.isAfter(fim)) return (texto: 'ENCERRADO', encerrado: true);
+  if (!hoje.isBefore(inicio)) return (texto: 'ACONTECENDO AGORA', encerrado: false);
+  final dias = inicio.difference(hoje).inDays;
+  return (texto: dias == 1 ? 'AMANHÃ' : 'EM $dias DIAS', encerrado: false);
+}
+
 /// Card do evento na cor principal, com a curva fina do rio ao fundo.
+///
+/// F16: no topo, a tag com a situação do evento (`_situacaoEvento`). O
+/// evento encerrado fica com o card acinzentado, e o botão "Ver
+/// programação" vira "Ver avaliações" (abre `AvaliacoesEventoPage`).
 class _CardEvento extends StatelessWidget {
   final Map<String, dynamic> evento;
   final VoidCallback aoVerProgramacao;
+  final VoidCallback aoVerAvaliacoes;
 
-  const _CardEvento({required this.evento, required this.aoVerProgramacao});
+  const _CardEvento({
+    required this.evento,
+    required this.aoVerProgramacao,
+    required this.aoVerAvaliacoes,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cores = Theme.of(context).colorScheme;
     final textos = Theme.of(context).textTheme;
-    final corTexto = cores.onPrimary;
+    final situacao = _situacaoEvento(evento, DateTime.now());
+    // Encerrado: cinza neutro do tema no lugar da cor principal.
+    final fundo = situacao.encerrado ? cores.onSurfaceVariant : cores.primary;
+    final corTexto = situacao.encerrado ? cores.surface : cores.onPrimary;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        color: cores.primary,
+        color: fundo,
         child: CustomPaint(
           painter: _RioDoCard(corTexto.withValues(alpha: 0.12)),
           child: Padding(
@@ -329,9 +362,34 @@ class _CardEvento extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _periodo(evento['data_inicio'], evento['data_fim']),
-                  style: textos.labelMedium?.copyWith(color: corTexto.withValues(alpha: 0.85)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _periodo(evento['data_inicio'], evento['data_fim']),
+                        style: textos.labelMedium?.copyWith(color: corTexto.withValues(alpha: 0.85)),
+                      ),
+                    ),
+                    // Mesmo formato do `Selo` (mono, cantos de 4px, linha de
+                    // 1px), na cor do texto do card: o `Selo` comum é feito
+                    // para fundo claro e perderia o contraste aqui.
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: corTexto),
+                      ),
+                      child: Text(
+                        situacao.texto,
+                        style: TextStyle(
+                          fontFamily: AppFontes.mono,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: corTexto,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 48),
                 Padding(
@@ -354,12 +412,12 @@ class _CardEvento extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 FilledButton(
-                  onPressed: aoVerProgramacao,
+                  onPressed: situacao.encerrado ? aoVerAvaliacoes : aoVerProgramacao,
                   style: FilledButton.styleFrom(
                     backgroundColor: cores.surface,
                     foregroundColor: cores.onSurface,
                   ),
-                  child: const Text('Ver programação'),
+                  child: Text(situacao.encerrado ? 'Ver avaliações' : 'Ver programação'),
                 ),
               ],
             ),

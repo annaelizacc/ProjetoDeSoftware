@@ -60,7 +60,11 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 21. Aviso de choque de horário (F16): ao se inscrever numa palestra que
     bate no horário com outra em que a pessoa já está inscrita, o app
     mostra as duas e pergunta se ela quer se inscrever mesmo assim. A
-    inscrição não é bloqueada.
+    inscrição não é bloqueada. Depois que a palestra começa, não dá mais
+    para se inscrever nem cancelar a inscrição. No Início, o card do
+    evento mostra a situação (**ACONTECENDO AGORA**, **EM 14 DIAS** ou
+    **ENCERRADO**); o evento encerrado fica cinza, com o botão **Ver
+    avaliações** (as palestras com a média e o total de avaliações).
 22. Aviso de início das palestras no celular (F02, RF09): com o lembrete
     ativo, o Android mostra uma notificação 10 minutos antes do início,
     mesmo com o app fechado. Tocar nela abre os detalhes da palestra. Só
@@ -533,8 +537,8 @@ administrador; os outros recebem 403).
 | GET | `/api/palestras/<id>` | Detalhes, média das avaliações e status do usuário do token (`inscrito`, `favorita`, `lembrete_ativo`, `minha_avaliacao`, `pode_avaliar`) | login |
 | POST | `/api/palestras` | Cria palestra | dono do evento |
 | PUT/PATCH, DELETE | `/api/palestras/<id>` | Altera ou remove palestra (um novo `vagas_total` recalcula as vagas livres e não pode ser menor que o número de inscritos) | dono do evento |
-| POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra` e, opcional, `confirmar_choque: true`). Com choque de horário e sem a confirmação, responde **409** com `choque_horario: true` e `palestra_conflitante` (F16) | login |
-| DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`) | login |
+| POST | `/api/inscricoes` | Inscrever (corpo: `id_palestra` e, opcional, `confirmar_choque: true`). Com choque de horário e sem a confirmação, responde **409** com `choque_horario: true` e `palestra_conflitante` (F16). Palestra que já começou: **400**, inscrições encerradas | login |
+| DELETE | `/api/inscricoes` | Cancelar inscrição (corpo: `id_palestra`). Depois que a palestra começa, responde **400**: a inscrição vira o registro de participação (F16) | login |
 | GET | `/api/favoritos/usuario/<id_usuario>` | Meus favoritos | própria |
 | POST | `/api/favoritos` | Adicionar favorito (corpo: `id_palestra`) | login |
 | DELETE | `/api/favoritos` | Remover favorito (corpo: `id_palestra`) | login |

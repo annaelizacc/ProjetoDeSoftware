@@ -10,6 +10,10 @@ Regras preservadas da versão anterior do projeto:
 - a linha da palestra é bloqueada (`with_for_update`) durante a operação,
   para que duas inscrições simultâneas não consumam a mesma última vaga.
 
+Regra da F16 (S02), palestra já iniciada: depois que a palestra começa
+(`horario_inicio <= agora`, o mesmo critério da avaliação, F07), as
+inscrições ficam encerradas, inclusive para a palestra já terminada.
+
 Regra da F16 (S01), choque de horário: se a pessoa já tem inscrição em
 outra palestra no mesmo horário, a inscrição NÃO é bloqueada, mas o
 Service avisa (levantando `ChoqueDeHorario`) e só inscreve quando o app
@@ -25,6 +29,8 @@ Método principal:
     execute(id_usuario, id_palestra, confirmar_choque=False): cria e
     retorna a Participacao.
 """
+
+from datetime import datetime
 
 from backend.extensions import db
 from backend.models.palestra import Palestra
@@ -60,6 +66,9 @@ class CriarInscricaoService:
         )
         if not palestra:
             raise ValueError("Palestra não encontrada.")
+
+        if palestra.horario_inicio and palestra.horario_inicio <= datetime.now():
+            raise ValueError("As inscrições desta palestra estão encerradas.")
 
         ja_inscrito = Participacao.query.filter_by(
             id_usuario=id_usuario, id_palestra=id_palestra
