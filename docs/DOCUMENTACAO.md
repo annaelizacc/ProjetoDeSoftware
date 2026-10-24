@@ -630,3 +630,70 @@ avisava a pessoa na hora.
 - **Pacotes novos mudaram o `pubspec.lock`:** quem puxar a `main` roda
   `flutter pub get`. As versões das outras dependências também mudaram,
   pela diferença de versão do Flutter entre as máquinas (P17).
+
+## 12. F20 parte 2: telas restantes no visual do canvas, fundo céu suave e eventos, lugares e salas
+
+Concluída em 23/10/2026, em duas branches: `f20-telas-restantes` (PR #21:
+abertura, favoritos, programação e agenda) e `f20-ceu-e-eventos` (o
+restante). A parte 1 (seção 3) criou a base visual; a parte 2 refaz o
+layout das telas antigas, uma por commit, seguindo a página "Telas do
+projeto · opção 1 refinada" do canvas.
+
+### 12.1 O que foi feito
+
+- **Fundo céu suave:** a Manuela comparou no canvas três opções de fundo
+  (céu puro, céu suave e papel com topo céu) e escolheu o céu suave
+  (`#E3F3FF`) para o app todo. A troca foi feita só em
+  `lib/theme/app_theme.dart` (fundo, linhas, bordas, texto secundário,
+  blocos de apoio e estrelas): nenhuma tela usa cor fixa, então todas
+  mudaram juntas. O modo escuro não mudou.
+- **Abertura, Favoritos, Programação e Agenda** (PR #21): a abertura com
+  o rio de espessura fixa; a Programação com todos os dias do evento,
+  filtros e selos de situação (`ENCERRADA`, `EM ANDAMENTO`, `INSCRITA`,
+  `ESGOTADA`); a Agenda como linha do tempo de um dia por vez, com a
+  palestra atual ou a próxima em destaque e as pausas entre as palestras.
+- **Avisos:** o cabeçalho das abas, com a hora da última atualização.
+- **Detalhes da palestra:** topo Céu com o rio, o selo do tema e o título
+  grande; o picote (linha tracejada, `lib/widgets/picote.dart`) acima da
+  barra de ações; o "Como chegar" recolhido. Depois que a palestra
+  começa, o cartão de vagas e o lembrete somem, e a barra fica só com
+  favoritar e Avaliar (para quem estava inscrito).
+- **Localização** (antes "Planta do local"): o nome do lugar do evento,
+  quantas salas ele tem, a planta com zoom e as salas com o caminho e
+  quantas palestras cada uma recebe.
+- **Escolher evento** (tela nova) e o cartão "Você está no evento" no
+  Início, no lugar da lista "Trocar evento". O card do evento mostra
+  quantas palestras e salas o evento tem.
+- **Perfil:** e-mail, número de inscrições e favoritas, **Editar perfil**
+  (tela nova, troca nome e e-mail), Certificados como "Em breve" e Sair
+  na cor de atenção.
+- **Início:** o card "Próxima na agenda" como um ingresso, com o picote e
+  os recortes em meia-lua.
+
+### 12.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Atualizar a própria página refinada do canvas com o céu suave e as telas novas, em vez de adotar outra página | O `CLAUDE.md` define a página refinada como a fonte oficial do visual. Atualizá-la mantém a regra e evita duas referências diferentes |
+| Céu suave no app todo, e não só nas três telas desenhadas | Com duas paletas misturadas, o app pareceria inacabado. Pelo tema, a troca é feita em um lugar só |
+| Um evento acontece em um **lugar**, que tem **salas** (proposta "eventos, lugares e salas") | Separa o que o participante confundia: trocar de evento (outro encontro), a planta (o mapa do lugar) e a sala (onde fica a palestra) |
+| Tela e atalho chamados "Localização" | Pedido da Manuela: o nome descreve melhor a tela, que vai além da imagem da planta |
+| "Como chegar" recolhido por padrão | Deixa a tela dos Detalhes mais curta para quem não precisa do caminho |
+| Palestra já começada: sem vagas, sem lembrete e sem inscrição | Ninguém entra nem sai de uma palestra em andamento (regra da F16, bloqueada também no backend). O favoritar continua para quem favoritou, para poder desfavoritar |
+| Contagem de palestras e salas feita no app, com a programação | Não precisa mudar o backend agora. Com muitos eventos, o certo é a API mandar os totais (F25) |
+| Editar perfil só com nome e e-mail | A rota já é protegida (só a própria pessoa e só esses campos, desde a P01). E-mail repetido, troca de senha e foto ficaram na F26, que passa pelo `/security-review` |
+| Rótulo dos Avisos com a hora da última busca, e não "N novos" | O banco ainda não guarda se o aviso foi lido (F21). Mostrar um número sem base confundiria |
+| Picote como componente compartilhado | É usado nos Detalhes (deitado) e no Início (em pé). O Flutter não tem borda tracejada pronta, então a linha é desenhada com um `CustomPainter` |
+
+### 12.3 Limitações conhecidas
+
+- **Avisos novos:** o "N NOVOS" do canvas e o contador da barra esperam a
+  F21.
+- **Contagem por requisição:** Escolher evento busca a programação de
+  cada evento só para contar as palestras, e a Localização busca a lista
+  de eventos para achar o lugar (F25).
+- **Editar perfil:** e-mail que já é de outra conta volta como erro
+  genérico (500), e não há troca de senha nem foto (F26).
+- **"Lembrete ativo" no Início** e **"Começa em 10 min" nos Avisos**, que
+  aparecem no canvas, ficaram como próximos passos.
+- **Certificados** aparecem como "Em breve" até a F12.

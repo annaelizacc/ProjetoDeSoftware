@@ -156,7 +156,7 @@ O que dá para testar com cada usuário:
 
 - **Ana (participante):**
   - Início: a Semana de Tecnologia, com "Segurança da Informação" como
-    próxima palestra; "Trocar evento" lista os três eventos;
+    próxima palestra; "Outros eventos (2)" abre Escolher evento, com os três;
   - "Banco de Dados na Prática" (ontem): inscrita e ainda sem avaliação,
     para testar a tela **Avaliar** (a média, hoje 4 com a nota da Carla,
     muda depois da avaliação);
@@ -585,7 +585,7 @@ escolhe de quem remover a inscrição.
 ### Fluxo 1 — programação
 
 ```text
-Login -> Início (Trocar evento, se houver mais de um) -> Ver programação
+Login -> Início (Outros eventos, se houver mais de um) -> Ver programação
   -> detalhes da palestra
 ```
 
@@ -664,7 +664,7 @@ Programação -> Patrocinadores -> GET /api/patrocinadores?id_evento=1 -> cards
 Login (organizador) -> Perfil -> Área do organizador -> Novo evento
   -> Evento e planta (envia a imagem) -> Locais e rotas -> Palestrantes
   -> Palestras (escolhe local e palestrante) -> Patrocinadores
-  -> Login (participante) -> Início -> Trocar evento (o novo) -> Ver programação
+  -> Login (participante) -> Início -> Outros eventos (o novo) -> Ver programação
 ```
 
 Exemplo do envio de imagem com `curl` (troque `<TOKEN>` pelo token de

@@ -44,7 +44,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int aba = 0;
 
-  /// Evento escolhido no Início ("Trocar evento"), usado também pela aba
+  /// Evento escolhido no Início (tela Escolher evento), usado também pela aba
   /// Programação. Fica aqui porque as telas são montadas de novo a cada
   /// troca de aba.
   int? eventoInicio;

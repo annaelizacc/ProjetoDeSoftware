@@ -10,7 +10,7 @@ import 'programacao_page.dart';
 /// qual. Como o app é pensado para um evento por vez (canvas,
 /// "Programação"), esta aba busca a lista de eventos
 /// (`GET /api/eventos`, `ApiService.eventos`) e abre a programação do
-/// mesmo evento do Início: o escolhido em "Trocar evento" ou, sem
+/// mesmo evento do Início: o escolhido em Escolher evento ou, sem
 /// escolha, o próximo evento (`escolherEvento`, em `home_page.dart`).
 class ProgramacaoAbaPage extends StatefulWidget {
   final int usuarioId;

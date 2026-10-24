@@ -227,7 +227,7 @@ o nome indicado, que aparece acima de cada tela.
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
-| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Em andamento |
+| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Concluído |
 | F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
 | F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
 | F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
@@ -863,7 +863,7 @@ o nome indicado, que aparece acima de cada tela.
     terminaram continuam na agenda, acinzentadas (servem para avaliar e
     como histórico). O card Areia da prancha não foi usado: o canvas não
     define para que serve.
-  - **Detalhes (planejado em 23/10/2026):** topo Céu com o rio, selo do
+  - **Detalhes (feito em 23/10/2026):** topo Céu com o rio, selo do
     tema e título grande, e picote acima da barra de ações. Palestra em
     andamento ou encerrada: o cartão de vagas some; na barra, quem
     estava inscrito vê só favoritar (pequeno) e **Avaliar** (ou **Editar
@@ -872,6 +872,36 @@ o nome indicado, que aparece acima de cada tela.
     "Ver planta" já vieram prontos da F04 e da F03 (Bianca), em uma
     seção na própria tela, como na prancha; o commit dos Detalhes parte
     da versão dela.
+  - **Concluída (23/10/2026, branch `f20-ceu-e-eventos`):** tema céu
+    suave, Avisos, Detalhes, Localização, Escolher evento, Perfil, o card
+    "Próxima na agenda" e as correções do `/code-review`. A `main` com a
+    F02 da Bianca foi trazida para a branch antes do Pull Request
+    (conflitos em `app_shell.dart` e `palestra_details_page.dart`: a barra
+    nova dos Detalhes passou a usar as funções de lembrete da F02).
+    Decisões tomadas durante a execução:
+    - **Avisos:** o rótulo mostra `ATUALIZADO 08:30` (hora da última
+      busca) ou `SEM CONEXÃO`; o "N NOVOS" do canvas espera a F21.
+    - **Detalhes:** o "Como chegar" começa recolhido e abre ao tocar.
+      Numa palestra já começada, quem não estava inscrito mas favoritou
+      vê a barra só com o favoritar (para poder desfavoritar). O Avaliar
+      aparece na barra e na seção de avaliações.
+    - **Planta:** a tela e o atalho do Início se chamam **Localização**
+      (o canvas foi atualizado). Mostra o lugar, quantas salas ele tem e
+      quantas palestras cada sala recebe; sala sem palestras fica sem a
+      contagem.
+    - **Início:** a lista "Trocar evento" virou o cartão "Você está no
+      evento", que abre a tela **Escolher evento**; o card do evento
+      mostra "6 palestras em 3 salas". O resto do Início não mudou.
+    - **Perfil:** e-mail, número de inscrições e favoritas, **Editar
+      perfil** (nome e e-mail; o resto ficou na F26), Certificados como
+      "Em breve" e Sair na cor de atenção.
+    - Registradas para depois: F25 (contagem de palestras e salas na
+      API) e F26 (Editar perfil: e-mail repetido, senha, foto e revisão
+      de segurança).
+  - **Próximos passos sugeridos (não registrados como tarefa):** "Começa
+    em 10 min" nos Avisos (junto da F02), "· lembrete ativo" no card
+    "Próxima na agenda" (a agenda precisa trazer o lembrete), seletor de
+    palestra nas Inscrições do organizador e o rio em telas largas.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
