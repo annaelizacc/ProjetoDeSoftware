@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
+import '../widgets/picote.dart';
 import '../widgets/rotulo_secao.dart';
 import 'escolher_evento_page.dart';
 import 'palestra_details_page.dart';
@@ -557,7 +558,8 @@ class _Atalho extends StatelessWidget {
 
 /// "Próxima na agenda": a próxima palestra em que a pessoa se inscreveu
 /// neste evento, no formato de ingresso do canvas (horário e sala à
-/// esquerda, picote, título e palestrante à direita).
+/// esquerda, picote, título e palestrante à direita, com os dois recortes
+/// em meia-lua na borda, em cima e embaixo do picote).
 class _ProximaNaAgenda extends StatelessWidget {
   final Palestra? palestra;
   final VoidCallback aoVerAgenda;
@@ -593,62 +595,102 @@ class _ProximaNaAgenda extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               side: BorderSide(color: cores.outlineVariant),
             ),
+            // O corte nas bordas do card também esconde a metade de fora
+            // dos recortes (ver `_Recorte`).
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => aoAbrir(p),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 86,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      color: cores.primary,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 84),
+                    child: IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            p.horario.split(' - ').first,
-                            style: textos.labelMedium?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: cores.onPrimary,
+                          Container(
+                            width: _larguraCanhoto,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            color: cores.primary,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  p.horario.split(' - ').first,
+                                  style: textos.labelMedium?.copyWith(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: cores.onPrimary,
+                                  ),
+                                ),
+                                if (p.sala != null)
+                                  Text(
+                                    p.sala!.toUpperCase(),
+                                    textAlign: TextAlign.center,
+                                    style: textos.labelSmall?.copyWith(
+                                      fontFamily: AppFontes.mono,
+                                      color: cores.onPrimary.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          if (p.sala != null)
-                            Text(
-                              p.sala!.toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: textos.labelSmall?.copyWith(
-                                fontFamily: AppFontes.mono,
-                                color: cores.onPrimary.withValues(alpha: 0.8),
+                          const Picote(vertical: true),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.titulo, style: textos.titleSmall),
+                                  if (p.palestrante != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(p.palestrante!, style: textos.bodySmall),
+                                  ],
+                                ],
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(p.titulo, style: textos.titleSmall),
-                            if (p.palestrante != null) ...[
-                              const SizedBox(height: 4),
-                              Text(p.palestrante!, style: textos.bodySmall),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  // Os dois "furos" do ingresso, em cima e embaixo do picote.
+                  const Positioned(left: _larguraCanhoto - 7, top: -7, child: _Recorte()),
+                  const Positioned(left: _larguraCanhoto - 7, bottom: -7, child: _Recorte()),
+                ],
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Largura do canhoto Marinho (horário e sala) do card, como no canvas.
+const double _larguraCanhoto = 86;
+
+/// Um recorte em meia-lua na borda do card "Próxima na agenda", como o
+/// furo de um ingresso.
+///
+/// É um círculo de 14px na cor do fundo da tela, com a linha fina do card.
+/// Ele fica metade para fora do card, e o `Clip.antiAlias` do card corta
+/// essa metade: sobra só a meia-lua "mordendo" a borda.
+class _Recorte extends StatelessWidget {
+  const _Recorte();
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        color: tema.scaffoldBackgroundColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: tema.colorScheme.outlineVariant),
+      ),
     );
   }
 }

@@ -10,7 +10,8 @@ import 'package:flutter/material.dart';
 /// mão com um `CustomPainter`: traços de 4px separados por espaços de 3px.
 /// A cor é a `outline` do tema, a mesma das bordas de botões.
 class Picote extends StatelessWidget {
-  /// `true`: linha em pé (ocupa a altura do pai); `false`: deitada.
+  /// `true`: linha em pé, com a altura que o pai der (ex.: uma `Row` com
+  /// `CrossAxisAlignment.stretch`); `false`: deitada, na largura toda.
   final bool vertical;
 
   const Picote({super.key, this.vertical = false});
@@ -18,11 +19,10 @@ class Picote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cor = Theme.of(context).colorScheme.outline;
-    return SizedBox(
-      width: vertical ? 1 : double.infinity,
-      height: vertical ? double.infinity : 1,
-      child: CustomPaint(painter: _PicotePainter(cor: cor, vertical: vertical)),
-    );
+    final linha = CustomPaint(painter: _PicotePainter(cor: cor, vertical: vertical));
+    // Na vertical só a largura é fixa: pedir altura infinita quebraria
+    // dentro de um `IntrinsicHeight`.
+    return vertical ? SizedBox(width: 1, child: linha) : SizedBox(width: double.infinity, height: 1, child: linha);
   }
 }
 
