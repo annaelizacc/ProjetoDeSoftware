@@ -289,6 +289,7 @@ o nome indicado, que aparece acima de cada tela.
   o Android 14 nega por padrão. Só no Android; testado num celular pelo
   cabo USB com `adb reverse` (o emulador não abre sem a virtualização
   ligada na BIOS).
+  Registro em `DOCUMENTACAO.md`, seção 11.
 
 ### F03 Planta baixa do evento (RF10)
 

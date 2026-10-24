@@ -572,3 +572,61 @@ abrir uma palestra antes.
   chamada *debounce*).
 - **Rede social só para copiar:** o link aparece como texto selecionável;
   abrir o navegador exigiria o pacote `url_launcher` (depois da P17).
+
+---
+
+## 11. F02: aviso de início das palestras no celular (RF09)
+
+Concluída em 23/10/2026. O RF09 pede que o participante seja avisado do
+início das palestras. Antes, o botão "Ativar lembrete" só gravava um
+registro na tabela `notificacao`, que aparecia na aba Avisos: nada
+avisava a pessoa na hora.
+
+### 11.1 O que foi feito
+
+- **Notificação local** (`lib/services/lembrete_service.dart`, pacotes
+  `flutter_local_notifications` e `timezone`): ao ativar o lembrete, o
+  app grava no backend (como antes) e agenda no próprio celular um aviso
+  10 minutos antes do início: "Começa em 10 minutos · Sala A1". O aviso
+  aparece na barra do celular mesmo com o app fechado.
+- **Menos de 10 minutos:** o aviso aparece na hora, com o tempo que
+  falta ("Começa em 4 minutos"). Palestra já começada não recebe aviso,
+  e o sino some dos detalhes.
+- **Cancelamento:** desativar o lembrete cancela o aviso. Cancelar a
+  inscrição desliga o lembrete no backend e cancela o aviso.
+- **Horário alterado:** ao entrar no app, os avisos são apagados e
+  refeitos a partir dos lembretes do backend (`sincronizar`), então uma
+  mudança de horário feita pelo organizador também muda o aviso.
+- **Toque no aviso:** abre os detalhes da palestra. Com o app fechado, os
+  detalhes abrem logo depois do login.
+- **Android:** permissão de notificação (o Android 13 ou mais novo
+  pergunta uma vez), recebedores do pacote no `AndroidManifest.xml` (que
+  também refazem os avisos depois de reiniciar o celular) e o
+  *desugaring* no `build.gradle.kts`, exigido pelo pacote.
+- **README:** como rodar num celular Android pelo cabo USB.
+
+### 11.2 Decisões e motivos
+
+| Decisão | Motivo |
+|---|---|
+| Notificação local, e não push (Firebase Cloud Messaging) | Push exigiria conta no Firebase, guardar o identificador de cada celular e uma tarefa agendada no servidor. Como o horário da palestra já é conhecido, o próprio celular consegue decidir quando avisar (decisão de 20/10/2026) |
+| Agendamento "aproximado" (`inexactAllowWhileIdle`) | O agendamento exato exige a permissão `SCHEDULE_EXACT_ALARM`, que o Android 14 nega por padrão para apps comuns. Para "começa em 10 minutos", 1 ou 2 minutos de atraso não atrapalham |
+| Refazer todos os avisos ao entrar no app | Mais simples do que comparar horário por horário: apaga tudo e agenda de novo a partir do backend, que é a fonte da verdade |
+| Cancelar a inscrição também desliga o lembrete | Sem inscrição, o aviso não faz sentido. Desligar no backend evita que o aviso volte na próxima sincronização |
+| Horário convertido pelo instante (`TZDateTime.from(..., tz.UTC)`) | O app lê o horário no fuso do celular; converter pelo instante mantém o mesmo momento sem depender de configurar o fuso no pacote `timezone` |
+| Teste num celular pelo cabo USB, com `adb reverse tcp:5000 tcp:5000` | O emulador não abriu (a virtualização está desligada na BIOS do computador). O `adb reverse` faz o `127.0.0.1:5000` do celular chegar à API do computador, sem mudar o endereço no app |
+
+### 11.3 Limitações conhecidas
+
+- **Só no Android:** no Chrome, o lembrete é gravado e aparece em Avisos,
+  mas não há notificação. No iPhone, faltaria configurar o projeto iOS
+  (e testar num Mac).
+- **Sincronização só ao entrar no app:** se o organizador mudar o
+  horário e a pessoa não abrir o app, o aviso sai no horário antigo. A
+  F15 (aviso de alteração de palestra) completa esse caso.
+- **Celular pelo cabo:** sem o cabo (e sem o `adb reverse`), o app no
+  celular não alcança a API local. Na rede Wi-Fi, é preciso usar o IP do
+  computador (`--dart-define=API_URL=...`).
+- **Pacotes novos mudaram o `pubspec.lock`:** quem puxar a `main` roda
+  `flutter pub get`. As versões das outras dependências também mudaram,
+  pela diferença de versão do Flutter entre as máquinas (P17).
