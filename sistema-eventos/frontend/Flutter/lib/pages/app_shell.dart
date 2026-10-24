@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/lembrete_service.dart';
 import '../widgets/barra_navegacao.dart';
 import 'agenda_page.dart';
 import 'home_page.dart';
@@ -52,6 +53,14 @@ class _AppShellState extends State<AppShell> {
   /// quando a pessoa salva em "Editar perfil", sem precisar entrar de novo.
   late String nome = widget.nomeUsuario;
   late String email = widget.emailUsuario;
+
+  /// Logo depois do login, refaz os avisos de início das palestras no
+  /// celular a partir dos lembretes ativos (F02).
+  @override
+  void initState() {
+    super.initState();
+    LembreteService.sincronizar(widget.usuarioId);
+  }
 
   @override
   Widget build(BuildContext context) {

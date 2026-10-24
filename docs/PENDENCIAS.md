@@ -184,7 +184,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF06 | Cancelar inscrição | Concluído | — |
 | RF07 | Favoritar palestras | Concluído | — |
 | RF08 | Agenda personalizada | Concluído | — |
-| RF09 | Notificações sobre o início das palestras | Parcial: o lembrete é só gravado, nada avisa o usuário | F02 |
+| RF09 | Notificações sobre o início das palestras | Concluído | F02 |
 | RF10 | Planta baixa do local | Concluído | F03 |
 | RF11 | Rotas até salas e auditórios | Concluído | F04 |
 | RF12 | Pesquisar palestras por tema | Concluído | — |
@@ -197,7 +197,7 @@ requisitos entregue ao professor). Comparação com o código feita em
 | RF19 | Patrocinadores do evento | Concluído | F10 |
 | RF20 | Modo claro e modo escuro | Concluído (na F20 parte 1) | F11 |
 
-**Resumo:** 19 concluídos e 1 parcial (RF09, F02).
+**Resumo:** os 20 RFs estão concluídos.
 
 ## 1.2 Tarefas
 
@@ -209,7 +209,7 @@ o nome indicado, que aparece acima de cada tela.
 | ID | RF | Prioridade | Funcionalidade | Status |
 |---|---|---|---|---|
 | F01 | RF01 | 🔴 | Tela de cadastro de usuário | Concluído |
-| F02 | RF09 | 🔴 | Aviso real de início das palestras | Parcial |
+| F02 | RF09 | 🔴 | Aviso real de início das palestras | Concluído |
 | F03 | RF10 | 🔴 | Planta baixa do evento | Concluído |
 | F04 | RF11 | 🔴 | Rotas até salas e auditórios | Concluído |
 | F05 | RF13, RF14 | 🔴 | Palestrantes: busca e informações | Concluído |
@@ -280,6 +280,18 @@ o nome indicado, que aparece acima de cada tela.
   agendada no servidor, e nada do que foi pedido precisa que o servidor
   decida quando avisar.
 - **Relacionado:** F15 (aviso de alteração na aba Avisos).
+- **Concluído (23/10/2026):** `lib/services/lembrete_service.dart` agenda
+  a notificação local (pacotes `flutter_local_notifications` e
+  `timezone`) ao ativar o lembrete e cancela ao desativar ou cancelar a
+  inscrição (que também desliga o lembrete no backend). Ao entrar no
+  app, apaga e refaz os avisos a partir dos lembretes do backend. Tocar
+  no aviso abre os detalhes; com o app fechado, abre depois do login. O
+  sino some quando a palestra já começou. Agendamento "aproximado"
+  (pode atrasar 1 ou 2 minutos), porque o exato exige uma permissão que
+  o Android 14 nega por padrão. Só no Android; testado num celular pelo
+  cabo USB com `adb reverse` (o emulador não abre sem a virtualização
+  ligada na BIOS).
+  Registro em `DOCUMENTACAO.md`, seção 11.
 
 ### F03 Planta baixa do evento (RF10)
 

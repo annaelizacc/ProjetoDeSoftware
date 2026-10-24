@@ -62,6 +62,11 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
     bate no horário com outra em que a pessoa já está inscrita, o app
     mostra as duas e pergunta se ela quer se inscrever mesmo assim. A
     inscrição não é bloqueada.
+22. Aviso de início das palestras no celular (F02, RF09): com o lembrete
+    ativo, o Android mostra uma notificação 10 minutos antes do início,
+    mesmo com o app fechado. Tocar nela abre os detalhes da palestra. Só
+    no Android (veja "Celular Android pelo cabo USB"); no Chrome, o
+    lembrete é gravado e aparece em Avisos, sem a notificação.
 
 Todas as funcionalidades principais percorrem:
 
@@ -278,6 +283,33 @@ Para um celular físico, use o IP do computador na rede local:
 flutter run --dart-define=API_URL=http://192.168.0.10:5000
 ```
 
+### Celular Android pelo cabo USB
+
+É o jeito mais simples de ver os avisos de início das palestras (F02),
+que só aparecem no Android:
+
+1. No celular: **Configurações → Sobre o telefone**, tocar 7 vezes em
+   **Número da versão**; depois, em **Opções do desenvolvedor**, ligar a
+   **Depuração USB**. Conectar o cabo e aceitar "Permitir depuração USB".
+2. Conferir se o celular aparece em `flutter devices`.
+3. Fazer o celular enxergar a API do computador pelo cabo (repetir
+   sempre que reconectar o celular):
+
+```bash
+adb reverse tcp:5000 tcp:5000
+```
+
+4. Rodar o app no celular, sem mudar o endereço da API (o `adb reverse`
+   faz o `127.0.0.1:5000` do celular chegar ao computador):
+
+```bash
+flutter run -d <id do celular em flutter devices>
+```
+
+Na primeira vez, o app pede permissão para mostrar notificações:
+toque em **Permitir**. O `adb` fica em
+`%LOCALAPPDATA%\Android\Sdk\platform-tools` no Windows.
+
 O endereço fica em `lib/services/api_service.dart` e pode ser configurado
 sem alterar as telas.
 
@@ -419,7 +451,14 @@ mesmo que dois pedidos cheguem ao backend, o banco não permite duplicação.
 ### Lembretes e notificações
 
 Ativar lembrete cria um registro em `notificacao` com
-`tipo_notificacao = 'lembrete'`. Desativar remove esse registro. Ao abrir
+`tipo_notificacao = 'lembrete'`. Desativar remove esse registro.
+
+O aviso de início (F02) é uma **notificação local**: o próprio celular
+agenda e mostra o aviso 10 minutos antes (`lib/services/lembrete_service.dart`,
+pacote `flutter_local_notifications`), sem o servidor mandar nada na
+hora. Ao entrar no app, os avisos são refeitos a partir dos lembretes do
+backend, para acompanhar mudanças de horário. Cancelar a inscrição
+desliga o lembrete. Ao abrir
 Avisos, o Flutter consulta a API; portanto o conteúdo não é uma lista fixa
 dentro do aplicativo.
 
@@ -580,6 +619,7 @@ Inscrições do usuário -> consulta participacao -> palestras ordenadas
 
 ```text
 Detalhes -> Ativar lembrete -> notificacao -> aba Avisos
+         -> (Android) aviso agendado -> 10 min antes: notificação no celular
 ```
 
 ### Fluxo 7 — pesquisa
