@@ -128,7 +128,8 @@ Regras:
 
 - **Fonte oficial:** a página "Telas do projeto · opção 1 refinada" do
   canvas <https://claude.ai/artifact/Eh68uUe4Q6xuAwYuT5UVvt>, aprovada em
-  20/10/2026. Toda tela, componente ou ajuste de interface segue essa
+  20/10/2026 e atualizada em 23/10/2026 (fundo céu suave e as telas de
+  eventos, lugares e salas). Toda tela, componente ou ajuste de interface segue essa
   página. As outras páginas do canvas são versões descartadas, guardadas
   só para comparação.
 - **O canvas define o visual, não cada detalhe.** Detalhes específicos de
@@ -138,10 +139,14 @@ Regras:
   - **Fontes:** Bricolage Grotesque (peso 600) só nos títulos; Figtree nos
     textos e botões; JetBrains Mono em horários, salas, datas e rótulos
     (ex.: `QUA 10 · 09:00—10:30`).
-  - **Paleta:** Papel `#F6EEE3` (fundo), Branco `#FFFDF9` (cards e
-    campos), Areia `#E9D2B4`, Céu `#99D8FF` (marca-texto e destaques), Rio
+  - **Paleta:** Céu suave `#E3F3FF` (fundo), Branco `#FFFDF9` (cards e
+    campos), Papel `#F6EEE3` (texto sobre os botões Marinho), Areia
+    `#E9D2B4` (avatar e selo da organização), Céu `#99D8FF` (marca-texto e
+    destaques), Rio
     `#6AB9E9`, Marinho `#003465` (botões e títulos), Tinta `#0B2440`
-    (texto), Brasa `#B4471A` (esgotada e atenção). Modo escuro: fundo
+    (texto), Brasa `#B4471A` (esgotada e atenção). Linhas `#BFDDF2`,
+    bordas `#9CC8E6`, texto secundário `#3E5A73`, blocos de apoio
+    `#CFE9FB`. Modo escuro: fundo
     `#071827`, cards `#0E2539`, texto `#F3EDE4`, destaque `#99D8FF`.
   - **Estilo:** linhas de 1px, cantos de 8 a 12px, sem bordas grossas e
     sem cores saturadas espalhadas. O rio da logo aparece como uma curva

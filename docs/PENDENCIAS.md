@@ -227,11 +227,13 @@ o nome indicado, que aparece acima de cada tela.
 | F17 | — (S03) | 🟡 | Logout e login lembrado | Parcial |
 | F18 | — (protótipo) | 🟢 | Entrar com Google | Pendente |
 | F19 | — (D01) | 🔴 **primeira** | Atualizar o banco conforme a D01 | Concluído |
-| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Em andamento |
+| F20 | RF20 (S06) | 🔴 **segunda** | Padronização da interface: aplicar a nova proposta visual (inclui a F11) | Concluído |
 | F21 | RF09, RF18 (S08) | 🟢 | Marcar avisos como lidos (contador da barra de navegação) | Pendente |
 | F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
 | F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
 | F24 | — (S05) | 🔴 | Dados de demonstração: eventos encerrado, acontecendo e futuro | Concluído |
+| F25 | — (sugestão na F20) | 🟢 | Total de palestras e salas na lista de eventos da API | Pendente |
+| F26 | RF20 (prancha do Perfil) | 🟡 | Editar perfil: e-mail repetido, troca de senha, foto de perfil e revisão de segurança | Parcial |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -825,6 +827,22 @@ o nome indicado, que aparece acima de cada tela.
     do último commit). A `main` (com F03, F04 e F05 da Bianca) já foi
     trazida para a branch; antes do Pull Request, trazer de novo se
     houver novidades.
+  - **Céu suave e eventos, lugares e salas (aprovado em 23/10/2026,
+    noite):** a Manuela criou no canvas as páginas "Opção · fundo céu" e
+    "Proposta · eventos, lugares e salas" e escolheu o **céu suave** para
+    o app todo e as telas novas da proposta. Para não mudar a regra do
+    `CLAUDE.md` (a fonte oficial é a página refinada), a própria página
+    refinada foi atualizada: fundo céu suave `#E3F3FF` (linhas
+    `#BFDDF2`, bordas `#9CC8E6`, texto secundário `#3E5A73`, blocos
+    `#CFE9FB`, estrelas `#8A6420`; o modo escuro não muda), o Início com o
+    cartão "Você está no evento · Outros eventos (N)" no lugar da lista
+    **Trocar evento** (o resto do Início fica igual), a nova prancha
+    "Escolher evento" e a Planta do lugar com o nome do lugar e a lista
+    "Salas e como chegar". Como o PR #21 (commits 1 a 4) já entrou na
+    `main`, o restante da parte 2 segue na branch `f20-ceu-e-eventos`, um
+    commit por tela: tema (1), avisos (2), detalhes (3), planta do lugar
+    (4), escolher evento e cartão do Início (5), perfil (6), início (7) e
+    documentação (8).
   - **Plano da parte 2 (aprovado em 23/10/2026), um commit por tela,
     na branch `f20-telas-restantes`:** abertura (com o rio de espessura
     fixa, centralizado e sem deformar em telas largas), favoritos,
@@ -850,7 +868,7 @@ o nome indicado, que aparece acima de cada tela.
     terminaram continuam na agenda, acinzentadas (servem para avaliar e
     como histórico). O card Areia da prancha não foi usado: o canvas não
     define para que serve.
-  - **Detalhes (planejado em 23/10/2026):** topo Céu com o rio, selo do
+  - **Detalhes (feito em 23/10/2026):** topo Céu com o rio, selo do
     tema e título grande, e picote acima da barra de ações. Palestra em
     andamento ou encerrada: o cartão de vagas some; na barra, quem
     estava inscrito vê só favoritar (pequeno) e **Avaliar** (ou **Editar
@@ -859,6 +877,36 @@ o nome indicado, que aparece acima de cada tela.
     "Ver planta" já vieram prontos da F04 e da F03 (Bianca), em uma
     seção na própria tela, como na prancha; o commit dos Detalhes parte
     da versão dela.
+  - **Concluída (23/10/2026, branch `f20-ceu-e-eventos`):** tema céu
+    suave, Avisos, Detalhes, Localização, Escolher evento, Perfil, o card
+    "Próxima na agenda" e as correções do `/code-review`. A `main` com a
+    F02 da Bianca foi trazida para a branch antes do Pull Request
+    (conflitos em `app_shell.dart` e `palestra_details_page.dart`: a barra
+    nova dos Detalhes passou a usar as funções de lembrete da F02).
+    Decisões tomadas durante a execução:
+    - **Avisos:** o rótulo mostra `ATUALIZADO 08:30` (hora da última
+      busca) ou `SEM CONEXÃO`; o "N NOVOS" do canvas espera a F21.
+    - **Detalhes:** o "Como chegar" começa recolhido e abre ao tocar.
+      Numa palestra já começada, quem não estava inscrito mas favoritou
+      vê a barra só com o favoritar (para poder desfavoritar). O Avaliar
+      aparece na barra e na seção de avaliações.
+    - **Planta:** a tela e o atalho do Início se chamam **Localização**
+      (o canvas foi atualizado). Mostra o lugar, quantas salas ele tem e
+      quantas palestras cada sala recebe; sala sem palestras fica sem a
+      contagem.
+    - **Início:** a lista "Trocar evento" virou o cartão "Você está no
+      evento", que abre a tela **Escolher evento**; o card do evento
+      mostra "6 palestras em 3 salas". O resto do Início não mudou.
+    - **Perfil:** e-mail, número de inscrições e favoritas, **Editar
+      perfil** (nome e e-mail; o resto ficou na F26), Certificados como
+      "Em breve" e Sair na cor de atenção.
+    - Registradas para depois: F25 (contagem de palestras e salas na
+      API) e F26 (Editar perfil: e-mail repetido, senha, foto e revisão
+      de segurança).
+  - **Próximos passos sugeridos (não registrados como tarefa):** "Começa
+    em 10 min" nos Avisos (junto da F02), "· lembrete ativo" no card
+    "Próxima na agenda" (a agenda precisa trazer o lembrete), seletor de
+    palestra nas Inscrições do organizador e o rio em telas largas.
 - **Regra para as outras tarefas:** toda tela nova, ou tela existente
   alterada por uma tarefa, já segue o visual novo, usando o tema (nunca
   cores fixas).
@@ -934,6 +982,55 @@ o nome indicado, que aparece acima de cada tela.
 - **Atenção:** a palestra "acontecendo agora" vale por 2 a 3 horas
   depois de o script rodar. Recriar o banco pouco antes da apresentação.
 - **Registro:** `DOCUMENTACAO.md`, seção 9.
+
+### F25 Total de palestras e salas na lista de eventos da API
+
+- **Origem:** dúvida da F20 (commit Escolher evento), registrada pela
+  Manuela em 23/10/2026 para fora do escopo da branch.
+- **O que acontece hoje:** `GET /api/eventos` não diz quantas palestras e
+  salas cada evento tem. Para mostrar "6 palestras em 3 salas" no Início
+  e "N palestras" em Escolher evento, o app busca a programação inteira de
+  cada evento só para contar (uma requisição por evento).
+- **O que falta:** o backend devolver `total_palestras` e `total_salas`
+  em cada evento (uma consulta com `COUNT`), e as duas telas usarem esses
+  campos em vez de buscar a programação.
+- **Por que ficou para depois:** com poucos eventos a diferença não
+  aparece. Só pesa quando houver muitos eventos.
+
+### F26 Editar perfil: completar e revisar a segurança
+
+- **Origem:** pedido da Manuela na F20 (23/10/2026): o link "Editar
+  perfil" da prancha "Perfil — participante" entra agora, e a segurança é
+  resolvida depois.
+- **O que já existe (F20):** o link abaixo do e-mail no Perfil abre a tela
+  `editar_perfil_page.dart`, que troca o nome e o e-mail
+  (`PUT /api/usuarios/<id>`). O nome novo aparece no app inteiro na hora.
+  O backend já protege a rota desde a P01: só a própria pessoa altera a
+  conta (testado: outra conta → 403) e só `nome`, `email` e `senha` são
+  aceitos, com as validações do cadastro.
+- **O que falta:**
+  - **E-mail que já é de outra conta:** hoje volta `500 Erro interno no
+    servidor` (testado em 23/10/2026). O `AtualizarUsuarioService` deve
+    conferir antes e tratar o `IntegrityError`, como o
+    `CriarUsuarioService` já faz, e devolver "Já existe um usuário
+    cadastrado com este email.". É o caso que a P03 cita.
+  - **Trocar a senha:** a rota já aceita `senha`, mas a tela não tem o
+    campo. Decidir se pede a senha atual antes (recomendado, como na
+    remoção de evento).
+  - **Foto de perfil (pedido da Manuela, 23/10/2026):** um campo de foto
+    na tela de edição, com o `CampoImagem` (o mesmo da foto do
+    palestrante), e o avatar mostrando a foto no lugar das iniciais.
+    Precisa de:
+    - coluna `foto` na tabela `usuario` (no SQL e com `ALTER TABLE` para
+      quem já tem o banco; avisar quem precisar recriar);
+    - `foto` no `to_dict` do usuário e na lista de campos aceitos pelo
+      `AtualizarUsuarioService`;
+    - liberar `POST /api/uploads` para qualquer pessoa logada (hoje é só
+      para organizadores, P01). É uma mudança de acesso: mais gente
+      enviando arquivos ao servidor, então entra no `/security-review`;
+    - o login e o `AppShell` guardarem a foto, como fazem com o nome.
+  - `/security-review` antes do commit.
+- **Depende de:** P03.
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 

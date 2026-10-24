@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/cabecalho_tela.dart';
+import '../utils/datas.dart';
+import '../widgets/cabecalho_aba.dart';
 import '../widgets/rotulo_secao.dart';
 import '../widgets/selo.dart';
 
@@ -29,6 +30,11 @@ import '../widgets/selo.dart';
 ///
 /// Puxar a lista para baixo busca de novo (para ver um comunicado que
 /// acabou de chegar).
+///
+/// O cabeçalho é o das abas (`CabecalhoAba`). No canvas o rótulo é
+/// `2 NOVOS · ATUALIZADO 08:30`; por enquanto só a hora da última busca
+/// aparece (`ATUALIZADO 08:30`), porque o banco ainda não guarda se o
+/// aviso foi lido. A contagem de novos entra na F21.
 class NotificacoesPage extends StatefulWidget {
   final int usuarioId;
 
@@ -41,70 +47,100 @@ class NotificacoesPage extends StatefulWidget {
 class _NotificacoesPageState extends State<NotificacoesPage> {
   late Future<List<dynamic>> futuro;
 
+  /// Quando a lista chegou do servidor pela última vez (rótulo
+  /// `ATUALIZADO 08:30`). Fica `null` até a primeira busca dar certo.
+  DateTime? atualizadoEm;
+
   @override
   void initState() {
     super.initState();
-    futuro = ApiService.notificacoes(widget.usuarioId);
+    futuro = buscar();
+  }
+
+  /// Busca os avisos e guarda a hora em que eles chegaram. O `then` roda
+  /// antes de o `FutureBuilder` ser avisado, então quando a lista aparece
+  /// a hora já está certa, sem precisar de outro `setState`.
+  Future<List<dynamic>> buscar() {
+    return ApiService.notificacoes(widget.usuarioId).then((lista) {
+      atualizadoEm = DateTime.now();
+      return lista;
+    });
   }
 
   /// O `setState` usa chaves para não devolver o `Future` (veja o
   /// `recarregar` do painel do organizador).
   Future<void> recarregar() async {
     setState(() {
-      futuro = ApiService.notificacoes(widget.usuarioId);
+      futuro = buscar();
     });
     await futuro;
   }
 
+  /// Rótulo acima do título: `CARREGANDO…` durante a busca, `SEM CONEXÃO`
+  /// se ela falhou (para a hora antiga não parecer atualizada) e, depois,
+  /// a hora da última busca que deu certo.
+  String rotulo(bool carregando, bool falhou) {
+    if (carregando) return 'Carregando…';
+    if (falhou) return 'Sem conexão';
+    final hora = atualizadoEm;
+    return hora == null ? 'Seus avisos' : 'Atualizado ${horaCurta(hora)}';
+  }
+
   @override
   Widget build(BuildContext context) {
+    // O cabeçalho fica dentro do `FutureBuilder` porque o rótulo muda com
+    // a busca (carregando ou a hora em que a lista chegou).
     return Scaffold(
-      body: Column(
-        children: [
-          const CabecalhoTela(titulo: 'Avisos'),
-          Expanded(
-            child: FutureBuilder<List<dynamic>>(
-              future: futuro,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(snapshot.error.toString().replaceFirst('Exception: ', '')),
-                        TextButton(onPressed: recarregar, child: const Text('Tentar de novo')),
-                      ],
-                    ),
-                  );
-                }
-                final lista = snapshot.data ?? [];
-                // `AlwaysScrollableScrollPhysics`: com a lista vazia ou
-                // curta, ainda dá para puxar para baixo e recarregar.
-                return RefreshIndicator(
-                  onRefresh: recarregar,
-                  child: lista.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(20),
-                          children: const [Text('Nenhum aviso por enquanto.')],
-                        )
-                      : ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                          children: [
-                            for (final item in lista)
-                              _ItemAviso(dados: Map<String, dynamic>.from(item)),
-                          ],
-                        ),
-                );
-              },
-            ),
-          ),
-        ],
+      body: FutureBuilder<List<dynamic>>(
+        future: futuro,
+        builder: (context, snapshot) {
+          final carregando = snapshot.connectionState == ConnectionState.waiting;
+          return Column(
+            children: [
+              CabecalhoAba(rotulo: rotulo(carregando, snapshot.hasError), titulo: 'Avisos'),
+              const SizedBox(height: 8),
+              Expanded(child: conteudo(snapshot, carregando)),
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  /// A parte de baixo da tela: carregando, erro, lista vazia ou a lista.
+  Widget conteudo(AsyncSnapshot<List<dynamic>> snapshot, bool carregando) {
+    if (carregando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(snapshot.error.toString().replaceFirst('Exception: ', '')),
+            TextButton(onPressed: recarregar, child: const Text('Tentar de novo')),
+          ],
+        ),
+      );
+    }
+    final lista = snapshot.data ?? [];
+    // `AlwaysScrollableScrollPhysics`: com a lista vazia ou curta, ainda dá
+    // para puxar para baixo e recarregar.
+    return RefreshIndicator(
+      onRefresh: recarregar,
+      child: lista.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              children: const [Text('Nenhum aviso por enquanto.')],
+            )
+          : ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              children: [
+                for (final item in lista) _ItemAviso(dados: Map<String, dynamic>.from(item)),
+              ],
+            ),
     );
   }
 }

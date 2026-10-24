@@ -5,36 +5,44 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
+import '../widgets/picote.dart';
 import '../widgets/rotulo_secao.dart';
 import 'avaliacoes_evento_page.dart';
+import 'escolher_evento_page.dart';
 import 'palestra_details_page.dart';
 import 'palestrantes_page.dart';
 import 'planta_page.dart';
 import 'patrocinadores_page.dart';
 import 'programacao_page.dart';
 
-/// O que o Início carrega: os eventos e a agenda da pessoa, juntos.
-typedef _DadosInicio = ({List<dynamic> eventos, List<dynamic> agenda});
+/// O que o Início carrega: os eventos, a agenda da pessoa e a programação
+/// do evento mostrado (para contar palestras e salas no card).
+typedef _DadosInicio = ({List<dynamic> eventos, List<dynamic> agenda, List<dynamic> programacao});
 
 /// Tela Início (F20 parte 2), como a prancha "Início" do canvas.
 ///
 /// Mostra as informações principais de UM evento, de cima para baixo:
 ///
 /// - a saudação, com o primeiro nome grifado (marca-texto);
-/// - o card do evento: datas, nome, local e o botão "Ver programação";
+/// - o cartão "Você está no evento", que abre a tela Escolher evento
+///   quando há mais de um evento;
+/// - o card do evento: datas, nome, local, quantas palestras e salas ele
+///   tem e o botão "Ver programação";
 /// - os atalhos do evento (mapa, palestrantes, onde comer, patrocínio).
 ///   Os que ainda não têm tela aparecem como "Em breve";
 /// - a descrição do evento, quando houver;
 /// - a próxima palestra da agenda da pessoa nesse evento.
 ///
 /// O evento mostrado começa pelo próximo (o primeiro que ainda não
-/// terminou). Com mais de um evento, a lista "Trocar evento" acima do
-/// card troca o evento, como na área do organizador. A aba Programação
-/// abre o mesmo evento.
+/// terminou). Com mais de um evento, o cartão "Você está no evento"
+/// (proposta "eventos, lugares e salas" do canvas, 23/10/2026) abre a tela
+/// Escolher evento, que devolve o evento escolhido. A aba Programação abre
+/// o mesmo evento.
 ///
 /// Busca `GET /api/eventos` e a agenda da pessoa
 /// (`GET /api/eventos/<id_usuario>/agenda`) ao mesmo tempo, com
-/// `Future.wait`.
+/// `Future.wait`, e depois a programação do evento mostrado (só dá para
+/// saber qual é depois que os eventos chegam).
 class HomePage extends StatefulWidget {
   final int usuarioId;
   final String nomeUsuario;
@@ -43,7 +51,7 @@ class HomePage extends StatefulWidget {
   /// aba é o `AppShell`.
   final VoidCallback aoVerAgenda;
 
-  /// Evento escolhido em "Trocar evento" (`null`: o próximo evento). Fica
+  /// Evento escolhido em Escolher evento (`null`: o próximo evento). Fica
   /// guardado no `AppShell`, e não nesta tela, porque o `AppShell` monta a
   /// tela de novo a cada troca de aba e a escolha se perderia.
   final int? eventoId;
@@ -71,6 +79,16 @@ class _HomePageState extends State<HomePage> {
     futuro = carregar();
   }
 
+  /// O `AppShell` redesenha esta tela com outro `eventoId` quando a pessoa
+  /// escolhe outro evento. O `initState` não roda de novo nesse caso (o
+  /// `State` é reaproveitado), então a busca é refeita aqui: senão o card
+  /// mostraria a contagem do evento anterior.
+  @override
+  void didUpdateWidget(HomePage antigo) {
+    super.didUpdateWidget(antigo);
+    if (antigo.eventoId != widget.eventoId) futuro = carregar();
+  }
+
   Future<_DadosInicio> carregar() async {
     final respostas = await Future.wait([
       ApiService.eventos(),
@@ -78,7 +96,22 @@ class _HomePageState extends State<HomePage> {
       // palestra.
       ApiService.agenda(widget.usuarioId).catchError((_) => <dynamic>[]),
     ]);
-    return (eventos: respostas[0], agenda: respostas[1]);
+    final eventos = respostas[0];
+    final evento = escolherEvento(eventos, widget.eventoId);
+    // Sem a programação, o card só fica sem a contagem.
+    final programacao =
+        evento == null ? <dynamic>[] : await ApiService.programacao(evento['id_evento']).catchError((_) => <dynamic>[]);
+    return (eventos: eventos, agenda: respostas[1], programacao: programacao);
+  }
+
+  /// Abre a tela Escolher evento e, se a pessoa tocar em outro evento,
+  /// troca o evento do Início (e da aba Programação) pelo `AppShell`.
+  Future<void> escolherOutroEvento(List<dynamic> eventos, int idAtual) async {
+    final escolhido = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(builder: (_) => EscolherEventoPage(eventos: eventos, idEventoAtual: idAtual)),
+    );
+    if (escolhido != null && escolhido != idAtual) widget.aoTrocarEvento(escolhido);
   }
 
   /// Começa a busca, troca a variável num `setState` com chaves (com a
@@ -92,9 +125,8 @@ class _HomePageState extends State<HomePage> {
     return novaBusca;
   }
 
-  /// O evento mostrado: o escolhido em "Trocar evento" ou o próximo.
-  Map<String, dynamic>? eventoMostrado(List<dynamic> eventos) =>
-      escolherEvento(eventos, widget.eventoId);
+  /// O evento mostrado: o escolhido em Escolher evento ou o próximo.
+  Map<String, dynamic>? eventoMostrado(List<dynamic> eventos) => escolherEvento(eventos, widget.eventoId);
 
   /// A próxima palestra da agenda neste evento (a primeira que ainda não
   /// terminou, então uma palestra acontecendo agora também conta), ou
@@ -156,26 +188,15 @@ class _HomePageState extends State<HomePage> {
                 if (evento == null)
                   const Text('Nenhum evento encontrado.')
                 else ...[
-                  if (eventos.length > 1) ...[
-                    DropdownButtonFormField<int>(
-                      initialValue: evento['id_evento'] as int,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Trocar evento'),
-                      items: [
-                        for (final e in eventos)
-                          DropdownMenuItem(
-                            value: e['id_evento'] as int,
-                            child: Text(e['nome'] ?? '', overflow: TextOverflow.ellipsis),
-                          ),
-                      ],
-                      onChanged: (id) {
-                        if (id != null) widget.aoTrocarEvento(id);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                  ],
+                  _CartaoEventoAtual(
+                    nome: evento['nome'] ?? '',
+                    outros: eventos.length - 1,
+                    aoTocar: () => escolherOutroEvento(eventos, evento['id_evento']),
+                  ),
+                  const SizedBox(height: 14),
                   _CardEvento(
                     evento: evento,
+                    programacao: snapshot.data!.programacao,
                     aoVerAvaliacoes: () => abrir(AvaliacoesEventoPage(
                       eventoId: evento['id_evento'],
                       nomeEvento: evento['nome'] ?? '',
@@ -230,7 +251,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 /// Escolhe o evento que o Início e a aba Programação mostram: o de
-/// `eventoId` (escolhido em "Trocar evento"), se ele existir; senão, o
+/// `eventoId` (escolhido em Escolher evento), se ele existir; senão, o
 /// próximo evento, o primeiro (por data de início) que ainda não
 /// terminou; se todos já terminaram, o primeiro deles. `null` sem eventos.
 Map<String, dynamic>? escolherEvento(List<dynamic> eventos, int? eventoId) {
@@ -239,14 +260,12 @@ Map<String, dynamic>? escolherEvento(List<dynamic> eventos, int? eventoId) {
     if (e['id_evento'] == eventoId) return Map<String, dynamic>.from(e);
   }
   final hoje = DateUtils.dateOnly(DateTime.now());
-  final ordenados = [...eventos]
-    ..sort((a, b) => (a['data_inicio'] ?? '').compareTo(b['data_inicio'] ?? ''));
+  final ordenados = [...eventos]..sort((a, b) => (a['data_inicio'] ?? '').compareTo(b['data_inicio'] ?? ''));
   final naoTerminados = ordenados.where((e) {
     final fim = DateTime.tryParse(e['data_fim'] ?? '');
     return fim == null || !fim.isBefore(hoje);
   });
-  return Map<String, dynamic>.from(
-      naoTerminados.isNotEmpty ? naoTerminados.first : ordenados.first);
+  return Map<String, dynamic>.from(naoTerminados.isNotEmpty ? naoTerminados.first : ordenados.first);
 }
 
 /// Topo da tela: dia e hora em JetBrains Mono (`SEX 23 OUT · 08:30`) e
@@ -292,23 +311,57 @@ class _Saudacao extends StatelessWidget {
   }
 }
 
-/// Período do evento como no canvas: `10—12 SET 2026` no mesmo mês,
-/// `30 SET—02 OUT 2026` em meses diferentes e
-/// `30 DEZ 2026—02 JAN 2027` em anos diferentes.
-String _periodo(String? inicioTexto, String? fimTexto) {
-  final inicio = DateTime.tryParse(inicioTexto ?? '');
-  final fim = DateTime.tryParse(fimTexto ?? '');
-  if (inicio == null) return 'DATA A DEFINIR';
-  String dia(DateTime d) => d.day.toString().padLeft(2, '0');
-  final mesInicio = meses[inicio.month - 1];
-  if (fim == null || DateUtils.isSameDay(inicio, fim)) {
-    return '${dia(inicio)} $mesInicio ${inicio.year}';
+/// Cartão "Você está no evento": o nome do evento mostrado e, com mais de
+/// um evento, "Outros eventos (N)", que abre a tela Escolher evento. Com um
+/// evento só, o cartão só informa e não abre nada.
+class _CartaoEventoAtual extends StatelessWidget {
+  final String nome;
+  final int outros;
+  final VoidCallback aoTocar;
+
+  const _CartaoEventoAtual({required this.nome, required this.outros, required this.aoTocar});
+
+  @override
+  Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    final cantos = BorderRadius.circular(10);
+
+    return Material(
+      color: cores.surface,
+      shape: RoundedRectangleBorder(borderRadius: cantos, side: BorderSide(color: cores.outline)),
+      child: InkWell(
+        borderRadius: cantos,
+        onTap: outros > 0 ? aoTocar : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('VOCÊ ESTÁ NO EVENTO', style: textos.labelSmall?.copyWith(fontSize: 10)),
+                    const SizedBox(height: 2),
+                    Text(nome, style: textos.titleSmall, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              if (outros > 0) ...[
+                const SizedBox(width: 10),
+                Text(
+                  'Outros eventos ($outros)',
+                  style: textos.labelLarge?.copyWith(fontSize: 13, color: cores.primary),
+                ),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
   }
-  final mesFim = meses[fim.month - 1];
-  final comeco = inicio.year != fim.year
-      ? '${dia(inicio)} $mesInicio ${inicio.year}'
-      : (inicio.month == fim.month ? dia(inicio) : '${dia(inicio)} $mesInicio');
-  return '$comeco—${dia(fim)} $mesFim ${fim.year}';
 }
 
 /// Situação do evento no tempo (F16), para a tag do card: antes do
@@ -328,19 +381,40 @@ String _periodo(String? inicioTexto, String? fimTexto) {
 
 /// Card do evento na cor principal, com a curva fina do rio ao fundo.
 ///
+/// Abaixo do local aparece quantas palestras e salas o evento tem
+/// (`6 palestras em 3 salas`), contadas na programação: as salas são os
+/// `id_localizacao` diferentes.
+///
 /// F16: no topo, a tag com a situação do evento (`_situacaoEvento`). O
 /// evento encerrado fica com o card acinzentado, e o botão "Ver
 /// programação" vira "Ver avaliações" (abre `AvaliacoesEventoPage`).
 class _CardEvento extends StatelessWidget {
   final Map<String, dynamic> evento;
+  final List<dynamic> programacao;
   final VoidCallback aoVerProgramacao;
   final VoidCallback aoVerAvaliacoes;
 
   const _CardEvento({
     required this.evento,
+    required this.programacao,
     required this.aoVerProgramacao,
     required this.aoVerAvaliacoes,
   });
+
+  /// `Centro de Convenções UFMG · 6 palestras em 3 salas`. Sem palestras,
+  /// só o local.
+  String localEContagem() {
+    // Local vazio ('') também conta como não informado.
+    final texto = (evento['local'] ?? '').toString().trim();
+    final local = texto.isEmpty ? 'Local a definir' : texto;
+    if (programacao.isEmpty) return local;
+    // Um `Set` guarda cada valor uma vez só: o tamanho dele é o número de
+    // salas diferentes.
+    final salas = {for (final p in programacao) p['id_localizacao']}..remove(null);
+    final palestras = programacao.length == 1 ? '1 palestra' : '${programacao.length} palestras';
+    if (salas.isEmpty) return '$local · $palestras';
+    return '$local · $palestras em ${salas.length == 1 ? '1 sala' : '${salas.length} salas'}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,7 +440,7 @@ class _CardEvento extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        _periodo(evento['data_inicio'], evento['data_fim']),
+                        periodoEvento(evento['data_inicio'], evento['data_fim']),
                         style: textos.labelMedium?.copyWith(color: corTexto.withValues(alpha: 0.85)),
                       ),
                     ),
@@ -404,7 +478,7 @@ class _CardEvento extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        evento['local'] ?? 'Local a definir',
+                        localEContagem(),
                         style: textos.bodySmall?.copyWith(color: corTexto.withValues(alpha: 0.8)),
                       ),
                     ],
@@ -458,7 +532,7 @@ class _RioDoCard extends CustomPainter {
   bool shouldRepaint(_RioDoCard antigo) => antigo.cor != cor;
 }
 
-/// Os quatro atalhos do evento, em duas colunas. Mapa do local (F03),
+/// Os quatro atalhos do evento, em duas colunas. Localização (F03),
 /// Palestrantes (F05) e Patrocínio (F10) já têm tela; "Onde comer"
 /// aparece como "Em breve" (F13).
 class _Atalhos extends StatelessWidget {
@@ -475,7 +549,7 @@ class _Atalhos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final atalhos = <(String, VoidCallback?)>[
-      ('Mapa do local', aoAbrirPlanta),
+      ('Localização', aoAbrirPlanta),
       ('Palestrantes', aoAbrirPalestrantes),
       ('Onde comer', null),
       ('Patrocínio', aoAbrirPatrocinio),
@@ -545,7 +619,8 @@ class _Atalho extends StatelessWidget {
 
 /// "Próxima na agenda": a próxima palestra em que a pessoa se inscreveu
 /// neste evento, no formato de ingresso do canvas (horário e sala à
-/// esquerda, picote, título e palestrante à direita).
+/// esquerda, picote, título e palestrante à direita, com os dois recortes
+/// em meia-lua na borda, em cima e embaixo do picote).
 class _ProximaNaAgenda extends StatelessWidget {
   final Palestra? palestra;
   final VoidCallback aoVerAgenda;
@@ -581,62 +656,102 @@ class _ProximaNaAgenda extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               side: BorderSide(color: cores.outlineVariant),
             ),
+            // O corte nas bordas do card também esconde a metade de fora
+            // dos recortes (ver `_Recorte`).
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => aoAbrir(p),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 86,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      color: cores.primary,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 84),
+                    child: IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            p.horario.split(' - ').first,
-                            style: textos.labelMedium?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: cores.onPrimary,
+                          Container(
+                            width: _larguraCanhoto,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            color: cores.primary,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  p.horario.split(' - ').first,
+                                  style: textos.labelMedium?.copyWith(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: cores.onPrimary,
+                                  ),
+                                ),
+                                if (p.sala != null)
+                                  Text(
+                                    p.sala!.toUpperCase(),
+                                    textAlign: TextAlign.center,
+                                    style: textos.labelSmall?.copyWith(
+                                      fontFamily: AppFontes.mono,
+                                      color: cores.onPrimary.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          if (p.sala != null)
-                            Text(
-                              p.sala!.toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: textos.labelSmall?.copyWith(
-                                fontFamily: AppFontes.mono,
-                                color: cores.onPrimary.withValues(alpha: 0.8),
+                          const Picote(vertical: true),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.titulo, style: textos.titleSmall),
+                                  if (p.palestrante != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(p.palestrante!, style: textos.bodySmall),
+                                  ],
+                                ],
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(p.titulo, style: textos.titleSmall),
-                            if (p.palestrante != null) ...[
-                              const SizedBox(height: 4),
-                              Text(p.palestrante!, style: textos.bodySmall),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  // Os dois "furos" do ingresso, em cima e embaixo do picote.
+                  const Positioned(left: _larguraCanhoto - 7, top: -7, child: _Recorte()),
+                  const Positioned(left: _larguraCanhoto - 7, bottom: -7, child: _Recorte()),
+                ],
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Largura do canhoto Marinho (horário e sala) do card, como no canvas.
+const double _larguraCanhoto = 86;
+
+/// Um recorte em meia-lua na borda do card "Próxima na agenda", como o
+/// furo de um ingresso.
+///
+/// É um círculo de 14px na cor do fundo da tela, com a linha fina do card.
+/// Ele fica metade para fora do card, e o `Clip.antiAlias` do card corta
+/// essa metade: sobra só a meia-lua "mordendo" a borda.
+class _Recorte extends StatelessWidget {
+  const _Recorte();
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        color: tema.scaffoldBackgroundColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: tema.colorScheme.outlineVariant),
+      ),
     );
   }
 }

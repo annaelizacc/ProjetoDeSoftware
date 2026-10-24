@@ -50,11 +50,12 @@ segundo projeto. O SQL final preserva as tabelas e os dados do banco oficial.
 18. Ver e pesquisar os palestrantes do evento pelo nome (Início →
     "Palestrantes"). Tocar num palestrante abre o perfil dele, e tocar
     numa palestra do perfil abre os detalhes dela.
-19. Ver a planta do evento (Início → "Mapa do local"): a imagem enviada
-    pelo organizador, com zoom, e a lista dos locais com o passo a passo
-    de como chegar.
+19. Ver a planta do lugar do evento (Início → "Localização", ou
+    Detalhes → **Ver planta**): o nome do lugar e quantas salas ele tem, a
+    imagem enviada pelo organizador, com zoom, e a lista das salas com o
+    caminho até cada uma e quantas palestras ela recebe.
 20. Ver como chegar até a sala de uma palestra (Detalhes → seção "Como
-    chegar"): o passo a passo a partir da entrada, escrito pelo
+    chegar", que começa fechada e abre ao tocar): o passo a passo a partir da entrada, escrito pelo
     organizador com um passo por linha. O botão **Ver planta**, na linha
     "Onde", abre a planta do evento.
 21. Aviso de choque de horário (F16): ao se inscrever numa palestra que
@@ -159,7 +160,7 @@ O que dá para testar com cada usuário:
 
 - **Ana (participante):**
   - Início: a Semana de Tecnologia, com "Segurança da Informação" como
-    próxima palestra; "Trocar evento" lista os três eventos;
+    próxima palestra; "Outros eventos (2)" abre Escolher evento, com os três;
   - "Banco de Dados na Prática" (ontem): inscrita e ainda sem avaliação,
     para testar a tela **Avaliar** (a média, hoje 4 com a nota da Carla,
     muda depois da avaliação);
@@ -324,17 +325,23 @@ O app abre com a tela de abertura (logo, slogan e o rio da marca, por
 
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
-**Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (**Mapa do local**, **Palestrantes** e **Patrocínio** já
+**Perfil**. O **Início** mostra o próximo evento: o cartão **Você está no
+evento**, datas, nome, local, quantas palestras e salas ele tem, o botão
+**Ver programação**, os atalhos (**Localização**, **Palestrantes** e **Patrocínio** já
 abrem; **Onde comer** aparece como "Em breve"), a descrição e a próxima palestra
-da agenda da pessoa nesse evento. Com mais de um evento, a lista
-**Trocar evento** acima do card troca o evento mostrado. Nos detalhes
+da agenda da pessoa nesse evento. Com mais de um evento, tocar no
+cartão (**Outros eventos**) abre a tela **Escolher evento**, com as datas,
+o lugar e as palestras de cada evento; tocar em um deles troca o evento
+mostrado. Nos detalhes
 da palestra, **Ver planta** (na linha "Onde") abre a planta do evento,
-a seção **Como chegar** mostra o caminho até a sala e tocar no
+a seção **Como chegar** (fechada, abre ao tocar) mostra o caminho até a sala e tocar no
 palestrante (**Ver perfil**) abre o perfil dele,
-com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
-interruptor de **Modo escuro** e o botão **Sair**, que volta para o
-login. A escolha do tema é salva no próprio aparelho com o pacote
+com a descrição, a rede social e as palestras dele no evento. O **Perfil**
+mostra o nome, o e-mail, quantas inscrições e favoritas a pessoa tem e o
+link **Editar perfil** (troca o nome e o e-mail da conta). Os
+**Favoritos** ficam dentro do Perfil, junto com **Certificados** ("Em
+breve"), o interruptor de **Modo escuro** e o botão **Sair**, que volta
+para o login. A escolha do tema é salva no próprio aparelho com o pacote
 `shared_preferences` (não vai para o banco).
 
 - **Programação:** uma aba para cada dia do evento (os dias que já
@@ -582,7 +589,7 @@ escolhe de quem remover a inscrição.
 ### Fluxo 1 — programação
 
 ```text
-Login -> Início (Trocar evento, se houver mais de um) -> Ver programação
+Login -> Início (Outros eventos, se houver mais de um) -> Ver programação
   -> detalhes da palestra
 ```
 
@@ -661,7 +668,7 @@ Programação -> Patrocinadores -> GET /api/patrocinadores?id_evento=1 -> cards
 Login (organizador) -> Perfil -> Área do organizador -> Novo evento
   -> Evento e planta (envia a imagem) -> Locais e rotas -> Palestrantes
   -> Palestras (escolhe local e palestrante) -> Patrocinadores
-  -> Login (participante) -> Início -> Trocar evento (o novo) -> Ver programação
+  -> Login (participante) -> Início -> Outros eventos (o novo) -> Ver programação
 ```
 
 Exemplo do envio de imagem com `curl` (troque `<TOKEN>` pelo token de

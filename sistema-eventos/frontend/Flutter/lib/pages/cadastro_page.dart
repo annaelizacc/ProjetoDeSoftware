@@ -100,6 +100,7 @@ class _CadastroPageState extends State<CadastroPage> {
           builder: (_) => AppShell(
             usuarioId: usuario['id_usuario'],
             nomeUsuario: usuario['nome'],
+            emailUsuario: usuario['email'] ?? '',
             ehOrganizador: usuario['tipo_usuario'] == 'organizador',
           ),
         ),
