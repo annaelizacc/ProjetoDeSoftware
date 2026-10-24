@@ -6,34 +6,41 @@ import '../theme/app_theme.dart';
 import '../utils/datas.dart';
 import '../widgets/marca_texto.dart';
 import '../widgets/rotulo_secao.dart';
+import 'escolher_evento_page.dart';
 import 'palestra_details_page.dart';
 import 'palestrantes_page.dart';
 import 'planta_page.dart';
 import 'patrocinadores_page.dart';
 import 'programacao_page.dart';
 
-/// O que o Início carrega: os eventos e a agenda da pessoa, juntos.
-typedef _DadosInicio = ({List<dynamic> eventos, List<dynamic> agenda});
+/// O que o Início carrega: os eventos, a agenda da pessoa e a programação
+/// do evento mostrado (para contar palestras e salas no card).
+typedef _DadosInicio = ({List<dynamic> eventos, List<dynamic> agenda, List<dynamic> programacao});
 
 /// Tela Início (F20 parte 2), como a prancha "Início" do canvas.
 ///
 /// Mostra as informações principais de UM evento, de cima para baixo:
 ///
 /// - a saudação, com o primeiro nome grifado (marca-texto);
-/// - o card do evento: datas, nome, local e o botão "Ver programação";
+/// - o cartão "Você está no evento", que abre a tela Escolher evento
+///   quando há mais de um evento;
+/// - o card do evento: datas, nome, local, quantas palestras e salas ele
+///   tem e o botão "Ver programação";
 /// - os atalhos do evento (mapa, palestrantes, onde comer, patrocínio).
 ///   Os que ainda não têm tela aparecem como "Em breve";
 /// - a descrição do evento, quando houver;
 /// - a próxima palestra da agenda da pessoa nesse evento.
 ///
 /// O evento mostrado começa pelo próximo (o primeiro que ainda não
-/// terminou). Com mais de um evento, a lista "Trocar evento" acima do
-/// card troca o evento, como na área do organizador. A aba Programação
-/// abre o mesmo evento.
+/// terminou). Com mais de um evento, o cartão "Você está no evento"
+/// (proposta "eventos, lugares e salas" do canvas, 23/10/2026) abre a tela
+/// Escolher evento, que devolve o evento escolhido. A aba Programação abre
+/// o mesmo evento.
 ///
 /// Busca `GET /api/eventos` e a agenda da pessoa
 /// (`GET /api/eventos/<id_usuario>/agenda`) ao mesmo tempo, com
-/// `Future.wait`.
+/// `Future.wait`, e depois a programação do evento mostrado (só dá para
+/// saber qual é depois que os eventos chegam).
 class HomePage extends StatefulWidget {
   final int usuarioId;
   final String nomeUsuario;
@@ -70,6 +77,16 @@ class _HomePageState extends State<HomePage> {
     futuro = carregar();
   }
 
+  /// O `AppShell` redesenha esta tela com outro `eventoId` quando a pessoa
+  /// escolhe outro evento. O `initState` não roda de novo nesse caso (o
+  /// `State` é reaproveitado), então a busca é refeita aqui: senão o card
+  /// mostraria a contagem do evento anterior.
+  @override
+  void didUpdateWidget(HomePage antigo) {
+    super.didUpdateWidget(antigo);
+    if (antigo.eventoId != widget.eventoId) futuro = carregar();
+  }
+
   Future<_DadosInicio> carregar() async {
     final respostas = await Future.wait([
       ApiService.eventos(),
@@ -77,7 +94,22 @@ class _HomePageState extends State<HomePage> {
       // palestra.
       ApiService.agenda(widget.usuarioId).catchError((_) => <dynamic>[]),
     ]);
-    return (eventos: respostas[0], agenda: respostas[1]);
+    final eventos = respostas[0];
+    final evento = escolherEvento(eventos, widget.eventoId);
+    // Sem a programação, o card só fica sem a contagem.
+    final programacao =
+        evento == null ? <dynamic>[] : await ApiService.programacao(evento['id_evento']).catchError((_) => <dynamic>[]);
+    return (eventos: eventos, agenda: respostas[1], programacao: programacao);
+  }
+
+  /// Abre a tela Escolher evento e, se a pessoa tocar em outro evento,
+  /// troca o evento do Início (e da aba Programação) pelo `AppShell`.
+  Future<void> escolherOutroEvento(List<dynamic> eventos, int idAtual) async {
+    final escolhido = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(builder: (_) => EscolherEventoPage(eventos: eventos, idEventoAtual: idAtual)),
+    );
+    if (escolhido != null && escolhido != idAtual) widget.aoTrocarEvento(escolhido);
   }
 
   /// Começa a busca, troca a variável num `setState` com chaves (com a
@@ -92,8 +124,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// O evento mostrado: o escolhido em "Trocar evento" ou o próximo.
-  Map<String, dynamic>? eventoMostrado(List<dynamic> eventos) =>
-      escolherEvento(eventos, widget.eventoId);
+  Map<String, dynamic>? eventoMostrado(List<dynamic> eventos) => escolherEvento(eventos, widget.eventoId);
 
   /// A próxima palestra da agenda neste evento (a primeira que ainda não
   /// terminou, então uma palestra acontecendo agora também conta), ou
@@ -155,26 +186,15 @@ class _HomePageState extends State<HomePage> {
                 if (evento == null)
                   const Text('Nenhum evento encontrado.')
                 else ...[
-                  if (eventos.length > 1) ...[
-                    DropdownButtonFormField<int>(
-                      initialValue: evento['id_evento'] as int,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Trocar evento'),
-                      items: [
-                        for (final e in eventos)
-                          DropdownMenuItem(
-                            value: e['id_evento'] as int,
-                            child: Text(e['nome'] ?? '', overflow: TextOverflow.ellipsis),
-                          ),
-                      ],
-                      onChanged: (id) {
-                        if (id != null) widget.aoTrocarEvento(id);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                  ],
+                  _CartaoEventoAtual(
+                    nome: evento['nome'] ?? '',
+                    outros: eventos.length - 1,
+                    aoTocar: () => escolherOutroEvento(eventos, evento['id_evento']),
+                  ),
+                  const SizedBox(height: 14),
                   _CardEvento(
                     evento: evento,
+                    programacao: snapshot.data!.programacao,
                     aoVerProgramacao: () => abrir(ProgramacaoPage(
                       eventoId: evento['id_evento'],
                       nomeEvento: evento['nome'] ?? '',
@@ -233,14 +253,12 @@ Map<String, dynamic>? escolherEvento(List<dynamic> eventos, int? eventoId) {
     if (e['id_evento'] == eventoId) return Map<String, dynamic>.from(e);
   }
   final hoje = DateUtils.dateOnly(DateTime.now());
-  final ordenados = [...eventos]
-    ..sort((a, b) => (a['data_inicio'] ?? '').compareTo(b['data_inicio'] ?? ''));
+  final ordenados = [...eventos]..sort((a, b) => (a['data_inicio'] ?? '').compareTo(b['data_inicio'] ?? ''));
   final naoTerminados = ordenados.where((e) {
     final fim = DateTime.tryParse(e['data_fim'] ?? '');
     return fim == null || !fim.isBefore(hoje);
   });
-  return Map<String, dynamic>.from(
-      naoTerminados.isNotEmpty ? naoTerminados.first : ordenados.first);
+  return Map<String, dynamic>.from(naoTerminados.isNotEmpty ? naoTerminados.first : ordenados.first);
 }
 
 /// Topo da tela: dia e hora em JetBrains Mono (`SEX 23 OUT · 08:30`) e
@@ -286,31 +304,83 @@ class _Saudacao extends StatelessWidget {
   }
 }
 
-/// Período do evento como no canvas: `10—12 SET 2026` no mesmo mês,
-/// `30 SET—02 OUT 2026` em meses diferentes e
-/// `30 DEZ 2026—02 JAN 2027` em anos diferentes.
-String _periodo(String? inicioTexto, String? fimTexto) {
-  final inicio = DateTime.tryParse(inicioTexto ?? '');
-  final fim = DateTime.tryParse(fimTexto ?? '');
-  if (inicio == null) return 'DATA A DEFINIR';
-  String dia(DateTime d) => d.day.toString().padLeft(2, '0');
-  final mesInicio = meses[inicio.month - 1];
-  if (fim == null || DateUtils.isSameDay(inicio, fim)) {
-    return '${dia(inicio)} $mesInicio ${inicio.year}';
+/// Cartão "Você está no evento": o nome do evento mostrado e, com mais de
+/// um evento, "Outros eventos (N)", que abre a tela Escolher evento. Com um
+/// evento só, o cartão só informa e não abre nada.
+class _CartaoEventoAtual extends StatelessWidget {
+  final String nome;
+  final int outros;
+  final VoidCallback aoTocar;
+
+  const _CartaoEventoAtual({required this.nome, required this.outros, required this.aoTocar});
+
+  @override
+  Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    final cantos = BorderRadius.circular(10);
+
+    return Material(
+      color: cores.surface,
+      shape: RoundedRectangleBorder(borderRadius: cantos, side: BorderSide(color: cores.outline)),
+      child: InkWell(
+        borderRadius: cantos,
+        onTap: outros > 0 ? aoTocar : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('VOCÊ ESTÁ NO EVENTO', style: textos.labelSmall?.copyWith(fontSize: 10)),
+                    const SizedBox(height: 2),
+                    Text(nome, style: textos.titleSmall, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              if (outros > 0) ...[
+                const SizedBox(width: 10),
+                Text(
+                  'Outros eventos ($outros)',
+                  style: textos.labelLarge?.copyWith(fontSize: 13, color: cores.primary),
+                ),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
   }
-  final mesFim = meses[fim.month - 1];
-  final comeco = inicio.year != fim.year
-      ? '${dia(inicio)} $mesInicio ${inicio.year}'
-      : (inicio.month == fim.month ? dia(inicio) : '${dia(inicio)} $mesInicio');
-  return '$comeco—${dia(fim)} $mesFim ${fim.year}';
 }
 
 /// Card do evento na cor principal, com a curva fina do rio ao fundo.
+///
+/// Abaixo do local aparece quantas palestras e salas o evento tem
+/// (`6 palestras em 3 salas`), contadas na programação: as salas são os
+/// `id_localizacao` diferentes.
 class _CardEvento extends StatelessWidget {
   final Map<String, dynamic> evento;
+  final List<dynamic> programacao;
   final VoidCallback aoVerProgramacao;
 
-  const _CardEvento({required this.evento, required this.aoVerProgramacao});
+  const _CardEvento({required this.evento, required this.programacao, required this.aoVerProgramacao});
+
+  /// `Centro de Convenções UFMG · 6 palestras em 3 salas`. Sem palestras,
+  /// só o local.
+  String localEContagem() {
+    final local = evento['local'] ?? 'Local a definir';
+    if (programacao.isEmpty) return local;
+    // Um `Set` guarda cada valor uma vez só: o tamanho dele é o número de
+    // salas diferentes.
+    final salas = {for (final p in programacao) p['id_localizacao']}..remove(null);
+    final palestras = programacao.length == 1 ? '1 palestra' : '${programacao.length} palestras';
+    if (salas.isEmpty) return '$local · $palestras';
+    return '$local · $palestras em ${salas.length == 1 ? '1 sala' : '${salas.length} salas'}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -330,7 +400,7 @@ class _CardEvento extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _periodo(evento['data_inicio'], evento['data_fim']),
+                  periodoEvento(evento['data_inicio'], evento['data_fim']),
                   style: textos.labelMedium?.copyWith(color: corTexto.withValues(alpha: 0.85)),
                 ),
                 const SizedBox(height: 48),
@@ -346,7 +416,7 @@ class _CardEvento extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        evento['local'] ?? 'Local a definir',
+                        localEContagem(),
                         style: textos.bodySmall?.copyWith(color: corTexto.withValues(alpha: 0.8)),
                       ),
                     ],

@@ -232,6 +232,7 @@ o nome indicado, que aparece acima de cada tela.
 | F22 | — (sugestão na F08) | 🟢 | Perfil de administrador geral: promover organizadores pelo app | Pendente |
 | F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
 | F24 | — (S05) | 🔴 | Dados de demonstração: eventos encerrado, acontecendo e futuro | Concluído |
+| F25 | — (sugestão na F20) | 🟢 | Total de palestras e salas na lista de eventos da API | Pendente |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -933,6 +934,20 @@ o nome indicado, que aparece acima de cada tela.
 - **Atenção:** a palestra "acontecendo agora" vale por 2 a 3 horas
   depois de o script rodar. Recriar o banco pouco antes da apresentação.
 - **Registro:** `DOCUMENTACAO.md`, seção 9.
+
+### F25 Total de palestras e salas na lista de eventos da API
+
+- **Origem:** dúvida da F20 (commit Escolher evento), registrada pela
+  Manuela em 23/10/2026 para fora do escopo da branch.
+- **O que acontece hoje:** `GET /api/eventos` não diz quantas palestras e
+  salas cada evento tem. Para mostrar "6 palestras em 3 salas" no Início
+  e "N palestras" em Escolher evento, o app busca a programação inteira de
+  cada evento só para contar (uma requisição por evento).
+- **O que falta:** o backend devolver `total_palestras` e `total_salas`
+  em cada evento (uma consulta com `COUNT`), e as duas telas usarem esses
+  campos em vez de buscar a programação.
+- **Por que ficou para depois:** com poucos eventos a diferença não
+  aparece. Só pesa quando houver muitos eventos.
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 

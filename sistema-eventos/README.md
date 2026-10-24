@@ -289,13 +289,16 @@ O app abre com a tela de abertura (logo, slogan e o rio da marca, por
 
 Depois do login, a barra de baixo tem cinco abas: **Início**,
 **Programação** (do mesmo evento mostrado no Início), **Agenda**, **Avisos** e
-**Perfil**. O **Início** mostra o próximo evento: datas, nome, local,
-o botão **Ver programação**, os atalhos (**Localização**, **Palestrantes** e **Patrocínio** já
+**Perfil**. O **Início** mostra o próximo evento: o cartão **Você está no
+evento**, datas, nome, local, quantas palestras e salas ele tem, o botão
+**Ver programação**, os atalhos (**Localização**, **Palestrantes** e **Patrocínio** já
 abrem; **Onde comer** aparece como "Em breve"), a descrição e a próxima palestra
-da agenda da pessoa nesse evento. Com mais de um evento, a lista
-**Trocar evento** acima do card troca o evento mostrado. Nos detalhes
+da agenda da pessoa nesse evento. Com mais de um evento, tocar no
+cartão (**Outros eventos**) abre a tela **Escolher evento**, com as datas,
+o lugar e as palestras de cada evento; tocar em um deles troca o evento
+mostrado. Nos detalhes
 da palestra, **Ver planta** (na linha "Onde") abre a planta do evento,
-a seção **Como chegar** mostra o caminho até a sala e tocar no
+a seção **Como chegar** (fechada, abre ao tocar) mostra o caminho até a sala e tocar no
 palestrante (**Ver perfil**) abre o perfil dele,
 com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
 interruptor de **Modo escuro** e o botão **Sair**, que volta para o
