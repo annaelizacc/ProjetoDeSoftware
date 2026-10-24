@@ -357,6 +357,12 @@ class ApiService {
   static Future<Map<String, dynamic>> criarEvento(Map<String, dynamic> dados) async =>
       Map<String, dynamic>.from(await request('/api/eventos', method: 'POST', body: dados));
 
+  /// Altera o nome e o e-mail da própria conta (`PUT /api/usuarios/<id>`).
+  /// O backend só aceita a pessoa logada e só esses campos (P01).
+  static Future<void> atualizarPerfil(int usuarioId, String nome, String email) async {
+    await request('/api/usuarios/$usuarioId', method: 'PUT', body: {'nome': nome, 'email': email});
+  }
+
   /// Altera um evento (`PUT /api/eventos/<id>`).
   static Future<void> atualizarEvento(int eventoId, Map<String, dynamic> dados) async {
     await request('/api/eventos/$eventoId', method: 'PUT', body: dados);

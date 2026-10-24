@@ -233,6 +233,7 @@ o nome indicado, que aparece acima de cada tela.
 | F23 | — (sugestão na F14) | 🟢 | Área do palestrante: o palestrante entra no app e vê as palestras dele | Pendente |
 | F24 | — (S05) | 🔴 | Dados de demonstração: eventos encerrado, acontecendo e futuro | Concluído |
 | F25 | — (sugestão na F20) | 🟢 | Total de palestras e salas na lista de eventos da API | Pendente |
+| F26 | RF20 (prancha do Perfil) | 🟡 | Editar perfil: e-mail repetido, troca de senha, foto de perfil e revisão de segurança | Parcial |
 
 ### F01 Tela de cadastro de usuário (RF01)
 
@@ -948,6 +949,41 @@ o nome indicado, que aparece acima de cada tela.
   campos em vez de buscar a programação.
 - **Por que ficou para depois:** com poucos eventos a diferença não
   aparece. Só pesa quando houver muitos eventos.
+
+### F26 Editar perfil: completar e revisar a segurança
+
+- **Origem:** pedido da Manuela na F20 (23/10/2026): o link "Editar
+  perfil" da prancha "Perfil — participante" entra agora, e a segurança é
+  resolvida depois.
+- **O que já existe (F20):** o link abaixo do e-mail no Perfil abre a tela
+  `editar_perfil_page.dart`, que troca o nome e o e-mail
+  (`PUT /api/usuarios/<id>`). O nome novo aparece no app inteiro na hora.
+  O backend já protege a rota desde a P01: só a própria pessoa altera a
+  conta (testado: outra conta → 403) e só `nome`, `email` e `senha` são
+  aceitos, com as validações do cadastro.
+- **O que falta:**
+  - **E-mail que já é de outra conta:** hoje volta `500 Erro interno no
+    servidor` (testado em 23/10/2026). O `AtualizarUsuarioService` deve
+    conferir antes e tratar o `IntegrityError`, como o
+    `CriarUsuarioService` já faz, e devolver "Já existe um usuário
+    cadastrado com este email.". É o caso que a P03 cita.
+  - **Trocar a senha:** a rota já aceita `senha`, mas a tela não tem o
+    campo. Decidir se pede a senha atual antes (recomendado, como na
+    remoção de evento).
+  - **Foto de perfil (pedido da Manuela, 23/10/2026):** um campo de foto
+    na tela de edição, com o `CampoImagem` (o mesmo da foto do
+    palestrante), e o avatar mostrando a foto no lugar das iniciais.
+    Precisa de:
+    - coluna `foto` na tabela `usuario` (no SQL e com `ALTER TABLE` para
+      quem já tem o banco; avisar quem precisar recriar);
+    - `foto` no `to_dict` do usuário e na lista de campos aceitos pelo
+      `AtualizarUsuarioService`;
+    - liberar `POST /api/uploads` para qualquer pessoa logada (hoje é só
+      para organizadores, P01). É uma mudança de acesso: mais gente
+      enviando arquivos ao servidor, então entra no `/security-review`;
+    - o login e o `AppShell` guardarem a foto, como fazem com o nome.
+  - `/security-review` antes do commit.
+- **Depende de:** P03.
 
 ## 1.3 Itens do relatório fora da lista de requisitos (decidir)
 

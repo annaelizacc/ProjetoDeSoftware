@@ -300,9 +300,12 @@ mostrado. Nos detalhes
 da palestra, **Ver planta** (na linha "Onde") abre a planta do evento,
 a seção **Como chegar** (fechada, abre ao tocar) mostra o caminho até a sala e tocar no
 palestrante (**Ver perfil**) abre o perfil dele,
-com a descrição, a rede social e as palestras dele no evento. Os **Favoritos** ficam dentro do Perfil, junto com o
-interruptor de **Modo escuro** e o botão **Sair**, que volta para o
-login. A escolha do tema é salva no próprio aparelho com o pacote
+com a descrição, a rede social e as palestras dele no evento. O **Perfil**
+mostra o nome, o e-mail, quantas inscrições e favoritas a pessoa tem e o
+link **Editar perfil** (troca o nome e o e-mail da conta). Os
+**Favoritos** ficam dentro do Perfil, junto com **Certificados** ("Em
+breve"), o interruptor de **Modo escuro** e o botão **Sair**, que volta
+para o login. A escolha do tema é salva no próprio aparelho com o pacote
 `shared_preferences` (não vai para o banco).
 
 - **Programação:** uma aba para cada dia do evento (os dias que já
